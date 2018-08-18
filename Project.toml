@@ -1,0 +1,7 @@
+name = "Cytof5"
+uuid = "9d2f02b2-a32d-11e8-1157-5507aac9729b"
+authors = ["Arthur Lui <luiarthur@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
