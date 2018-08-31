@@ -1,18 +1,15 @@
-struct StateGeneric
-
-end
-
 const monitor_default = Vector{Vector{Symbol}}([])
 const thin_default = Vector{Int}()
 
 function gibbs(init,
                update::Function;
-               monitors::Vector{Vector{Symbol}}=monitor_default,
-               thins::Vector{Int}=thin_default,
+               monitors::Vector{Vector{Symbol}}=deepcopy(monitor_default),
+               thins::Vector{Int}=deepcopy(thin_default),
                nmcmc::Int64=1000, nburn::Int=0, printProgress::Bool=true)
   """
   This is my docs...
   """
+  state = deepcopy(init)
 
   # Checking number of monitors.
   numMonitors = length(monitors)
@@ -20,34 +17,56 @@ function gibbs(init,
   @assert numMonitors == length(thins)
 
   # Check monitor
-  if monitors === monitor_default
+  if numMonitors == 0
     println("Using default monitor.")
     fnames = [ fname for fname in fieldnames(typeof(init))]
     append!(monitors, [fnames])
     append!(thins, 1)
+    numMonitors = 1
   end
 
   # burn in
   for i in 1:nburn
-
+    update(state)
   end
 
-  # Gibbs loop
+  # object to return
+  #out = Vector{Vector{Dict{Symbol, Any}}}([]) # monitors, chain, dict
+  #start=Vector{Dict{Symbol, Any}}([])
+  out = [ Vector{Dict{Symbol, Any}}([]) for i in 1:numMonitors ]
 
-  return init
+  # Gibbs loop
+  for i in 1:nmcmc
+    update(state)
+
+    for j in 1:numMonitors
+      if i % thins[j] == 0
+        substate = Dict{Symbol, Any}()
+        for s in monitors[j]
+          substate[s] =  deepcopy(getfield(state, s))
+        end
+        append!(out[j], [substate])
+      end
+    end
+  end
+
+  return (out, state)
 end
 
-struct State
+#= Test
+mutable struct State
   x::Int
   y::Float64
+  z::Vector{Float64}
 end
 
-function update(s::State)::Void
+function update(s::State)
   s.x += 1
   s.y -= 1
+  s.z[1] += 1
 end
 
-s = State(0, 0)
-gibbs(s, update)
-
+s = State(0, 0, [0,0])
+out, lastState = gibbs(s, update, monitors=[[:x,:y], [:z]], thins=[1,2])
+=#
 
