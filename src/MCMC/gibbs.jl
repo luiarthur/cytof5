@@ -53,20 +53,3 @@ function gibbs(init,
   return (out, state)
 end
 
-#= Test
-mutable struct State
-  x::Int
-  y::Float64
-  z::Vector{Float64}
-end
-
-function update(s::State)
-  s.x += 1
-  s.y -= 1
-  s.z[1] += 1
-end
-
-s = State(0, 0, [0,0])
-out, lastState = gibbs(s, update, monitors=[[:x,:y], [:z]], thins=[1,2])
-=#
-
