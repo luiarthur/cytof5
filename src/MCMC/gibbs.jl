@@ -25,19 +25,20 @@ function gibbs(init,
     numMonitors = 1
   end
 
-  # burn in
-  for i in 1:nburn
-    update(state)
-  end
-
   # object to return
   #out = Vector{Vector{Dict{Symbol, Any}}}([]) # monitors, chain, dict
   #start=Vector{Dict{Symbol, Any}}([])
   out = [ Vector{Dict{Symbol, Any}}([]) for i in 1:numMonitors ]
 
+  # burn in
+  for i in 1:nburn
+    update(state, i, out)
+  end
+
+
   # Gibbs loop
   for i in 1:nmcmc
-    update(state)
+    update(state, i, out)
 
     for j in 1:numMonitors
       if i % thins[j] == 0

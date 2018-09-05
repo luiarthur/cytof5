@@ -33,7 +33,7 @@ mutable struct State
 end
 
 @testset "Compile MCMC.gibbs." begin
-  function update(s::State)
+  function update(s::State, i::Int, out::Any)
     s.x += 1
     s.y -= 1
     s.z[1] += 1
@@ -66,3 +66,4 @@ end
 
   # TODO
 end
+
