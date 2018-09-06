@@ -89,5 +89,9 @@ function logpdfLogInverseGamma(logX::Float64, a::Float64, b::Float64)
   return logpdfLogX2Param(logX, (x,aa,bb) -> logpdf(InverseGamma(aa, bb), x), a, b)
 end
 
+function logpdfLogitUniform(logitX::Float64, a::Float64, b::Float64)
+  return logpdfLogX2Param(logitX, (x,aa,bb) -> logpdf(Uniform(aa, bb), x), a, b)
+end
+
 end # MCMC
 
