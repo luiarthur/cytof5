@@ -30,7 +30,7 @@ Another useful website:
   https://m-clark.github.io/docs/ld_mcmc/index_onepage.html
 """
 function metropolisAdaptive(curr::Float64, logFullCond::Function, tuner::TuningParam;
-                            delta::Function=n::Int64->min(n^(-0.5), 0.01),targetAcc::Float64=0.44)
+                            delta::Function=n::Int64->min(n^(-0.3), 0.01), targetAcc::Float64=0.44)
   iter = tuner.currentIter
   factor = exp(delta(iter))
 
@@ -43,9 +43,9 @@ function metropolisAdaptive(curr::Float64, logFullCond::Function, tuner::TuningP
   cand = rand(Normal(curr, tuner.value))
   logU = log(rand())
   p = logFullCond(cand) - logFullCond(curr)
-  accept = p > u
+  accept = p > logU
 
-  tuner.update(accept)
+  update(tuner, accept)
   
   out = accept ? cand : curr
 
@@ -83,6 +83,10 @@ end
 
 function logpdfLogX4Param(logX::Float64, logpdfX::Function, a::Float64, b::Float64, c::Float64, d::Float64)
   return logpdfX(exp(logX), a, b, c, d) + logX
+end
+
+function logpdfLogInverseGamma(logX::Float64, a::Float64, b::Float64)
+  return logpdfLogX2Param(logX, (x,aa,bb) -> logpdf(InverseGamma(aa, bb), x), a, b)
 end
 
 end # MCMC
