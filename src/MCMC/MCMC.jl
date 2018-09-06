@@ -1,7 +1,7 @@
 module MCMC
 using Distributions
 
-export gibbs, TuningParam, metropolis, metropolisAdaptive, logpdfLogX1Param, logpdfLogX2Param, logpdfLogX3Param, logpdfLogX4Param
+export gibbs, TuningParam, metropolis, metropolisAdaptive, logpdfLogX1Param, logpdfLogX2Param, logpdfLogX3Param, logpdfLogX4Param, logpdfLogX
 
 include("gibbs.jl")
 include("TuningParam.jl")
@@ -69,6 +69,10 @@ function sigmoid(x::Float64; a::Float64=0.0, b::Float64=1.0)
   return out
 end
 
+function logpdfLogX(logX::Float64, logpdfX::Function)
+  return logpdfX(exp(logX)) + logX
+end
+
 function logpdfLogX1Param(logX::Float64, logpdfX::Function, a::Float64)
   return logpdfX(exp(logX), a) + logX
 end
@@ -92,6 +96,42 @@ end
 function logpdfLogitUniform(logitX::Float64, a::Float64, b::Float64)
   return logpdfLogX2Param(logitX, (x,aa,bb) -> logpdf(Uniform(aa, bb), x), a, b)
 end
+
+# TODO: Test
+function metLogitAdaptive(curr::Float64, ll::Function, lp::Function,
+                          tuner::TuningParam; a::Float64=0, b::Float64=1, 
+                          delta::Function=n::Int64->min(n^(-0.3), 0.01),
+                          targetAcc::Float64=0.44)
+
+  function lfc_logitX(logit_x::Float64)
+    x = sigmoid(logit_x, a, b)
+    lp_logitX = lp(x) + logpdf(Logistic(), logit_x)
+    return ll(x) + lp_logitX
+  end
+
+  logit_x = metropolisAdaptive(logit(curr,a,b), lfc, tuner,
+                               delta=delta, targetAcc=targetAcc)
+
+  return sigmoid(logit_x, a, b)
+end
+
+# TODO: Test
+function metLogAdaptive(curr::Float64, ll::Function, lp::Function,
+                              tuner::TuningParam;
+                              delta::Function=n::Int64->min(n^(-0.3), 0.01),
+                              targetAcc::Float64=0.44)
+
+  function lfc_logX(log_x::Float64)
+    x = exp(log_x)
+    return ll(x) + logpdfLogX(log_x, lp)
+  end
+
+  logit_x = metropolisAdaptive(log(curr), lfc, tuner,
+                               delta=delta, targetAcc=targetAcc)
+
+  return exp(log_x)
+end
+
 
 end # MCMC
 
