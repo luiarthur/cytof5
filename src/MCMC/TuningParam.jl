@@ -2,7 +2,9 @@ mutable struct TuningParam
   value::Any
   acceptanceCount::Int
   currentIter::Int
-  TuningParam(v) = new(v, 0, 0)
+  batch_size::Int
+
+  TuningParam(v) = new(v, 0, 0, 50)
 end
 
 function update(param::TuningParam, accept::Bool)
@@ -17,7 +19,7 @@ function update(param::TuningParam, accept::Bool)
 end
 
 function acceptanceRate(param::TuningParam)
-  return param.acceptanceCount / param.currentIter
+  #return param.acceptanceCount / param.currentIter
+  return param.acceptanceCount / param.batch_size
 end
-
 

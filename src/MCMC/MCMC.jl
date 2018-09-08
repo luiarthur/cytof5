@@ -1,7 +1,7 @@
 module MCMC
 using Distributions
 
-export gibbs, TuningParam, metropolis, metropolisAdaptive, logpdfLogX1Param, logpdfLogX2Param, logpdfLogX3Param, logpdfLogX4Param, logpdfLogX
+export gibbs, TuningParam, metropolis, metropolisAdaptive, logpdfLogX, metLogAdaptive, metLogitAdaptive
 
 include("gibbs.jl")
 include("TuningParam.jl")
@@ -29,15 +29,24 @@ Adaptive metropolis (within Gibbs). See section 3 of the paper below:
 Another useful website:
   https://m-clark.github.io/docs/ld_mcmc/index_onepage.html
 """
-function metropolisAdaptive(curr::Float64, logFullCond::Function, tuner::TuningParam;
-                            delta::Function=n::Int64->min(n^(-0.3), 0.01), targetAcc::Float64=0.44)
+function metropolisAdaptive(curr::Float64, logFullCond::Function,
+                            tuner::TuningParam;
+                            delta::Function=n::Int->min(n^(-0.5), 0.01),
+                            targetAcc::Float64=0.44)
   iter = tuner.currentIter
-  factor = exp(delta(iter))
+  batch_size = tuner.batch_size
 
-  if acceptanceRate(tuner) > targetAcc
-    tuner.value *= factor
-  else
-    tuner.value /= factor
+  if iter % batch_size == 0
+    #factor = exp(delta(iter))
+    n = Int(floor(iter / batch_size))
+    factor = exp(delta(n))
+    if acceptanceRate(tuner) > targetAcc
+      tuner.value *= factor
+    else
+      tuner.value /= factor
+    end
+
+    tuner.acceptanceCount = 0
   end
 
   cand = rand(Normal(curr, tuner.value))
@@ -73,60 +82,41 @@ function logpdfLogX(logX::Float64, logpdfX::Function)
   return logpdfX(exp(logX)) + logX
 end
 
-function logpdfLogX1Param(logX::Float64, logpdfX::Function, a::Float64)
-  return logpdfX(exp(logX), a) + logX
+function logpdfLogitX(logitX::Float64, logpdfX::Function, a::Float64, b::Float64)
+  x = sigmoid(logitX, a=a, b=b)
+  logJacobian = logpdf(Logistic(), logitX) + log(b - a)
+  logpdfX(x) + logJacobian
 end
 
-function logpdfLogX2Param(logX::Float64, logpdfX::Function, a::Float64, b::Float64)
-  return logpdfX(exp(logX), a, b) + logX
-end
-
-function logpdfLogX3Param(logX::Float64, logpdfX::Function, a::Float64, b::Float64, c::Float64)
-  return logpdfX(exp(logX), a, b, c) + logX
-end
-
-function logpdfLogX4Param(logX::Float64, logpdfX::Function, a::Float64, b::Float64, c::Float64, d::Float64)
-  return logpdfX(exp(logX), a, b, c, d) + logX
-end
-
-function logpdfLogInverseGamma(logX::Float64, a::Float64, b::Float64)
-  return logpdfLogX2Param(logX, (x,aa,bb) -> logpdf(InverseGamma(aa, bb), x), a, b)
-end
-
-function logpdfLogitUniform(logitX::Float64, a::Float64, b::Float64)
-  return logpdfLogX2Param(logitX, (x,aa,bb) -> logpdf(Uniform(aa, bb), x), a, b)
-end
-
-# TODO: Test
 function metLogitAdaptive(curr::Float64, ll::Function, lp::Function,
                           tuner::TuningParam; a::Float64=0, b::Float64=1, 
-                          delta::Function=n::Int64->min(n^(-0.3), 0.01),
+                          delta::Function=n::Int64->min(n^(-0.5), 0.01),
                           targetAcc::Float64=0.44)
 
   function lfc_logitX(logit_x::Float64)
-    x = sigmoid(logit_x, a, b)
-    lp_logitX = lp(x) + logpdf(Logistic(), logit_x)
+    x = sigmoid(logit_x, a=a, b=b)
+    #lp_logitX = lp(x) + logpdf(Logistic(), logit_x)
+    lp_logitX = logpdfLogitX(logit_x, lp, a, b)
     return ll(x) + lp_logitX
   end
 
-  logit_x = metropolisAdaptive(logit(curr,a,b), lfc, tuner,
+  logit_x = metropolisAdaptive(logit(curr,a=a,b=b), lfc_logitX, tuner,
                                delta=delta, targetAcc=targetAcc)
 
-  return sigmoid(logit_x, a, b)
+  return sigmoid(logit_x, a=a, b=b)
 end
 
-# TODO: Test
 function metLogAdaptive(curr::Float64, ll::Function, lp::Function,
-                              tuner::TuningParam;
-                              delta::Function=n::Int64->min(n^(-0.3), 0.01),
-                              targetAcc::Float64=0.44)
+                        tuner::TuningParam;
+                        delta::Function=n::Int64->min(n^(-0.5), 0.01),
+                        targetAcc::Float64=0.44)
 
   function lfc_logX(log_x::Float64)
     x = exp(log_x)
     return ll(x) + logpdfLogX(log_x, lp)
   end
 
-  logit_x = metropolisAdaptive(log(curr), lfc, tuner,
+  log_x = metropolisAdaptive(log(curr), lfc_logX, tuner,
                                delta=delta, targetAcc=targetAcc)
 
   return exp(log_x)
