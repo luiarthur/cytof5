@@ -1,3 +1,5 @@
+import Dates
+
 const monitor_default = Vector{Vector{Symbol}}([])
 const thin_default = Vector{Int}()
 
@@ -30,14 +32,25 @@ function gibbs(init,
   #start=Vector{Dict{Symbol, Any}}([])
   out = [ Vector{Dict{Symbol, Any}}([]) for i in 1:numMonitors ]
 
+  # Milestones
+  milestone = Int((nburn + nmcmc) / 20)
+
+  function printMsg(i::Int)
+    if i % milestone == 0 && printProgress
+      println("$(Dates.now()) -- $i / $(nburn+nmcmc)")
+    end
+  end
+
   # burn in
   for i in 1:nburn
+    printMsg(i)
     update(state, i, out)
   end
 
 
   # Gibbs loop
   for i in 1:nmcmc
+    printMsg(i + nburn)
     update(state, i, out)
 
     for j in 1:numMonitors

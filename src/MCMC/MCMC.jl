@@ -6,12 +6,17 @@ export gibbs, TuningParam, metropolis, metropolisAdaptive, logpdfLogX, metLogAda
 include("gibbs.jl")
 include("TuningParam.jl")
 
-function metropolis(curr::Float64, logFullCond::Function, stepSD::Float64)
+function metropolisBase(curr::Float64, logFullCond::Function, stepSD::Float64)
   cand = curr + randn() * stepSD
   logU = log(rand())
-  p = logFullCond(cand) - logFullCond(curr)
-  out = p > logU ? cand : curr
-  return out
+  logP = logFullCond(cand) - logFullCond(curr)
+  accept = logP > logU
+  draw = accept ? cand : curr
+  return (draw, accept)
+end
+
+function metropolis(curr::Float64, logFullCond::Function, stepSD::Float64)
+  return metropolisBase(curr, logFullCond, stepSD)[1]
 end
 
 function metropolis(curr::Vector{Float64}, logFullCond::Function, stepSD::Matrix{Float64})
@@ -37,7 +42,6 @@ function metropolisAdaptive(curr::Float64, logFullCond::Function,
   batch_size = tuner.batch_size
 
   if iter % batch_size == 0
-    #factor = exp(delta(iter))
     n = Int(floor(iter / batch_size))
     factor = exp(delta(n))
     if acceptanceRate(tuner) > targetAcc
@@ -49,16 +53,9 @@ function metropolisAdaptive(curr::Float64, logFullCond::Function,
     tuner.acceptanceCount = 0
   end
 
-  cand = rand(Normal(curr, tuner.value))
-  logU = log(rand())
-  p = logFullCond(cand) - logFullCond(curr)
-  accept = p > logU
-
+  draw, accept = metropolisBase(curr, logFullCond, tuner.value)
   update(tuner, accept)
-  
-  out = accept ? cand : curr
-
-  return out
+  return draw
 end
 
 function logit(p::Float64; a::Float64=0.0, b::Float64=1.0)

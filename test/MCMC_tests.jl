@@ -1,5 +1,5 @@
 Random.seed!(10)
-printDebug = true
+printDebug = false
 
 @testset "Compile MCMC.metropolis." begin
   lfc(x) = x
@@ -35,7 +35,7 @@ end
   end
 
   s = State(0, 0, [0,0])
-  out, lastState = MCMC.gibbs(s, update, monitors=[[:x,:y], [:z]], thins=[1,2])
+  out, lastState = MCMC.gibbs(s, update, monitors=[[:x,:y], [:z]], thins=[1,2], printProgress=printDebug)
   @test true
 end
 
@@ -51,15 +51,17 @@ mutable struct Param
 end
 
 @testset "MCMC.metropolisAdaptive" begin
-  muTrue = [1., 3.]
-  J = length(muTrue)
+  #muTrue = [1., 3.]
+  #J = length(muTrue)
+  J = 3
+  muTrue = randn(J) * 10
   sig2True = .5
   nHalf = 300
   y = [ rand(Normal(m, sqrt(sig2True)), nHalf) for m in muTrue ]
   n = nHalf * 2
 
   muPriorMean = 0.
-  muPriorSd = 5.
+  muPriorSd = 10.
 
   sig2Prior_a = 3.
   sig2Prior_b = 2.
@@ -117,8 +119,8 @@ end
     return
   end
 
-  init = Param([0., 0.], sig2True, tunerSig2.value)
-  @time out, state = MCMC.gibbs(deepcopy(init), update, nmcmc=2000, nburn=20000)
+  init = Param(fill(0., J), sig2True, tunerSig2.value)
+  @time out, state = MCMC.gibbs(deepcopy(init), update, nmcmc=2000, nburn=20000, printProgress=printDebug)
 
   if printDebug
     # Print acceptance rates
@@ -130,14 +132,15 @@ end
     println("sig2 Tuner value:      $(tunerSig2.value)")
 
     # Print Means
+    println("muTrue: $(muTrue)")
     muPost = hcat([o[:mu] for o in out[1]]...)
     sig2Post = hcat([o[:sig2] for o in out[1]]...)
     cs_sig2 = hcat([o[:cs_sig2] for o in out[1]]...)
     R"""
     library(rcommon)
     pdf('result/amcmc.pdf')
-    plotPosts($(muPost'))
-    plotPost($(sig2Post'))
+    plotPosts($(muPost[1:min(4,J), :]'), cnames=paste('truth:', round($muTrue, 3)))
+    plotPost($(sig2Post'), main=paste('truth:', $sig2True))
     plot(1:length($cs_sig2), $cs_sig2, type='l')
     dev.off()
     """
