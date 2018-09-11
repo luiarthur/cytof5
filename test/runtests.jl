@@ -7,4 +7,5 @@ using RCall
 import Random
 println("Starting Tests for Cytof5 test...")
 
+include("Model_tests.jl")
 include("MCMC_tests.jl")
