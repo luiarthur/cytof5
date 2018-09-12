@@ -5,6 +5,8 @@ struct Constants
   sig2_prior::Tuple{Float16, Float16} # sig2_i ~ IG(shape, scale)
   b0_prior::Tuple{Float16, Float16} # b0 ~ Normal(mean, sd)
   b1_prior::Tuple{Float16, Float16} # b1 ~ Unif(a, b) (positive)
+  K::Int
+  L::Int
 end
 
 function defaultConstants(data::Data, K::Int, L::Int)
@@ -27,5 +29,5 @@ function defaultConstants(data::Data, K::Int, L::Int)
   b0_prior = (0.0, 10.0)
   b1_prior = (0.0, 50.0)
 
-  Constants(alpha_prior, mus_prior, W_prior, sig2_prior, b0_prior, b1_prior)
+  Constants(alpha_prior, mus_prior, W_prior, sig2_prior, b0_prior, b1_prior, K, L)
 end

@@ -36,5 +36,6 @@ printDebug = false
 
   # Debug Constants constructor
   constants = Model.defaultConstants(data, K, L)
-  @test true
+  @test constants.K == K
+  @test constants.L == L
 end
