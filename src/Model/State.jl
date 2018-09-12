@@ -13,21 +13,5 @@ mutable struct State
   y_imputed::Vector{Matrix{Float16}}
   b0::Float16
   b1::Float16
-
-  State(;
-        Z::Any = missing,
-        mus::Any = missing,
-        alpha::Any = missing, 
-        v::Any = missing,
-        W::Any = missing,
-        sig2::Any = missing,
-        eta::Any = missing,
-        lam::Any = missing,
-        gam::Any = missing,
-        y_imputed::Any = missing,
-        b0::Any = missing,
-        b1::Any = missing) = new(Z, mus, alpha, v, W, sig2, eta, lam, gam,
-                                 y_imputed, b0, b1)
-
 end
 

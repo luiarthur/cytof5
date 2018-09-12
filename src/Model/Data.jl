@@ -1,5 +1,3 @@
-# TODO: Test
-
 const VecMissMat = Vector{Matrix{Union{T, Missing}}} where T
 
 function nrow(m)
@@ -12,21 +10,16 @@ end
 
 struct Data
   y::VecMissMat{Float16}
+  I::Int
+  J::Int
+  N::Vector{Int}
 
   function Data(y) 
     @assert all( ncol.(y) .== ncol(y[1]) )
-    return new(y)
+    I = length(y)
+    J = ncol(y[1])
+    N = nrow.(y)
+    return new(y, I, J, N)
   end
 end
 
-function getI(data::Data)
-  return length(data.y)
-end
-
-function getJ(data::Data)
-  return ncol(data.y[1])
-end
-
-function getN(data::Data)
-  return nrow.(data.y)
-end
