@@ -62,19 +62,22 @@ Z = Int.(randn(3,5) .> 0)
 # TODO: Test
 function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Int;
                 sortLambda::Bool=false, propMissingScale::Float64=0.7)
-  genData(I, J, N, K, L, genSimpleZ(J, K), Dict("b0"=>-9.2, "b1"=>-2.3),
-          sig2=fill(0.1, I),
-          mus=Dict(0=>range(-5, length=L, stop=-1), 
-                   1=>range(1, length=L, stop=5)),
-          a_W=[float(i) for i in 1:K], a_eta=[float(l) for l in 1:L],
+  genData(I, J, N, K, L,
+          genSimpleZ(J, K), # Z
+          Dict(:b0=>-9.2, :b1=>-2.3), # missMechParams
+          fill(0.1, I), # sig2
+          Dict(0=>collect(range(-5, length=L, stop=-1)), #mus
+               1=>collect(range(1, length=L, stop=5))),
+          [float(i) for i in 1:K], # a_W
+          Dict([ z => [float(l) for l in 1:L] for z in 0:1 ]), # a_eta
           sortLambda, propMissingScale)
 end
 
 function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Int,
-                 Z::Matrix{Int}, missMechParams::Dict{String,Float64},
-                 sig2::Vector, mus::Dict{Int, Vector}, 
-                 a_W::Vector, a_eta::Dict{Int, Vector}; sortLambda::Bool,
-                 propMissingScale)
+                 Z::Matrix{Int}, missMechParams::Dict{Symbol,Float64},
+                 sig2::Vector{Float64}, mus::Dict{Int, Vector{Float64}}, 
+                 a_W::Vector{Float64}, a_eta::Dict{Int, Vector{Float64}},
+                 sortLambda::Bool, propMissingScale::Float64)
 
   # Check Z dimensions
   @assert ncol(Z) == K && nrow(Z) == J
@@ -85,7 +88,7 @@ function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Int,
 
   # Check sig2 dimensions
   @assert all(sig2 .> 0)
-  @assert length(sig2) == L
+  @assert length(sig2) == I
 
   # Check mus dimensions
   @assert all(mus[0] .< 0) && all(mus[1] .> 0)
@@ -109,12 +112,12 @@ function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Int,
 
   # Simulate lambda
   lam = [rand(Categorical(W[i,:]), N[i]) for i in 1:I]
-  if sort_lambda
+  if sortLambda
     lam = [sort(lami) for lami in lam]
   end
 
   # Simulate eta
-  eta = Dict{Int, Cube{Float64}}
+  eta = Dict([ z => zeros(Float64, I, J, L) for z in 0:1 ])
   for i in 1:I
     for j in 1:J
       eta[0][i, j, :] = rand(Dirichlet(Random.shuffle(a_eta[0])))
@@ -123,7 +126,7 @@ function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Int,
   end
 
   # Simulate gam
-  gam = [zeros(Float64, Ni, J) for Ni in N]
+  gam = [zeros(Int, Ni, J) for Ni in N]
   for i in 1:I
     for j in 1:J
       for n in 1:N[i]
@@ -157,9 +160,9 @@ function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Int,
       end
 
       # Set some to be missing
-      p_miss = prob_miss.(y_complete[i][:,j], mmp["b0"], mmp["b1"])
-      prop_missing = rand() * propMissingScale * sum(W[i,:] .* (1 - Z[j,:]))
-      num_missing = Int(N[i] * prop_missing)
+      p_miss = prob_miss.(y_complete[i][:,j], mmp[:b0], mmp[:b1])
+      prop_missing = rand() * propMissingScale * sum(W[i,:] .* (1 .- Z[j,:]))
+      num_missing = Int(round(N[i] * prop_missing))
       idx_missing = [ Distributions.wsample(p_miss) for ii in 1:num_missing]
       y[i][:, j] .= y_complete[i][:, j] .+ 0
       y[i][idx_missing, j] .= missing
@@ -168,6 +171,6 @@ function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Int,
 
   return Dict(:y=>y, :y_complete=>y_complete, :Z=>Z, :W=>W,
               :eta=>eta, :mus=>mus, :sig2=>sig2, :lam=>lam, :gam=>gam,
-              :b0=>b0, :b1=>b1)
+              :b0=>missMechParams[:b0], :b1=>missMechParams[:b1])
 end # genData
 

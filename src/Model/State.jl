@@ -9,7 +9,7 @@ mutable struct State
   sig2::Vector{Float64}
   eta::Dict{Int, Cube{Float64}}
   lam::Vector{Vector{Int16}} # Array of Array. lam[1:I] ∈ {1,...,K}
-  gam::Vector{Matrix{Float64}}
+  gam::Vector{Matrix{Int}}
   y_imputed::Vector{Matrix{Float64}}
   b0::Float64
   b1::Float64
