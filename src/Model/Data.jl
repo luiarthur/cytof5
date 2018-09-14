@@ -1,15 +1,15 @@
 const VecMissMat = Vector{Matrix{Union{T, Missing}}} where T
 
-function nrow(m)
+function nrow(m::Matrix)
   return size(m, 1)
 end
 
-function ncol(m)
+function ncol(m::Matrix)
   return size(m, 2)
 end
 
 struct Data
-  y::VecMissMat{Float16}
+  y::VecMissMat{Float64}
   I::Int
   J::Int
   N::Vector{Int}
@@ -23,3 +23,5 @@ struct Data
   end
 end
 
+include("missing_mechanism.jl")
+include("generate_data.jl")

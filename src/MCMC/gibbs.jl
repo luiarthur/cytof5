@@ -33,7 +33,7 @@ function gibbs(init,
   out = [ Vector{Dict{Symbol, Any}}([]) for i in 1:numMonitors ]
 
   # Milestones
-  milestone = Int((nburn + nmcmc) / 20)
+  milestone = Int((nburn + nmcmc) / 10)
 
   function printMsg(i::Int)
     if i % milestone == 0 && printProgress

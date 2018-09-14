@@ -1,5 +1,5 @@
 Random.seed!(10)
-printDebug = false
+printDebug = true
 
 @testset "Compile MCMC.metropolis." begin
   lfc(x) = x
@@ -56,9 +56,9 @@ end
   J = 3
   muTrue = randn(J) * 10
   sig2True = .5
-  nHalf = 300
-  y = [ rand(Normal(m, sqrt(sig2True)), nHalf) for m in muTrue ]
-  n = nHalf * 2
+  nj = 300
+  y = [ rand(Normal(m, sqrt(sig2True)), nj) for m in muTrue ]
+  n = nj * J
 
   muPriorMean = 0.
   muPriorSd = 10.

@@ -1,6 +1,6 @@
 struct Constants
   alpha_prior::Gamma # alpha ~ Gamma(shape, scale)
-  mus_prior::Dict{Tuple{Int8, Int8}, Truncated{Normal{Float64}, Continuous}} # mu*[z,l] ~ TN(mean,sd)
+  mus_prior::Dict{Tuple{Int, Int}, Truncated{Normal{Float64}, Continuous}} # mu*[z,l] ~ TN(mean,sd)
   W_prior::Dirichlet # W_i ~ Dir_K(d)
   sig2_prior::InverseGamma # sig2_i ~ IG(shape, scale)
   b0_prior::Normal # b0 ~ Normal(mean, sd)
@@ -11,7 +11,7 @@ end
 
 function defaultConstants(data::Data, K::Int, L::Int)
   alpha_prior = Gamma(3.0, 0.5)
-  mus_prior = Dict{Tuple{Int8, Int8}, Truncated{Normal{Float64}, Continuous}}()
+  mus_prior = Dict{Tuple{Int, Int}, Truncated{Normal{Float64}, Continuous}}()
   vec_y = vcat(vec.(data.y)...)
   y_neg = filter(y_inj -> !ismissing(y_inj) && y_inj < 0, vec_y)
   y_pos = filter(y_inj -> !ismissing(y_inj) && y_inj > 0, vec_y)

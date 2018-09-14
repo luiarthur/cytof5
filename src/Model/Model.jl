@@ -1,5 +1,7 @@
 module Model
 using Distributions
+import LinearAlgebra
+import Random
 
 include("State.jl")
 include("Data.jl")

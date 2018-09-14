@@ -56,16 +56,16 @@ uuid = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 version = "0.13.1"
 
 [[DataStreams]]
-deps = ["Dates", "Missings", "Test", "WeakRefStrings"]
-git-tree-sha1 = "c54fb051465fb0741caa57972b67bd21ce2f39c7"
+deps = ["Dates", "Missings", "Pkg", "Test", "WeakRefStrings"]
+git-tree-sha1 = "69c72a1beb4fc79490c361635664e13c8e4a9548"
 uuid = "9a8bc11e-79be-5b39-94d7-1ccc349a1a85"
-version = "0.4.0"
+version = "0.4.1"
 
 [[DataStructures]]
 deps = ["InteractiveUtils", "REPL", "Random", "Serialization", "Test"]
-git-tree-sha1 = "2afbbd0294306b0b74a753c196be50b35edb625c"
+git-tree-sha1 = "5162c360c52e9265e0bfafb71415c31f746f7e04"
 uuid = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
-version = "0.11.1"
+version = "0.12.0"
 
 [[Dates]]
 deps = ["Printf"]
@@ -95,9 +95,9 @@ uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 
 [[IntervalSets]]
 deps = ["Compat"]
-git-tree-sha1 = "1ea9a7307cfcce3664ddcceb60fe31dc82bc3019"
+git-tree-sha1 = "bf1c727a12bbe0beb4888d439ee4e91b9ba7944a"
 uuid = "8197267c-284f-5f27-9208-e0e47529a953"
-version = "0.2.1"
+version = "0.3.0"
 
 [[IterTools]]
 deps = ["Pkg", "SparseArrays", "Test"]
@@ -241,10 +241,10 @@ uuid = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
 version = "0.7.0"
 
 [[StatsModels]]
-deps = ["Compat", "DataFrames", "StatsBase", "Test"]
-git-tree-sha1 = "e410beb01f247caafc5f039ef1e9c8f3fd01f812"
+deps = ["Compat", "DataFrames", "Pkg", "StatsBase", "Test"]
+git-tree-sha1 = "8af0d8dbcdee59daa386167ee0cf0278e5c44263"
 uuid = "3eaba693-59b7-5ba5-a881-562e759f1c8d"
-version = "0.3.0"
+version = "0.3.1"
 
 [[SuiteSparse]]
 deps = ["Libdl", "LinearAlgebra", "SparseArrays"]
@@ -281,9 +281,9 @@ version = "1.1.2"
 
 [[WeakRefStrings]]
 deps = ["Missings", "Random", "Test"]
-git-tree-sha1 = "d4631352d65840254d33ab703e2de3d9768cdb77"
+git-tree-sha1 = "1087e8be380f2c8b96434b02bb1150fc1c511135"
 uuid = "ea10d353-3f73-51f8-a26c-33c1cb351aa5"
-version = "0.5.2"
+version = "0.5.3"
 
 [[WinReg]]
 deps = ["Test"]
