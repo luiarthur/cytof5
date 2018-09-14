@@ -13,7 +13,7 @@ using RCall
   import Cytof5.Model.Cube
 
   Z=Matrix{Int8}(undef, J, K)
-  mus=Dict{Int8, Matrix{Float16}}()
+  mus=Dict{Tuple{Int8,Int8}, Matrix{Float16}}()
   alpha=1.0
   v=fill(1.0, K)
   W=rand(I,K)
@@ -46,7 +46,7 @@ end
 @testset "Compile Model.genData." begin
   I = 3
   J = 8
-  N = [3, 1, 2] * 10000
+  N = [3, 1, 2] * 100
   K = 4
   L = 5
   @time dat = Cytof5.Model.genData(I, J, N, K, L)
@@ -71,7 +71,7 @@ end
 @testset "Compile Model.genInitialState." begin
   I = 3
   J = 8
-  N = [3, 1, 2] * 10000
+  N = [3, 1, 2] * 10000 # Super fast even for 10000 obs. 
   K = 4
   L = 5
   @time dat = Cytof5.Model.genData(I, J, N, K, L)

@@ -19,8 +19,8 @@ function defaultConstants(data::Data, K::Int, L::Int)
   mus_prior[1] = TruncatedNormal(mean(y_pos), std(y_pos), 0, 30)
   W_prior = Dirichlet(K, 1.0/K)
   sig2_prior = InverseGamma(3.0, 2.0)
-  b0_prior = Normal(0.0, 10.0)
-  b1_prior = Uniform(0.0, 50.0)
+  b0_prior = Normal(9.2, 1.0)
+  b1_prior = Uniform(1.0, 3.0)
 
   Constants(alpha_prior, mus_prior, W_prior, sig2_prior, b0_prior, b1_prior, K, L)
 end
@@ -44,11 +44,13 @@ end
 function genInitialState(c::Constants, d::Data)
   J = d.J
   K = c.K
+  L = c.L
 
   alpha = rand(c.alpha_prior)
   v = rand(Beta(alpha / c.K, 1), K)
-  Z = [ rand(Bernoulli(v[k])) for j in 1:J, k in 1:K]
-  #mus = Dict([ z =>  for z in 0:1 ])
+  Z = [ rand(Bernoulli(v[k])) for j in 1:J, k in 1:K ]
+  mus_tmp = Dict([z => rand(c.mus_prior[z], L) for z in 0:1])
+  mus = Dict([ (z,l) => mus_tmp[z][l] for z in 0:1, l in 1:L ])
 
   #State(Z, mus, alpha, v, W, sig2, eta, lam, gam, y_imputed, b0, b1)
   return 0
