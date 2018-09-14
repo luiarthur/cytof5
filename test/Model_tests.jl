@@ -13,7 +13,7 @@ using RCall
   import Cytof5.Model.Cube
 
   Z=Matrix{Int8}(undef, J, K)
-  mus=Dict{Tuple{Int8,Int8}, Matrix{Float16}}()
+  mus=Dict{Tuple{Int8,Int8}, Float16}()
   alpha=1.0
   v=fill(1.0, K)
   W=rand(I,K)
@@ -76,6 +76,7 @@ end
   L = 5
   @time dat = Cytof5.Model.genData(I, J, N, K, L)
   y_dat = Cytof5.Model.Data(dat[:y])
+
   @time c = Cytof5.Model.defaultConstants(y_dat, K, L)
   @time init = Cytof5.Model.genInitialState(c, y_dat)
   @test true
