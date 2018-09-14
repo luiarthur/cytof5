@@ -45,8 +45,8 @@ Generate a (J x K) Z matrix for simulation studies.
 function genZ(J::Int, K::Int, prob1::Float64)
   @assert 0 < prob1 < 1
   Z = Int.(rand(J, K) .> prob1)
-  Z = leftOrder(Z)
   Z = sortslices(Z, dims=1, rev=true)
+  Z = leftOrder(Z)
 
   if size(unique(Z, dims=1), 1) < J || any(sum(Z, dims=1) .== 0) || all(sum(Z, dims=2) .== 0)
     return genZ(J, K, prob1)

@@ -52,11 +52,31 @@ end
   @time dat = Cytof5.Model.genData(I, J, N, K, L)
 
   plot_dat = R"cytof3::plot_dat"
+  myImage = R"cytof3::my.image"
+
   R"pdf('result/simdat_test.pdf')"
+  myImage(dat[:Z])
+  myImage(Cytof5.Model.genZ(J, K, .6))
+
   for i in 1:I
     for j in 1:J
       plot_dat(dat[:y_complete], i, j)
     end
   end
   R"dev.off()"
+  @test true
+end
+
+
+@testset "Compile Model.genInitialState." begin
+  I = 3
+  J = 8
+  N = [3, 1, 2] * 10000
+  K = 4
+  L = 5
+  @time dat = Cytof5.Model.genData(I, J, N, K, L)
+  y_dat = Cytof5.Model.Data(dat[:y])
+  @time c = Cytof5.Model.defaultConstants(y_dat, K, L)
+  @time init = Cytof5.Model.genInitialState(c, y_dat)
+  @test true
 end

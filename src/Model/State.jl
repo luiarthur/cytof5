@@ -15,3 +15,7 @@ mutable struct State
   b1::Float64
 end
 
+#= Note:
+genInitialState(c::Constants, d::Data)
+is in Constants.jl.
+=#
