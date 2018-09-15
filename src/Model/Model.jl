@@ -3,7 +3,7 @@ module Model
 using Distributions
 
 import LinearAlgebra
-import Random
+import Random # shuffle
 
 include("../MCMC/MCMC.jl")
 include("State.jl")
