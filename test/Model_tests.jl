@@ -22,8 +22,8 @@ using RCall
   lam=[fill(1, N[i]) for i in 1:I]
   gam=[ones(Int, N[i], J) for i in 1:I]
   y_imputed=[randn(N[i], J) for i in 1:I]
-  b0=1.0
-  b1=1.0
+  b0=fill(1.0, I)
+  b1=fill(1.0, I)
 
   Model.State(Z, mus, alpha, v, W, sig2, eta, lam, gam, y_imputed, b0, b1)
   @test true
@@ -39,7 +39,6 @@ using RCall
   constants = Model.defaultConstants(data, K, L)
   @test constants.K == K
   @test constants.L == L
-
 end
 
 
@@ -79,5 +78,9 @@ end
 
   @time c = Cytof5.Model.defaultConstants(y_dat, K, L)
   @time init = Cytof5.Model.genInitialState(c, y_dat)
+
+  printstyled("Test Model Fitting...\n", color=:yellow)
+  @time out, lastState = Cytof5.Model.cytof5_fit(init, c, y_dat,
+                                                 nmcmc=100, nburn=100)
   @test true
 end

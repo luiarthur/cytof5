@@ -11,8 +11,8 @@ mutable struct State
   lam::Vector{Vector{Int}} # Array of Array. lam[1:I] ∈ {1,...,K}
   gam::Vector{Matrix{Int}}
   y_imputed::Vector{Matrix{Float64}}
-  b0::Float64
-  b1::Float64
+  b0::Vector{Float64}
+  b1::Vector{Float64}
 end
 
 #= Note:

@@ -81,8 +81,8 @@ function genInitialState(c::Constants, d::Data)
   mus_tmp = Dict([z => rand(c.mus_prior[z], L) for z in 0:1])
   mus = Dict([ (z,l) => mus_tmp[z][l] for z in 0:1, l in 1:L ])
   sig2 = [rand(c.sig2_prior) for i in 1:I]
-  b0 = rand(c.b0_prior)
-  b1 = rand(c.b1_prior)
+  b0 = rand(c.b0_prior, I)
+  b1 = rand(c.b1_prior, I)
   W = Matrix{Float64}(hcat([ rand(c.W_prior) for i in 1:I ]...)')
   lam = [ rand(Categorical(W[i,:]), N[i]) for i in 1:I ]
   eta = begin
@@ -93,18 +93,18 @@ function genInitialState(c::Constants, d::Data)
   end
   gam = [[rand(Categorical(eta[Z[j, lam[i][n]]][i, j, :])) for n in 1:N[i], j in 1:J] for i in 1:I]
 
-  @assert typeof(Z) <: Matrix{Int}
-  @assert typeof(mus) <: Dict{Tuple{Int,Int}, Float64}
-  @assert typeof(alpha) == Float64
-  @assert typeof(v) == Vector{Float64}
-  @assert typeof(W) == Matrix{Float64}
-  @assert typeof(sig2) == Vector{Float64}
-  @assert typeof(eta) == Dict{Int, Cube{Float64}}
-  @assert typeof(lam) == Vector{Vector{Int}}
-  @assert typeof(b0) == Float64
-  @assert typeof(b1) == Float64
-  @assert typeof(gam) == Vector{Matrix{Int}}
-  @assert typeof(y_imputed) == Vector{Matrix{Float64}}
+  #@assert typeof(Z) <: Matrix{Int}
+  #@assert typeof(mus) <: Dict{Tuple{Int,Int}, Float64}
+  #@assert typeof(alpha) == Float64
+  #@assert typeof(v) == Vector{Float64}
+  #@assert typeof(W) == Matrix{Float64}
+  #@assert typeof(sig2) == Vector{Float64}
+  #@assert typeof(eta) == Dict{Int, Cube{Float64}}
+  #@assert typeof(lam) == Vector{Vector{Int}}
+  #@assert typeof(b0) == Vector{Float64}
+  #@assert typeof(b1) == Vector{Float64}
+  #@assert typeof(gam) == Vector{Matrix{Int}}
+  #@assert typeof(y_imputed) == Vector{Matrix{Float64}}
 
   return State(Z, mus, alpha, v, W, sig2, eta, lam, gam, y_imputed, b0, b1)
 end

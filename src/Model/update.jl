@@ -10,10 +10,10 @@ include("update_gam.jl")
 include("update_y_imputed.jl")
 include("update_b.jl")
 
-function update(s::State, c::Constants, d::Data)
+function update_state(s::State, c::Constants, d::Data)
   update_Z(s, c, d)
   update_mus(s, c, d)
-  update_alpha(s, c, d)
+  update_alpha(s, c, d) # DONE
   update_v(s, c, d)
   update_W(s, c, d)
   update_sig2(s, c, d)

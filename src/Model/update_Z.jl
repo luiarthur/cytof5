@@ -3,7 +3,7 @@ function update_Z(s::State, c::Constants, d::Data)
   K = c.K
   for j in 1:J
     for k in 1:K
-      update_Zjk(s, c, d)
+      update_Zjk(s, c, d, j, k)
     end
   end
 end
