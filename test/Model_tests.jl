@@ -1,6 +1,7 @@
 Random.seed!(10)
 printDebug = false
 using RCall
+using JLD2, FileIO
 
 @testset "Compile Model.State." begin
   I = 3
@@ -84,5 +85,21 @@ end
   printstyled("Test Model Fitting...\n", color=:yellow)
   @time out, lastState = Cytof5.Model.cytof5_fit(init, c, y_dat,
                                                  nmcmc=100, nburn=100)
+
+
+  @save "result/out.jld2" out dat
+  #=
+  @load "result/out.jld2" out dat
+  Zpost = [o[:Z] for o in out[1]]
+  Zmean = mean(Cytof5.Model.arrMatTo3dArr(Zpost), dims=3)
+
+  myImage = R"cytof3::my.image"
+
+  R"pdf('result/cytof_test.pdf')"
+  myImage(Zmean)
+  myImage(dat[:Z])
+  R"dev.off()"
+  =#
+
   @test true
 end

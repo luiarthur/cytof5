@@ -38,14 +38,16 @@ function priorMu(z::Int, l::Int, s::State, c::Constants)
   L = c.L
 
   if l == 1
-    lower, upper = minimum(c.mus_prior[z]), s.mus[z][2]
+    lower, upper = minimum(c.mus_prior[z]), s.mus[z][l+1]
   elseif l == L
-    lower, upper = s.mus[z][L-1], maximum(c.mus_prior[z])
+    lower, upper = s.mus[z][l-1], maximum(c.mus_prior[z])
   else
     lower, upper = s.mus[z][l-1], s.mus[z][l+1]
   end
 
-  return TruncatedNormal(mean(c.mus_prior[z]), sd, lower, upper)
+  priorMean = mean(c.mus_prior[z])
+  priorSd = std(c.mus_prior[z])
+  return TruncatedNormal(priorMean, priorSd, lower, upper)
 end
 
 # TODO
@@ -78,7 +80,7 @@ function genInitialState(c::Constants, d::Data)
   alpha = rand(c.alpha_prior)
   v = rand(Beta(alpha / c.K, 1), K)
   Z = [ rand(Bernoulli(v[k])) for j in 1:J, k in 1:K ]
-  mus = Dict([z => rand(c.mus_prior[z], L) for z in 0:1])
+  mus = Dict([z => sort(rand(c.mus_prior[z], L)) for z in 0:1])
   sig2 = [rand(c.sig2_prior) for i in 1:I]
   b0 = rand(c.b0_prior, I)
   b1 = rand(c.b1_prior, I)
