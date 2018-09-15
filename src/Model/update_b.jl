@@ -5,7 +5,7 @@ function update_b0(i::Int, s::State, c::Constants, d::Data)
   function lp(b0i::Float64)
   end
 
-  return MCMC.metropolisAdaptive()
+  #return MCMC.metropolisAdaptive()
 end
 
 function update_b1(i::Int, s::State, c::Constants, d::Data)
