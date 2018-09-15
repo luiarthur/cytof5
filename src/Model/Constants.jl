@@ -34,7 +34,7 @@ function defaultConstants(data::Data, K::Int, L::Int)
 end
 
 # TODO: Test
-function priorMu(s::State, c::Constants, z::Int, l::Int)
+function priorMu(z::Int, l::Int, s::State, c::Constants)
   L = c.L
 
   if l == 1

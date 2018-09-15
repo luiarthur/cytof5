@@ -70,7 +70,7 @@ end
 @testset "Compile Model.genInitialState." begin
   I = 3
   J = 32
-  N = [3, 1, 2] * 1000 # Super fast even for 10000 obs. 
+  N = [3, 1, 2] * 100 # Super fast even for 10000 obs. 
   K = 4
   L = 4
   @time dat = Cytof5.Model.genData(I, J, N, K, L)
