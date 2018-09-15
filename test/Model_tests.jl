@@ -13,7 +13,7 @@ using RCall
   import Cytof5.Model.Cube
 
   Z=Matrix{Int8}(undef, J, K)
-  mus=Dict{Tuple{Int8,Int8}, Float16}()
+  mus=Dict{Int8, Vector{Float16}}()
   alpha=1.0
   v=fill(1.0, K)
   W=rand(I,K)

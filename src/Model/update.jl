@@ -10,7 +10,7 @@ include("update_gam.jl")
 include("update_y_imputed.jl")
 include("update_b.jl")
 
-function update_state(s::State, c::Constants, d::Data)
+function update_state(s::State, c::Constants, d::Data, tuners::Tuners)
   update_Z(s, c, d)
   update_mus(s, c, d)
   update_alpha(s, c, d) # DONE
@@ -21,6 +21,6 @@ function update_state(s::State, c::Constants, d::Data)
   update_lam(s, c, d)
   update_gam(s, c, d)
 
-  update_y_imputed(s, c, d)
-  update_b(s, c, d)
+  update_y_imputed(s, c, d, tuners) # DONE
+  update_b(s, c, d, tuners)
 end

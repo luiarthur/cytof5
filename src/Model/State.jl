@@ -2,7 +2,7 @@ const Cube = Array{T, 3} where T
 
 mutable struct State
   Z::Matrix{Int} # Dim: J x K. Z[j,k] ∈ {0, 1}
-  mus::Dict{Tuple{Int,Int}, Float64}
+  mus::Dict{Int, Vector{Float64}}
   alpha::Float64
   v::Vector{Float64}
   W::Matrix{Float64}

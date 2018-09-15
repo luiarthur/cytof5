@@ -78,8 +78,7 @@ function genInitialState(c::Constants, d::Data)
   alpha = rand(c.alpha_prior)
   v = rand(Beta(alpha / c.K, 1), K)
   Z = [ rand(Bernoulli(v[k])) for j in 1:J, k in 1:K ]
-  mus_tmp = Dict([z => rand(c.mus_prior[z], L) for z in 0:1])
-  mus = Dict([ (z,l) => mus_tmp[z][l] for z in 0:1, l in 1:L ])
+  mus = Dict([z => rand(c.mus_prior[z], L) for z in 0:1])
   sig2 = [rand(c.sig2_prior) for i in 1:I]
   b0 = rand(c.b0_prior, I)
   b1 = rand(c.b1_prior, I)
