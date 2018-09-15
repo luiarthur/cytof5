@@ -19,7 +19,7 @@ function update_state(s::State, c::Constants, d::Data, tuners::Tuners)
   update_sig2(s, c, d)
   update_eta(s, c, d)
   update_lam(s, c, d)
-  update_gam(s, c, d)
+  update_gam(s, c, d) # DONE
 
   update_y_imputed(s, c, d, tuners) # DONE
   update_b(s, c, d, tuners)
