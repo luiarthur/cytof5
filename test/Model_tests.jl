@@ -89,13 +89,21 @@ end
 
   @save "result/out.jld2" out dat
   #=
+  using JLD2, FileIO, RCall
   @load "result/out.jld2" out dat
   Zpost = [o[:Z] for o in out[1]]
-  Zmean = mean(Cytof5.Model.arrMatTo3dArr(Zpost), dims=3)
+  Zmean = zeros(size(Zpost[1]))
+  for z in Zpost
+    Zmean .+= z / length(Zpost)
+  end
 
   myImage = R"cytof3::my.image"
 
   R"pdf('result/cytof_test.pdf')"
+  for z in Zpost
+    sleep(.1)
+    myImage(z)
+  end
   myImage(Zmean)
   myImage(dat[:Z])
   R"dev.off()"
