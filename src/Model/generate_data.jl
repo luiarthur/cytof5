@@ -107,7 +107,7 @@ function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Int,
   # Simulate W
   W = zeros(I, K)
   for i in 1:I
-    W[i,:] = rand(Dirichlet(a_W))
+    W[i,:] = rand(Dirichlet(Random.shuffle(a_W)))
   end
 
   # Simulate lambda
