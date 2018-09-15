@@ -3,12 +3,13 @@ function update_b0(i::Int, s::State, c::Constants, d::Data, tuners::Tuners)
     out = 0.0
 
     # TODO: Can I vectorize this?
-    for n in 1:d.N[i]
-      for j in 1:d.J
-        pinj = prob_miss(s.y_imputed[i][n, j], b0i, s.b1[i])
-        minj = Int(ismissing(d.y[i][n, j]))
-        out += logpdf(Bernoulli(pinj), minj)
-      end
+    for j in 1:d.J
+      #for n in 1:d.N[i]
+      #  pinj = prob_miss(s.y_imputed[i][n, j], b0i, s.b1[i])
+      #  out += logpdf(Bernoulli(pinj), d.m[i][n, j])
+      #end
+      pij = prob_miss.(s.y_imputed[i][:, j], b0i, s.b1[i])
+      out += sum(logpdf.(Bernoulli.(pij), d.m[i][:, j]))
     end
 
     return out

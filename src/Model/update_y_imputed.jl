@@ -17,9 +17,9 @@ end
 
 function update_y_imputed(s::State, c::Constants, d::Data, tuners::Tuners)
   for i in 1:d.I
-    for n in 1:d.N[i]
-      for j in 1:d.J
-        if ismissing(d.y[i][n, j])
+    for j in 1:d.J
+      for n in 1:d.N[i]
+        if d.m[i][n, j] == 1
           update_y_imputed(i, n, j, s, c, d, tuners)
         end
       end
