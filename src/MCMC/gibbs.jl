@@ -7,7 +7,9 @@ function gibbs(init,
                update::Function;
                monitors::Vector{Vector{Symbol}}=deepcopy(monitor_default),
                thins::Vector{Int}=deepcopy(thin_default),
-               nmcmc::Int64=1000, nburn::Int=0, printProgress::Bool=true)
+               nmcmc::Int64=1000, nburn::Int=0,
+               printProgress::Bool=true,
+               numPrints::Int=10, loglike=missing)
   """
   This is my docs...
   """
@@ -33,11 +35,12 @@ function gibbs(init,
   out = [ Vector{Dict{Symbol, Any}}([]) for i in 1:numMonitors ]
 
   # Milestones
-  milestone = Int((nburn + nmcmc) / 10)
+  milestone = Int((nburn + nmcmc) / numPrints)
 
   function printMsg(i::Int)
     if i % milestone == 0 && printProgress
-      println("$(Dates.now()) -- $i / $(nburn+nmcmc)")
+      loglikeMsg = ismissing(loglike) ? "" : " -- loglike: $(last(loglike))"
+      println("$(Dates.now()) -- $i / $(nburn+nmcmc) $loglikeMsg")
     end
   end
 

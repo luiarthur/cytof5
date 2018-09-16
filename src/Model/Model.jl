@@ -6,6 +6,7 @@ import LinearAlgebra
 import Random # shuffle
 
 include("../MCMC/MCMC.jl")
+include("util.jl")
 include("State.jl")
 include("Data.jl")
 include("Constants.jl")
@@ -16,7 +17,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
                     nmcmc::Int64=1000, nburn::Int=1000, 
                     monitors=[[:Z, :lam, :W, :b0, :b1, :v, :sig2, :mus]],
                     thins::Vector{Int}=[1],
-                    printProgress::Bool=true)
+                    printProgress::Bool=true, numPrints::Int=10)
 
   y_tuner = begin
     dict = Dict{Tuple{Int, Int, Int}, MCMC.TuningParam}()
@@ -35,14 +36,18 @@ function cytof5_fit(init::State, c::Constants, d::Data;
                   [MCMC.TuningParam(1.0) for i in 1:d.I], # b1i, 1...I
                   y_tuner) # yinj, for inj s.t. yinj is missing
 
+  loglike = Vector{Float64}()
+
   function update(s::State, i::Int, out)
-    update_state(s, c, d, tuners)
+    update_state(s, c, d, tuners, loglike)
   end
 
   out, lastState = MCMC.gibbs(init, update, monitors=monitors,
                               thins=thins, nmcmc=nmcmc, nburn=nburn,
-                              printProgress=printProgress)
-  return out, lastState
+                              printProgress=printProgress, numPrints=numPrints,
+                              loglike=loglike)
+
+  return out, lastState, loglike
 end
 
 end # Model

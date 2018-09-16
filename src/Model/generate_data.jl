@@ -64,7 +64,7 @@ function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Int;
                 sortLambda::Bool=false, propMissingScale::Float64=0.7)
   genData(I, J, N, K, L,
           genSimpleZ(J, K), # Z
-          Dict(:b0=>-9.2, :b1=>-2.3), # missMechParams
+          Dict(:b0=>-9.2, :b1=>2.3), # missMechParams
           fill(0.1, I), # sig2
           Dict(0=>collect(range(-5, length=L, stop=-1)), #mus
                1=>collect(range(1, length=L, stop=5))),
@@ -156,7 +156,7 @@ function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Int,
   for i in 1:I
     for j in 1:J
       for n in 1:N[i]
-        y_complete[i][n, j] = rand(Normal(mu_get(i, n, j)))
+        y_complete[i][n, j] = rand(Normal(mu_get(i, n, j), sqrt(sig2[i])))
       end
 
       # Set some to be missing
@@ -171,6 +171,7 @@ function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Int,
 
   return Dict(:y=>y, :y_complete=>y_complete, :Z=>Z, :W=>W,
               :eta=>eta, :mus=>mus, :sig2=>sig2, :lam=>lam, :gam=>gam,
-              :b0=>missMechParams[:b0], :b1=>missMechParams[:b1])
+              :b0=>fill(missMechParams[:b0], I),
+              :b1=>fill(missMechParams[:b1], I))
 end # genData
 
