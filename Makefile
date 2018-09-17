@@ -17,10 +17,16 @@ t:
 sim: sim100 sim1000 sim10000
 
 sim100:
-	n=100; cd test/sims/ && pwd && julia sim.jl $(I) $(J) $$n $(K) $(L) $(K_MCMC) $(L_MCMC)
+	n=100; mkdir -p test/sims/result/N$$n/
+	n=100; cd test/sims/ && julia sim.jl $(I) $(J) $$n $(K) $(L) $(K_MCMC) $(L_MCMC)
 
 sim1000:
-	n=1000; cd test/sims/ && pwd && julia sim.jl $(I) $(J) $$n $(K) $(L) $(K_MCMC) $(L_MCMC)
+	n=1000; mkdir -p test/sims/result/N$$n/
+	n=1000; cd test/sims/ && julia sim.jl $(I) $(J) $$n $(K) $(L) $(K_MCMC) $(L_MCMC)
 
 sim10000:
-	n=10000; cd test/sims/ && pwd && julia sim.jl $(I) $(J) $$n $(K) $(L) $(K_MCMC) $(L_MCMC)
+	n=10000; mkdir -p test/sims/result/N$$n/
+	n=10000; cd test/sims/ && julia sim.jl $(I) $(J) $$n $(K) $(L) $(K_MCMC) $(L_MCMC)
+
+clean:
+	rm -rf test/sims/result/*
