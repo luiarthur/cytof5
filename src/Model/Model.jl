@@ -15,7 +15,8 @@ include("update.jl")
 
 function cytof5_fit(init::State, c::Constants, d::Data;
                     nmcmc::Int64=1000, nburn::Int=1000, 
-                    monitors=[[:Z, :lam, :W, :b0, :b1, :v, :sig2, :mus]],
+                    monitors=[[:Z, :lam, :W, :b0, :b1, :v, :sig2, :mus,
+                               :alpha, :v, :eta]],
                     thins::Vector{Int}=[1],
                     printProgress::Bool=true, numPrints::Int=10)
 
