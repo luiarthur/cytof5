@@ -5,7 +5,7 @@ Random.seed!(10)
 printDebug = false
 
 I = 3
-J = 8
+J = 32
 N = [3, 1, 2] * 100 # Super fast even for 10000 obs. 
 K = 4
 L = 4
@@ -25,7 +25,7 @@ println("Generating initial state ...")
 
 println("Fitting Model ...")
 @time out, lastState, ll = Cytof5.Model.cytof5_fit(init, c, y_dat,
-                                                   nmcmc=2, nburn=2,
+                                                   nmcmc=1000, nburn=10000,
                                                    numPrints=100)
 
 println("Saving Data ...")
