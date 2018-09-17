@@ -18,7 +18,8 @@ function cytof5_fit(init::State, c::Constants, d::Data;
                     monitors=[[:Z, :lam, :W, :b0, :b1, :v, :sig2, :mus,
                                :alpha, :v, :eta]],
                     thins::Vector{Int}=[1],
-                    printProgress::Bool=true, numPrints::Int=10)
+                    printProgress::Bool=true, numPrints::Int=10,
+                    flushOutput::Bool=false)
 
   y_tuner = begin
     dict = Dict{Tuple{Int, Int, Int}, MCMC.TuningParam}()
@@ -46,7 +47,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
   out, lastState = MCMC.gibbs(init, update, monitors=monitors,
                               thins=thins, nmcmc=nmcmc, nburn=nburn,
                               printProgress=printProgress, numPrints=numPrints,
-                              loglike=loglike)
+                              loglike=loglike, flushOutput=flushOutput)
 
   return out, lastState, loglike
 end

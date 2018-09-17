@@ -35,7 +35,8 @@ println("Fitting Model ...")
 @time out, lastState, ll = Cytof5.Model.cytof5_fit(init, c, y_dat,
                                                    nmcmc=1000, nburn=10000,
                                                    #nmcmc=2, nburn=2,
-                                                   numPrints=100)
+                                                   numPrints=100,
+                                                   flushOutput=true)
 
 println("Saving Data ...")
 @save "$(OUTDIR)/N$(N_factor).jld2" out dat ll lastState
