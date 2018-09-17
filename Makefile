@@ -1,13 +1,26 @@
+# Run in parallel
+MAKEFLAGS += -j4
+
+# Simulation variables.
+I=3
+J=32
+K=4
+L=4
+K_MCMC=10
+L_MCMC=5
+
+# Test package.
 t: 
 	julia -e 'import Pkg; Pkg.activate("."); Pkg.test();' --color=yes 
 
-sim100: 
-	cd test/sims/ && pwd && julia sim_test.jl 3 32 100 4 4 10 5
+# Simulation
+sim: sim100 sim1000 sim10000
 
-sim1000: 
-	cd test/sims/ && pwd && julia sim_test.jl 3 32 1000 4 4 10 5
+sim100:
+	n=100; cd test/sims/ && pwd && julia sim.jl $(I) $(J) $$n $(K) $(L) $(K_MCMC) $(L_MCMC)
 
-sim10000: 
-	cd test/sims/ && pwd && julia sim_test.jl 3 32 10000 4 4 10 5
+sim1000:
+	n=1000; cd test/sims/ && pwd && julia sim.jl $(I) $(J) $$n $(K) $(L) $(K_MCMC) $(L_MCMC)
 
-
+sim10000:
+	n=10000; cd test/sims/ && pwd && julia sim.jl $(I) $(J) $$n $(K) $(L) $(K_MCMC) $(L_MCMC)

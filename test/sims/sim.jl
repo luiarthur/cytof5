@@ -15,6 +15,9 @@ N = N_factor * [3, 1, 2]
 K = parse(Int, ARGS[4]) # 4
 L = parse(Int, ARGS[5]) # 4
 
+OUTDIR = "result/N$(N_factor)/"
+mkpath(OUTDIR)
+
 println("Simulating Data ...")
 @time dat = Cytof5.Model.genData(I, J, N, K, L, sortLambda=true)
 y_dat = Cytof5.Model.Data(dat[:y])
@@ -30,10 +33,10 @@ println("Generating initial state ...")
 
 println("Fitting Model ...")
 @time out, lastState, ll = Cytof5.Model.cytof5_fit(init, c, y_dat,
-                                                   #nmcmc=1000, nburn=10000,
-                                                   nmcmc=2, nburn=2,
+                                                   nmcmc=1000, nburn=10000,
+                                                   #nmcmc=2, nburn=2,
                                                    numPrints=100)
 
 println("Saving Data ...")
-@save "result/out_N$(N_factor).jld2" out dat ll lastState
+@save "$(OUTDIR)/N$(N_factor).jld2" out dat ll lastState
 
