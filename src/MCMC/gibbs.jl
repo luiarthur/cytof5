@@ -35,10 +35,10 @@ function gibbs(init,
   out = [ Vector{Dict{Symbol, Any}}([]) for i in 1:numMonitors ]
 
   # Milestones
-  milestone = Int((nburn + nmcmc) / numPrints)
+  milestone = floor((nburn + nmcmc) / numPrints)
 
   function printMsg(i::Int)
-    if i % milestone == 0 && printProgress
+    if milestone > 0 && i % milestone == 0 && printProgress
       loglikeMsg = ismissing(loglike) ? "" : " -- loglike: $(last(loglike))"
       println("$(Dates.now()) -- $i / $(nburn+nmcmc) $loglikeMsg")
     end
