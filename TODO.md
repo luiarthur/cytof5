@@ -1,3 +1,5 @@
 # TODO
-- [ ] Test update
-- [ ] Simulation studies
+- [x] Test update
+- [x] Simulation studies
+
+
