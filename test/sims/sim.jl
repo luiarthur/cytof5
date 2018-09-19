@@ -19,7 +19,7 @@ OUTDIR = "result/N$(N_factor)/"
 mkpath(OUTDIR)
 
 println("Simulating Data ...")
-@time dat = Cytof5.Model.genData(I, J, N, K, L, sortLambda=true)
+@time dat = Cytof5.Model.genData(I, J, N, K, L, sortLambda=false)
 y_dat = Cytof5.Model.Data(dat[:y])
 
 K_MCMC = parse(Int, ARGS[6]) # 10
