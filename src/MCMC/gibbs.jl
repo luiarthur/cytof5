@@ -72,4 +72,3 @@ function gibbs(init,
 
   return (out, state)
 end
-
