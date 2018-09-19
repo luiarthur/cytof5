@@ -41,3 +41,4 @@ println("Fitting Model ...")
 println("Saving Data ...")
 @save "$(OUTDIR)/N$(N_factor).jld2" out dat ll lastState
 
+println("MCMC Completed.")
