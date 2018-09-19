@@ -57,6 +57,17 @@ b1Mean = mean(b1Post, dims=1)
 b1Sd = std(b1Post, dims=1)
 plotPosts(b1Post);
 
+# Plot Posterior Prob of Missing
+include("util.jl")
+I = size(b0Post, 2)
+R"par(mfrow=c($(I), 1))"
+for i in 1:I
+  pmiss_mean, pmiss_lower, pmiss_upper, y_seq = util.postProbMiss(b0Post, b1Post, i)
+  util.plotPostProbMiss(pmiss_mean, pmiss_lower, pmiss_upper, y_seq, i, main=i)
+end
+R"par(mfrow=c(1, 1))"
+
+
 # Get sig2
 sig2Post = hcat(util.getPosterior(:sig2, out[1])...)'
 sig2Mean = mean(sig2Post, dims=1)

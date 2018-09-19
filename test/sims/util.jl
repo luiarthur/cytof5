@@ -78,9 +78,9 @@ end
 #  # TODO
 #end
 
-function plotPostProbMiss(b0, b1, i::Int;
-                          y::Vector{Float64}=collect(-10:.1:10),
-                          credibility::Float64=.95)
+function postProbMiss(b0, b1, i::Int;
+                      y::Vector{Float64}=collect(-10:.1:10),
+                      credibility::Float64=.95)
 
   N, I = size(b0)
   @assert size(b0) == size(b1)
@@ -94,10 +94,19 @@ function plotPostProbMiss(b0, b1, i::Int;
   pmiss_mean = vec(mean(pmiss, dims=1))
   pmiss_lower = [ quantile(pmiss[:, col], p_lower) for col in 1:len_y ]
   pmiss_upper = [ quantile(pmiss[:, col], p_upper) for col in 1:len_y ]
-  plot(y, pmiss_mean, xlab="y", ylab="prob miss", lwd=2, col="steelblue",
-       typ="l", fg="grey")
-  colorBtwn(y, pmiss_lower, pmiss_upper, from=minimum(y), to=maximum(y),
-            rgba("blue", .3))
+
+  return (pmiss_mean, pmiss_lower, pmiss_upper, y)
 end
+
+R"""
+plotPostProbMiss <- function(pmiss_mean, pmiss_lower, pmiss_upper, y_seq, i, ...) {
+  plot(y_seq, pmiss_mean, xlab="y", ylab="prob miss", lwd=2, col="steelblue",
+       type="l", fg="grey", ...)
+  color.btwn(y_seq, pmiss_lower, pmiss_upper, from=min(y_seq), to=max(y_seq),
+             rgba("blue", .3))
+}
+"""
+
+plotPostProbMiss = R"plotPostProbMiss"
 
 end # util
