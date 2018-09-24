@@ -26,6 +26,7 @@ myImage = R"cytof3::my.image"
 plotPdf = R"pdf"
 devOff = R"dev.off"
 blueToRed = R"blueToRed"
+greys = R"cytof3::greys"
 
 # Plot loglikelihood
 plot(ll[100:end], ylab="log-likelihood", xlab="MCMC iteration", typ="l");
@@ -33,7 +34,7 @@ plot(ll[100:end], ylab="log-likelihood", xlab="MCMC iteration", typ="l");
 # Plot Z
 Zpost = util.getPosterior(:Z, out[1])
 Zmean = util.matMean(Zpost)
-myImage(Zmean, xlab="Features", ylab="Markers");
+myImage(Zmean, xlab="Features", ylab="Markers", addL=true, col=greys(11));
 
 # Plot W
 Wpost = util.getPosterior(:W, out[1])
@@ -75,8 +76,15 @@ sig2Sd = std(sig2Post, dims=1)
 plotPosts(sig2Post);
 
 # Plot y_imputed# 
+lam1Sortperm = sortperm(lastState.lam[1])
 myImage(lastState.y_imputed[1], col=blueToRed(7), zlim=[-4,4], addL=true,
-        xlab="markers", ylab="obs", na="black");
+        xlab="markers", ylab="obs", na="black", main="Imputed y[1] (last sample in MCMC)");
+myImage(lastState.y_imputed[1][lam1Sortperm, :],
+        col=blueToRed(7), zlim=[-4,4], addL=true,
+        xlab="markers", ylab="obs", na="black", main="Sorted Imputed y[1] (last sample in MCMC)");
+
 myImage(dat[:y][1], col=blueToRed(7), zlim=[-4,4], addL=true,
-        xlab="markers", ylab="obs", na="black");
+        xlab="markers", ylab="obs", na="black", main="Data: y[1]");
+myImage(dat[:y][1][lam1Sortperm, :], col=blueToRed(7), zlim=[-4,4], addL=true,
+        xlab="markers", ylab="obs", na="black", main="Data: y[1]");
 
