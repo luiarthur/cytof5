@@ -14,6 +14,10 @@ OUTDIR = "result/N$(N_factor)/"
 println("Loading Data ...")
 @load "$(OUTDIR)/N$(N_factor).jld2" out dat ll lastState
 
+I, K = size(dat[:W])
+K_MCMC = size(lastState.W, 2)
+J = size(lastState.Z, 1)
+
 # Load cytof3, rcommon library in R
 R"library(cytof3)"
 R"library(rcommon)"
@@ -27,6 +31,7 @@ plotPdf = R"pdf"
 devOff = R"dev.off"
 blueToRed = R"blueToRed"
 greys = R"cytof3::greys"
+plot_dat = R"cytof3::plot_dat"
 
 # Plot loglikelihood
 plot(ll[100:end], ylab="log-likelihood", xlab="MCMC iteration", typ="l");
@@ -60,7 +65,6 @@ plotPosts(b1Post);
 
 # Plot Posterior Prob of Missing
 include("util.jl")
-I = size(b0Post, 2)
 R"par(mfrow=c($(I), 1))"
 for i in 1:I
   pmiss_mean, pmiss_lower, pmiss_upper, y_seq = util.postProbMiss(b0Post, b1Post, i)
@@ -88,3 +92,14 @@ myImage(dat[:y][1], col=blueToRed(7), zlim=[-4,4], addL=true,
 myImage(dat[:y][1][lam1Sortperm, :], col=blueToRed(7), zlim=[-4,4], addL=true,
         xlab="markers", ylab="obs", na="black", main="Data: y[1]");
 
+# Plot Data Hist 
+run(`mkdir -p $(OUTDIR)/img`)
+plotPdf("$(OUTDIR)/img/ydatPost.pdf")
+R"par(mfrow=c(4,2))"
+for i in 1:I
+  for j in 1:J
+    plot_dat(lastState.y_imputed, i, j, xlim=[-8,8])
+  end
+end
+R"par(mfrow=c(1,1))"
+devOff()
