@@ -42,13 +42,13 @@ Generate a (J x K) Z matrix for simulation studies.
 
 `prob1` is the desired proportion of 1's in the matrix.
 """
-function genZ(J::Int, K::Int, prob1::Float64)
+function genZ(J::Int, K::Int, prob1::Float64)::Matrix{Int}
   @assert 0 < prob1 < 1
   Z = Int.(rand(J, K) .> prob1)
   Z = sortslices(Z, dims=1, rev=true)
   Z = leftOrder(Z)
 
-  if size(unique(Z, dims=1), 1) < J || any(sum(Z, dims=1) .== 0) || all(sum(Z, dims=2) .== 0)
+  if size(unique(Z, dims=2), 2) < K || any(sum(Z, dims=1) .== 0) || all(sum(Z, dims=2) .== 0)
     return genZ(J, K, prob1)
   else
     return Z
@@ -59,11 +59,11 @@ end
 Z = Int.(randn(3,5) .> 0)
 =#
 
-# TODO: Test
 function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Int;
-                sortLambda::Bool=false, propMissingScale::Float64=0.7)
-  genData(I, J, N, K, L,
-          genSimpleZ(J, K), # Z
+                 useSimpleZ::Bool=true, prob1::Float64=.6,
+                 sortLambda::Bool=false, propMissingScale::Float64=0.7)
+  Z = useSimpleZ ? genSimpleZ(J, K) : genZ(J, K, prob1)
+  genData(I, J, N, K, L, Z,
           Dict(:b0=>-9.2, :b1=>2.3), # missMechParams
           fill(0.1, I), # sig2
           Dict(0=>collect(range(-5, length=L, stop=-1)), #mus
