@@ -23,7 +23,7 @@ function gibbs(init,
   # Check monitor
   if numMonitors == 0
     println("Using default monitor.")
-    fnames = [ fname for fname in fieldnames(typeof(init))]
+    fnames = [ fname for fname in fieldnames(typeof(init)) ]
     append!(monitors, [fnames])
     append!(thins, 1)
     numMonitors = 1
