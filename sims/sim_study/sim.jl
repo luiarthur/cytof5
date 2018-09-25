@@ -33,6 +33,13 @@ println("Generating initial state ...")
 
 println("Fitting Model ...")
 @time out, lastState, ll = Cytof5.Model.cytof5_fit(init, c, y_dat,
+                                                   monitors=[[:Z, :lam, :W,
+                                                              :b0, :b1, :v,
+                                                              :sig2, :mus,
+                                                              :alpha, :v,
+                                                              :eta],
+                                                             [:y_imputed]],
+                                                   thins=[1, 100],
                                                    nmcmc=1000, nburn=10000,
                                                    #nmcmc=2, nburn=2,
                                                    numPrints=100,
