@@ -121,12 +121,6 @@ function metLogAdaptive(curr::Float64, ll::Function, lp::Function,
 end
 
 function normalize(x::Vector{T}) where T
-  if isprobvec(x)
-    out = x
-  else
-    out = x / sum(x)
-  end
-
   return isprobvec(x) ? x : x / sum(x)
 end
 
