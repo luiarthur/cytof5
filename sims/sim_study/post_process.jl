@@ -79,7 +79,7 @@ sig2Mean = mean(sig2Post, dims=1)
 sig2Sd = std(sig2Post, dims=1)
 plotPosts(sig2Post);
 
-# Plot y_imputed# 
+# Plot y_imputed
 lam1Sortperm = sortperm(lastState.lam[1])
 myImage(lastState.y_imputed[1], col=blueToRed(7), zlim=[-4,4], addL=true,
         xlab="markers", ylab="obs", na="black", main="Imputed y[1] (last sample in MCMC)");
