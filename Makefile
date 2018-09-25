@@ -4,7 +4,7 @@ MAKEFLAGS += -j4
 # Simulation variables.
 I=3
 J=32
-K=4
+K=8
 L=4
 K_MCMC=10
 L_MCMC=5

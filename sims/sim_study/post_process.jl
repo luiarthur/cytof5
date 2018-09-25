@@ -24,6 +24,10 @@ R"library(rcommon)"
 
 # Import R plotting functions
 plot = R"plot";
+ari = R"cytof3::ari";
+rgba = R"cytof3::rgba";
+density = R"density";
+lines = R"lines";
 plotPost = R"rcommon::plotPost"
 plotPosts = R"rcommon::plotPosts"
 myImage = R"cytof3::my.image"
@@ -92,14 +96,36 @@ myImage(dat[:y][1], col=blueToRed(7), zlim=[-4,4], addL=true,
 myImage(dat[:y][1][lam1Sortperm, :], col=blueToRed(7), zlim=[-4,4], addL=true,
         xlab="markers", ylab="obs", na="black", main="Data: y[1]");
 
-# Plot Data Hist 
+# Posterior of y_imputed
 run(`mkdir -p $(OUTDIR)/img`)
+y_imputed = [ o[:y_imputed] for o in out[2] ]
 plotPdf("$(OUTDIR)/img/ydatPost.pdf")
 R"par(mfrow=c(4,2))"
 for i in 1:I
   for j in 1:J
-    plot_dat(lastState.y_imputed, i, j, xlim=[-8,8])
+    for iter in 1:length(y_imputed)
+      yimp = y_imputed[iter]
+      if iter == 1
+        plot(density(yimp[i][:, j]), col=rgba("blue", .5), xlim=[-8,8],
+             main="Y sample: $(i), marker: $(j)", bty="n", fg="grey")
+      else
+        lines(density(yimp[i][:, j]), col=rgba("blue", .5))
+      end
+      lines(density(dat[:y_complete][i][:, j]), col="grey")
+    end
+    # Plot simulated data
   end
 end
 R"par(mfrow=c(1,1))"
 devOff()
+
+
+# ARI - adjusted Rand Index ∈  (0, 1). Metric for clustering.
+# Higher is better.
+ariCytof = [ x[1] for x in ari.(dat[:lam], lastState.lam) ]
+
+#=
+y_141 = [ yimp[1][4, 1] for yimp in y_imputed ]
+R"hist"(y_141)
+R"plot"(y_141, typ="l")
+=#
