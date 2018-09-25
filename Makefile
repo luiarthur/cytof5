@@ -10,6 +10,7 @@ K_MCMC=10
 L_MCMC=5
 NFACTORS := 100 1000 10000
 SIMS := $(addprefix sim, $(NFACTORS))
+SIMDIR := "sims/sim_study/"
 
 # This will make a sequence from 1 to LAST
 #LAST := 4
@@ -27,10 +28,10 @@ sims: $(SIMS)
 
 $(SIMS): sim%:
 	$(eval n := $*)
-	mkdir -p test/sims/result/N$(n)
-	cd test/sims/ && julia sim.jl $(I) $(J) $(n) $(K) $(L) $(K_MCMC) $(L_MCMC) > result/N$(n)/log.txt
+	mkdir -p $(SIMDIR)/result/N$(n)
+	cd $(SIMDIR) && julia sim.jl $(I) $(J) $(n) $(K) $(L) $(K_MCMC) $(L_MCMC) > result/N$(n)/log.txt
 
 # Remove artifacts from simulations.
 clean:
-	rm -rf test/sims/result/*
+	rm -rf $(SIMDIR)/result/*
 
