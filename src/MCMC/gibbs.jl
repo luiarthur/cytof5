@@ -50,7 +50,7 @@ function gibbs(init,
   if printProgress
     println("Preallocating memory...")
   end
-  out = [ fill(deepcopyFields(state, monitors[i]), numSamps[i]) for i in 1:numMonitors ]
+  @time out = [ fill(deepcopyFields(state, monitors[i]), numSamps[i]) for i in 1:numMonitors ]
 
   # Milestones
   milestone = floor((nburn + nmcmc) / numPrints)
