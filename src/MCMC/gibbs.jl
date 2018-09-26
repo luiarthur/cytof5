@@ -3,6 +3,16 @@ import Dates
 const monitor_default = Vector{Vector{Symbol}}([])
 const thin_default = Vector{Int}()
 
+function deepcopyFields(state, fields::Vector{Symbol})
+  substate = Dict{Symbol, Any}()
+
+  for field in fields
+    substate[field] = deepcopy(getfield(state, field))
+  end
+
+  return substate
+end
+
 function gibbs(init,
                update::Function;
                monitors::Vector{Vector{Symbol}}=deepcopy(monitor_default),
@@ -32,7 +42,15 @@ function gibbs(init,
   # object to return
   #out = Vector{Vector{Dict{Symbol, Any}}}([]) # monitors, chain, dict
   #start=Vector{Dict{Symbol, Any}}([])
-  out = [ Vector{Dict{Symbol, Any}}([]) for i in 1:numMonitors ]
+
+  # Number of Samples for each Monitor
+  numSamps = [ div(nmcmc, thins[i]) for i in 1:numMonitors ]
+  #out = [ Vector{Dict{Symbol, Any}}([]) for i in 1:numMonitors ]
+
+  if printProgress
+    println("Preallocating memory...")
+  end
+  out = [ fill(deepcopyFields(state, monitors[i]), numSamps[i]) for i in 1:numMonitors ]
 
   # Milestones
   milestone = floor((nburn + nmcmc) / numPrints)
@@ -54,6 +72,7 @@ function gibbs(init,
   end
 
 
+  counters = zeros(Int, numMonitors)
   # Gibbs loop
   for i in 1:nmcmc
     printMsg(i + nburn)
@@ -61,11 +80,14 @@ function gibbs(init,
 
     for j in 1:numMonitors
       if i % thins[j] == 0
-        substate = Dict{Symbol, Any}()
-        for s in monitors[j]
-          substate[s] =  deepcopy(getfield(state, s))
-        end
-        append!(out[j], [substate])
+        #substate = Dict{Symbol, Any}()
+        #for s in monitors[j]
+        #  substate[s] =  deepcopy(getfield(state, s))
+        #end
+        substate = deepcopyFields(state, monitors[j])
+        #append!(out[j], [substate])
+        counters[j] += 1
+        out[j][counters[j]] = substate
       end
     end
   end
