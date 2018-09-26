@@ -18,20 +18,20 @@ L = parse(Int, ARGS[5]) # 4
 OUTDIR = "result/N$(N_factor)/"
 mkpath(OUTDIR)
 
-println("Simulating Data ...")
+println("Simulating Data ..."); flush(stdout)
 @time dat = Cytof5.Model.genData(I, J, N, K, L, sortLambda=false, useSimpleZ=false)
 y_dat = Cytof5.Model.Data(dat[:y])
 
 K_MCMC = parse(Int, ARGS[6]) # 10
 L_MCMC = parse(Int, ARGS[7]) # 5
 
-println("Generating priors ...")
+println("Generating priors ..."); flush(stdout)
 @time c = Cytof5.Model.defaultConstants(y_dat, K_MCMC, L_MCMC)
 
-println("Generating initial state ...")
+println("Generating initial state ..."); flush(stdout)
 @time init = Cytof5.Model.genInitialState(c, y_dat)
 
-println("Fitting Model ...")
+println("Fitting Model ..."); flush(stdout)
 @time out, lastState, ll = Cytof5.Model.cytof5_fit(init, c, y_dat,
                                                    monitors=[[:Z, :lam, :W,
                                                               :b0, :b1, :v,
