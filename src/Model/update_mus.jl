@@ -17,9 +17,9 @@ function update_mus(s::State, c::Constants, d::Data)
       priorVar = var(priorMu(z, l, s, c))
       priorMean = mean(priorMu(z, l, s, c))
       newDenom = (1 + priorVar * sum(cardinality[z][:, l] ./ s.sig2))
-      if newDenom < 0
-        printstyled("WARNING: mus newDenom is negative: $(newDenom)\n", color="yellow")
-        newDenom = 0
+      if priorVar < 0
+        printstyled("WARNING: mus priorVar is negative: $(priorVar)\n", color="yellow")
+        priorVar = 1E-10
       end
       newMean = (priorMean + priorVar * sumYOverSig2[z][l]) / newDenom
       newSd = sqrt(priorVar / newDenom)
