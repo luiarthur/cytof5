@@ -8,7 +8,7 @@ using JLD2, FileIO
 include("util.jl")
 
 #N_factor = parse(Int, ARGS[1]) # 100
-N_factor = 1000
+N_factor = 100
 OUTDIR = "result/N$(N_factor)/"
 
 println("Loading Data ...")
