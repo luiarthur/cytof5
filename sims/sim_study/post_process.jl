@@ -19,8 +19,6 @@ K_MCMC = size(lastState.W, 2)
 J = size(lastState.Z, 1)
 
 # Load cytof3, rcommon library in R
-R"library(cytof3)"
-R"library(rcommon)"
 
 # Import R plotting functions
 plot = R"plot";
@@ -33,17 +31,25 @@ plotPosts = R"rcommon::plotPosts"
 myImage = R"cytof3::my.image"
 plotPdf = R"pdf"
 devOff = R"dev.off"
-blueToRed = R"blueToRed"
+blueToRed = R"cytof3::blueToRed"
 greys = R"cytof3::greys"
 plot_dat = R"cytof3::plot_dat"
+yZ_inspect = R"cytof3::yZ_inspect"
 
 # Plot loglikelihood
 plot(ll[100:end], ylab="log-likelihood", xlab="MCMC iteration", typ="l");
 
+function addGridLines(J::Int, K::Int, col="grey")
+  R"abline"(v=(1:K) .+ .5, h=(1:J) .+ .5, col=col);
+end
+
 # Plot Z
 Zpost = util.getPosterior(:Z, out[1])
 Zmean = util.matMean(Zpost)
-myImage(Zmean, xlab="Features", ylab="Markers", addL=true, col=greys(11));
+myImage(Zmean, xlab="Features", ylab="Markers", addL=true, col=greys(11), f=Z->addGridLines(J,K));
+
+myImage(dat[:Z], xlab="Features", ylab="Markers");
+addGridLines(J, K)
 
 # Plot W
 Wpost = util.getPosterior(:W, out[1])
@@ -129,3 +135,6 @@ y_141 = [ yimp[1][4, 1] for yimp in y_imputed ]
 R"hist"(y_141)
 R"plot"(y_141, typ="l")
 =#
+
+yZ_inspect(out[1], i=3, lastState.y_imputed, zlim=[-8,8]) 
+yZ_inspect(out[1], i=3, dat[:y], zlim=[-8,8], na="black")
