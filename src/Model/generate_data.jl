@@ -163,7 +163,8 @@ function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Int,
       p_miss = prob_miss.(y_complete[i][:,j], mmp[:b0], mmp[:b1])
       prop_missing = rand() * propMissingScale * sum(W[i,:] .* (1 .- Z[j,:]))
       num_missing = Int(round(N[i] * prop_missing))
-      idx_missing = [ Distributions.wsample(p_miss) for ii in 1:num_missing]
+      #idx_missing = [ Distributions.wsample(p_miss) for ii in 1:num_missing]
+      idx_missing = Distributions.wsample(1:N[i], p_miss, num_missing, replace=false)
       y[i][:, j] .= y_complete[i][:, j] .+ 0
       y[i][idx_missing, j] .= missing
     end

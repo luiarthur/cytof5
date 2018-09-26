@@ -4,8 +4,8 @@ Pkg.activate("../../")
 using Cytof5, Random, RCall
 using JLD2, FileIO
 
-Random.seed!(10)
-printDebug = false
+Random.seed!(10);
+printDebug = false;
 
 println(ARGS)
 I = parse(Int, ARGS[1]) # 3

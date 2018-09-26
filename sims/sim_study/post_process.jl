@@ -8,7 +8,7 @@ using JLD2, FileIO
 include("util.jl")
 
 #N_factor = parse(Int, ARGS[1]) # 100
-N_factor = 100
+N_factor = 1000
 OUTDIR = "result/N$(N_factor)/"
 
 println("Loading Data ...")
@@ -136,5 +136,5 @@ R"hist"(y_141)
 R"plot"(y_141, typ="l")
 =#
 
-yZ_inspect(out[1], i=3, lastState.y_imputed, zlim=[-8,8]) 
-yZ_inspect(out[1], i=3, dat[:y], zlim=[-8,8], na="black")
+yZ_inspect(out[1], i=3, lastState.y_imputed, zlim=[-8,8], using_zero_index=false) 
+yZ_inspect(out[1], i=3, dat[:y], zlim=[-8,8], na="black", using_zero_index=false)
