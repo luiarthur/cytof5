@@ -2,20 +2,31 @@ module util
 using Distributions, RCall
 import Cytof5
 
+# Import R libraries
+# TODO: Remake rcommon and cytof3 for this.
 R"require(rcommon)";
 R"require(cytof3)";
 
+# Import R plotting functions
 plot = R"plot";
-plotPost = R"rcommon::plotPost"
-plotPosts = R"rcommon::plotPosts"
-colorBtwn = R"rcommon::color.btwn"
-myImage = R"cytof3::my.image"
-plotPdf = R"pdf"
-devOff = R"dev.off"
-blueToRed = R"blueToRed"
-greys = R"cytof3::greys"
-rgba = R"rcommon::rgba"
-abline = R"abline"
+ari = R"cytof3::ari";
+rgba = R"cytof3::rgba";
+density = R"density";
+lines = R"lines";
+plotPost = R"rcommon::plotPost";
+plotPosts = R"rcommon::plotPosts";
+myImage = R"cytof3::my.image";
+plotPdf = R"pdf";
+plotPng = R"png";
+devOff = R"dev.off";
+blueToRed = R"cytof3::blueToRed";
+greys = R"cytof3::greys";
+plot_dat = R"cytof3::plot_dat";
+yZ_inspect = R"cytof3::yZ_inspect";
+yZ_inspect = R"cytof3::yZ_inspect";
+abline = R"abline";
+addErrbar = R"rcommon::add.errbar";
+
 
 function matMean(X)
   X_mean = zeros(size(X[1]))
@@ -58,25 +69,6 @@ function estimate_ZWi_index(monitor, i)
 
   return argmin(mse)
 end
-
-# TODO: Test
-#function fy(lami)
-#  abline(h=cumsum(R"table($lami)") .+ .5, lwd=3, col="yellow", lty=1)
-#end
-#function fZ(Z)
-#  J, K = size(Z)
-#  abline(v=1:K .+ .5, h=1:J .+ .5, col="grey")
-#end
-#function yZ_inspect(out, y, zlim, i, thresh=0.7, col=blueToRed(7),
-#                    propLowerPanel=0.3, isPostPred=false, decimalsW=1, 
-#                    naColor="transparent",
-#                    fy=fy, fZ=fZ, main="", addL=true)
-#  """
-#  fy: Function to execute after making y image
-#  fZ: Function to execute after making Z image
-#  """
-#  # TODO
-#end
 
 function postProbMiss(b0, b1, i::Int;
                       y::Vector{Float64}=collect(-10:.1:10),
