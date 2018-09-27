@@ -14,7 +14,7 @@ IMGDIR = "$OUTDIR/img/"
 run(`mkdir -p $(IMGDIR)`)
 
 println("Loading Data ...")
-@load "$(OUTDIR)/N$(N_factor).jld2" out dat ll lastState #c y_dat
+@load "$(OUTDIR)/N$(N_factor).jld2" out dat ll lastState c y_dat
 
 I, K = size(dat[:W])
 K_MCMC = size(lastState.W, 2)
@@ -122,14 +122,11 @@ util.plotPdf("$(OUTDIR)/img/ydatPost.pdf")
 R"par(mfrow=c(4,2))"
 for i in 1:I
   for j in 1:J
+   util.plot(util.density(dat[:y][i][:, j], na=true), col="red", xlim=[-8,8],
+             main="Y sample: $(i), marker: $(j)", bty="n", fg="grey")
     for iter in 1:length(y_imputed)
       yimp = y_imputed[iter]
-      if iter == 1
-        util.plot(util.density(yimp[i][:, j]), col=util.rgba("blue", .5), xlim=[-8,8],
-                  main="Y sample: $(i), marker: $(j)", bty="n", fg="grey")
-      else
-        util.lines(util.density(yimp[i][:, j]), col=util.rgba("blue", .5))
-      end
+      util.lines(util.density(yimp[i][:, j]), col=util.rgba("blue", .5))
       util.lines(util.density(dat[:y_complete][i][:, j]), col="grey")
     end
     # Plot simulated data
