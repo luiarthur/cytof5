@@ -17,16 +17,24 @@ struct Constants
   L::Int
 end
 
-function genBPrior(yi, pBounds)
+"""
+yi: y[i] = N[i] x J matrix
+pBounds = the bounds for probability of missing to compute the missing mechanism.
+yQuantiles = the quantiles to compute the lower and upper bounds for y for the missing mechanism.
+"""
+function genBPrior(yi, pBounds, yQuantiles)
+  @assert pBounds[1] > pBounds[2]
+  @assert yQuantiles[1] < yQuantiles[2]
+
   yiNeg = yi[ (ismissing.(yi) .== false) .& (yi .< 0) ]
-  yLower = quantile(yiNeg, pBounds[1])
-  yUpper = quantile(yiNeg, pBounds[2])
+  yLower = quantile(yiNeg, yQuantiles[1])
+  yUpper = quantile(yiNeg, yQuantiles[2])
   yBounds = (yLower, yUpper)
 
-  return solveB(yBounds, (pBounds[2], pBounds[1]))
+  return solveB(yBounds, pBounds)
 end
 
-function defaultConstants(data::Data, K::Int, L::Int; pBounds=(.01, .1))
+function defaultConstants(data::Data, K::Int, L::Int; pBounds=(.99, .01), yQuantiles=(.01, .10))
   alpha_prior = Gamma(3.0, 0.5)
   mus_prior = Dict{Int, Truncated{Normal{Float64}, Continuous}}()
   vec_y = vcat(vec.(data.y)...)
@@ -41,8 +49,8 @@ function defaultConstants(data::Data, K::Int, L::Int; pBounds=(.01, .1))
   # TODO: use empirical bayes to find these priors
   #b0_prior = [ Normal(-9.2, 1.0) for i in 1:data.I ]
   #b1_prior = [ Gamma(2.0, 1.0) for i in 1:data.I ]
-  b0_prior = [ Normal(genBPrior(vec(data.y[i]), pBounds)[1], 1.0) for i in 1:data.I ]
-  b1_prior = [ Gamma(genBPrior(vec(data.y[i]), pBounds)[2]/10, 10) for i in 1:data.I ]
+  b0_prior = [ Normal(genBPrior(vec(data.y[i]), pBounds, yQuantiles)[1], 1.0) for i in 1:data.I ]
+  b1_prior = [ Gamma(genBPrior(vec(data.y[i]), pBounds, yQuantiles)[2]*10, 10) for i in 1:data.I ]
 
   #b0_prior = Uniform(1.0, 3.0)
   #b1_prior = Uniform(0.0, 20.0)
