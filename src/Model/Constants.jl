@@ -34,7 +34,12 @@ function genBPrior(yi, pBounds, yQuantiles)
   return solveB(yBounds, pBounds)
 end
 
-function defaultConstants(data::Data, K::Int, L::Int; pBounds=(.99, .01), yQuantiles=(.01, .10))
+"""
+b0PriorSd: bigger -> more uncertainty.
+b1PriorScale: bigger -> more uncertainty. prior scale is the empirical mean / scale. So prior mean is empirical mean.
+"""
+function defaultConstants(data::Data, K::Int, L::Int; pBounds=(.99, .01), yQuantiles=(.01, .10),
+                          b0PriorSd::Number=1.0, b1PriorScale::Number=1/10)
   alpha_prior = Gamma(3.0, 0.5)
   mus_prior = Dict{Int, Truncated{Normal{Float64}, Continuous}}()
   vec_y = vcat(vec.(data.y)...)
@@ -49,8 +54,8 @@ function defaultConstants(data::Data, K::Int, L::Int; pBounds=(.99, .01), yQuant
   # TODO: use empirical bayes to find these priors
   #b0_prior = [ Normal(-9.2, 1.0) for i in 1:data.I ]
   #b1_prior = [ Gamma(2.0, 1.0) for i in 1:data.I ]
-  b0_prior = [ Normal(genBPrior(vec(data.y[i]), pBounds, yQuantiles)[1], 1.0) for i in 1:data.I ]
-  b1_prior = [ Gamma(genBPrior(vec(data.y[i]), pBounds, yQuantiles)[2]*10, 1/10) for i in 1:data.I ]
+  b0_prior = [ Normal(genBPrior(vec(data.y[i]), pBounds, yQuantiles)[1], b0PriorSd) for i in 1:data.I ]
+  b1_prior = [ Gamma(genBPrior(vec(data.y[i]), pBounds, yQuantiles)[2]/b1PriorScale, b1PriorScale) for i in 1:data.I ]
 
   #b0_prior = Uniform(1.0, 3.0)
   #b1_prior = Uniform(0.0, 20.0)

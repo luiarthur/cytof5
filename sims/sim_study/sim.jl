@@ -26,7 +26,7 @@ K_MCMC = parse(Int, ARGS[6]) # 10
 L_MCMC = parse(Int, ARGS[7]) # 5
 
 println("Generating priors ..."); flush(stdout)
-@time c = Cytof5.Model.defaultConstants(y_dat, K_MCMC, L_MCMC)
+@time c = Cytof5.Model.defaultConstants(y_dat, K_MCMC, L_MCMC, b0PriorSd=5, b1PriorScale=3.3)
 
 println("Generating initial state ..."); flush(stdout)
 @time init = Cytof5.Model.genInitialState(c, y_dat)
