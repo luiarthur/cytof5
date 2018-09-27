@@ -16,7 +16,7 @@ function update_b0(i::Int, s::State, c::Constants, d::Data, tuners::Tuners)
   end
 
   function lp(b0i::Float64)
-    return logpdf(c.b0_prior, b0i)
+    return logpdf(c.b0_prior[i], b0i)
   end
 
   logFullCond(b0i::Float64) = ll(b0i) + lp(b0i)
@@ -38,7 +38,7 @@ function update_b1(i::Int, s::State, c::Constants, d::Data, tuners::Tuners)
   end
 
   function lp(b1i::Float64)
-    return logpdf(c.b1_prior, b1i)
+    return logpdf(c.b1_prior[i], b1i)
   end
 
   s.b1[i] = MCMC.metLogAdaptive(s.b1[i], ll, lp, tuners.b1[i])

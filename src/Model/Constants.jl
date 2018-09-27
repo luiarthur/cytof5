@@ -10,14 +10,23 @@ struct Constants
   W_prior::Dirichlet # W_i ~ Dir_K(d)
   eta_prior::Dirichlet # eta_zij ~ Dir_L(a)
   sig2_prior::InverseGamma # sig2_i ~ IG(shape, scale)
-  b0_prior::Normal # b0 ~ Normal(mean, sd)
-  #b1_prior::Uniform # b1 ~ Unif(a, b) (positive)
-  b1_prior::Gamma # b1 ~ Gamma(shape, scale) (positive)
+  b0_prior::Vector{Normal} # b0 ~ Normal(mean, sd)
+  b1_prior::Vector{Gamma} # b1 ~ Gamma(shape, scale) (positive)
+  #b1_prior::Vector{Uniform} # b1 ~ Unif(a, b) (positive)
   K::Int
   L::Int
 end
 
-function defaultConstants(data::Data, K::Int, L::Int)
+function genBPrior(yi, pBounds)
+  yiNeg = yi[ (ismissing.(yi) .== false) .& (yi .< 0) ]
+  yLower = quantile(yiNeg, pBounds[1])
+  yUpper = quantile(yiNeg, pBounds[2])
+  yBounds = (yLower, yUpper)
+
+  return solveB(yBounds, (pBounds[2], pBounds[1]))
+end
+
+function defaultConstants(data::Data, K::Int, L::Int; pBounds=(.01, .1))
   alpha_prior = Gamma(3.0, 0.5)
   mus_prior = Dict{Int, Truncated{Normal{Float64}, Continuous}}()
   vec_y = vcat(vec.(data.y)...)
@@ -28,9 +37,14 @@ function defaultConstants(data::Data, K::Int, L::Int)
   W_prior = Dirichlet(K, 1.0/K)
   eta_prior = Dirichlet(L, 1.0 / L)
   sig2_prior = InverseGamma(3.0, 2.0)
-  b0_prior = Normal(9.2, 1.0)
-  b1_prior = Gamma(2.0, 1.0)
-  #b1_prior = Uniform(1.0, 3.0)
+
+  # TODO: use empirical bayes to find these priors
+  #b0_prior = [ Normal(-9.2, 1.0) for i in 1:data.I ]
+  #b1_prior = [ Gamma(2.0, 1.0) for i in 1:data.I ]
+  b0_prior = [ Normal(genBPrior(vec(data.y[i]), pBounds)[1], 1.0) for i in 1:data.I ]
+  b1_prior = [ Gamma(genBPrior(vec(data.y[i]), pBounds)[2]/10, 10) for i in 1:data.I ]
+
+  #b0_prior = Uniform(1.0, 3.0)
   #b1_prior = Uniform(0.0, 20.0)
 
   Constants(alpha_prior, mus_prior, W_prior, eta_prior, sig2_prior, b0_prior, b1_prior, K, L)
@@ -85,8 +99,8 @@ function genInitialState(c::Constants, d::Data)
   Z = [ rand(Bernoulli(v[k])) for j in 1:J, k in 1:K ]
   mus = Dict([z => sort(rand(c.mus_prior[z], L)) for z in 0:1])
   sig2 = [rand(c.sig2_prior) for i in 1:I]
-  b0 = rand(c.b0_prior, I)
-  b1 = rand(c.b1_prior, I)
+  b0 = [ rand(c.b0_prior[i]) for i in 1:I ]
+  b1 = [ rand(c.b1_prior[i]) for i in 1:I ]
   W = Matrix{Float64}(hcat([ rand(c.W_prior) for i in 1:I ]...)')
   lam = [ rand(Categorical(W[i,:]), N[i]) for i in 1:I ]
   eta = begin
