@@ -14,7 +14,7 @@ IMGDIR = "$OUTDIR/img/"
 run(`mkdir -p $(IMGDIR)`)
 
 println("Loading Data ...")
-@load "$(OUTDIR)/N$(N_factor).jld2" out dat ll lastState c y_dat
+@load "$(OUTDIR)/N$(N_factor).jld2" out dat ll lastState #c y_dat
 
 I, K = size(dat[:W])
 K_MCMC = size(lastState.W, 2)
@@ -35,7 +35,13 @@ Zmean = util.matMean(Zpost)
 
 util.plotPdf("$IMGDIR/Z_mean.pdf")
 util.myImage(Zmean, xlab="Features", ylab="Markers", addL=true, col=util.greys(11),
-             f=Z->addGridLines(J,K));
+             f=Z->addGridLines(J,K_MCMC));
+util.devOff()
+
+util.plotPdf("$IMGDIR/Z_mean_est_leftordered.pdf")
+util.myImage(Cytof5.Model.leftOrder((Zmean .> .5)*1),
+             xlab="Features", ylab="Markers", addL=true, col=util.greys(11),
+             f=Z->addGridLines(J,K_MCMC));
 util.devOff()
 
 util.plotPdf("$IMGDIR/Z_true.pdf")
