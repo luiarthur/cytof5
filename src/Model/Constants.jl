@@ -50,7 +50,7 @@ function defaultConstants(data::Data, K::Int, L::Int; pBounds=(.99, .01), yQuant
   #b0_prior = [ Normal(-9.2, 1.0) for i in 1:data.I ]
   #b1_prior = [ Gamma(2.0, 1.0) for i in 1:data.I ]
   b0_prior = [ Normal(genBPrior(vec(data.y[i]), pBounds, yQuantiles)[1], 1.0) for i in 1:data.I ]
-  b1_prior = [ Gamma(genBPrior(vec(data.y[i]), pBounds, yQuantiles)[2]*10, 10) for i in 1:data.I ]
+  b1_prior = [ Gamma(genBPrior(vec(data.y[i]), pBounds, yQuantiles)[2]*10, 1/10) for i in 1:data.I ]
 
   #b0_prior = Uniform(1.0, 3.0)
   #b1_prior = Uniform(0.0, 20.0)

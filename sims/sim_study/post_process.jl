@@ -14,7 +14,7 @@ IMGDIR = "$OUTDIR/img/"
 run(`mkdir -p $(IMGDIR)`)
 
 println("Loading Data ...")
-@load "$(OUTDIR)/N$(N_factor).jld2" out dat ll lastState
+@load "$(OUTDIR)/N$(N_factor).jld2" out dat ll lastState c y_dat
 
 I, K = size(dat[:W])
 K_MCMC = size(lastState.W, 2)

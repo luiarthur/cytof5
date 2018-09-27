@@ -46,6 +46,6 @@ println("Fitting Model ..."); flush(stdout)
                                                    flushOutput=true)
 
 println("Saving Data ...")
-@save "$(OUTDIR)/N$(N_factor).jld2" out dat ll lastState
+@save "$(OUTDIR)/N$(N_factor).jld2" out dat ll lastState c y_dat
 
 println("MCMC Completed.")
