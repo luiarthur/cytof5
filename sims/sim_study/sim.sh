@@ -47,7 +47,7 @@ for nFac in $N_factor; do
 
       cmd="$jlCmd > ${outdir}/log.txt && $syncToS3 && $rmOutput"
 
-      #sem -j $MAX_CORES $cmd
+      sem -j $MAX_CORES $cmd
       echo $cmd
 
       echo "Results for simulation $simNumber -> $outdir"
