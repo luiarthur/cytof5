@@ -4,7 +4,7 @@
 MAX_CORES=27
 
 # AWS Bucket to store results
-AWS_BUCKET="cytof-sim-results"
+AWS_BUCKET="s3://cytof-sim-results"
 
 # Experiment settings
 I=3
