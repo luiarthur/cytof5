@@ -3,35 +3,108 @@ Pkg.activate("../../")
 
 using Cytof5, Random, RCall
 using JLD2, FileIO
+using ArgParse
 
-Random.seed!(10);
-printDebug = false;
+function logger(x; newline=true)
+  if newline
+    println(x)
+  else
+    print(x)
+  end
+  flush(stdout)
+end
 
-println(ARGS)
-I = parse(Int, ARGS[1]) # 3
-J = parse(Int, ARGS[2]) # 32
-N_factor = parse(Int, ARGS[3]) # 100
+# ARG PARSING
+function parse_cmd()
+  s = ArgParseSettings()
+
+  @add_arg_table s begin
+    "--I"
+      arg_type = Int
+      required = true
+    "--J"
+      arg_type = Int
+      required = true
+    "--N_factor"
+      arg_type = Int
+      required = true
+    "--K"
+      arg_type = Int
+      required = true
+    "--L"
+      arg_type = Int
+      required = true
+    "--K_MCMC"
+      arg_type = Int
+      required = true
+    "--L_MCMC"
+      arg_type = Int
+      required = true
+    "--RESULTS_DIR"
+      arg_type = String
+      required = true
+    "--b0PriorSd"
+      arg_type = Float64
+      default = 1.0
+    "--b1PriorScale"
+      arg_type = Float64
+      default = 1.0
+    "--SEED"
+      arg_type = Int
+      default = 0
+    "--EXP_NAME"
+      arg_type = String
+  end
+
+  PARSED_ARGS = parse_args(s)
+
+  if PARSED_ARGS["EXP_NAME"] == nothing
+    logger("EXP_NAME not defined. Making default experiment name.")
+    MAIN_ARGS = filter(d -> !(d.first in ("RESULTS_DIR", "EXP_NAME")), PARSED_ARGS)
+    PARSED_ARGS["EXP_NAME"] = join(["$k$v" for (k, v) in MAIN_ARGS], '_')
+  end
+
+  return PARSED_ARGS
+end
+
+PARSED_ARGS = parse_cmd()
+for (k,v) in PARSED_ARGS
+  logger("$k => $v")
+end
+
+I = PARSED_ARGS["I"]
+J = PARSED_ARGS["J"]
+N_factor = PARSED_ARGS["N_factor"]
 N = N_factor * [3, 1, 2]
-K = parse(Int, ARGS[4]) # 4
-L = parse(Int, ARGS[5]) # 4
+K = PARSED_ARGS["K"]
+L = PARSED_ARGS["L"]
+K_MCMC = PARSED_ARGS["K_MCMC"]
+L_MCMC = PARSED_ARGS["L_MCMC"]
+EXP_NAME = PARSED_ARGS["EXP_NAME"]
+SEED = PARSED_ARGS["SEED"]
+b0PriorSd = PARSED_ARGS["b0PriorSd"]
+b1PriorScale = PARSED_ARGS["b1PriorScale"]
+RESULTS_DIR = PARSED_ARGS["RESULTS_DIR"]
 
-OUTDIR = "result/N$(N_factor)/"
+Random.seed!(SEED);
+# END OF ARG PARSING
+
+# CREATE RESULTS DIR
+OUTDIR = "$(RESULTS_DIR)/$(EXP_NAME)/"
 mkpath(OUTDIR)
 
-println("Simulating Data ..."); flush(stdout)
+logger("Simulating Data ...");
 @time dat = Cytof5.Model.genData(I, J, N, K, L, sortLambda=false, useSimpleZ=false)
 y_dat = Cytof5.Model.Data(dat[:y])
 
-K_MCMC = parse(Int, ARGS[6]) # 10
-L_MCMC = parse(Int, ARGS[7]) # 5
 
-println("Generating priors ..."); flush(stdout)
-@time c = Cytof5.Model.defaultConstants(y_dat, K_MCMC, L_MCMC, b0PriorSd=5, b1PriorScale=3.3)
+logger("Generating priors ...");
+@time c = Cytof5.Model.defaultConstants(y_dat, K_MCMC, L_MCMC, b0PriorSd=b0PriorSd, b1PriorScale=b1PriorScale)
 
-println("Generating initial state ..."); flush(stdout)
+logger("Generating initial state ...");
 @time init = Cytof5.Model.genInitialState(c, y_dat)
 
-println("Fitting Model ..."); flush(stdout)
+logger("Fitting Model ...");
 @time out, lastState, ll = Cytof5.Model.cytof5_fit(init, c, y_dat,
                                                    monitors=[[:Z, :lam, :W,
                                                               :b0, :b1, :v,
@@ -45,7 +118,7 @@ println("Fitting Model ..."); flush(stdout)
                                                    numPrints=100,
                                                    flushOutput=true)
 
-println("Saving Data ...")
-@save "$(OUTDIR)/N$(N_factor).jld2" out dat ll lastState c y_dat
+logger("Saving Data ...");
+@save "$(OUTDIR)/output.jld2" out dat ll lastState c y_dat
 
-println("MCMC Completed.")
+logger("MCMC Completed.");

@@ -7,14 +7,16 @@ using JLD2, FileIO
 
 include("util.jl")
 
-N_factor = parse(Int, ARGS[1]) # 100
+#N_factor = parse(Int, ARGS[1]) # 100
 #N_factor = 100
-OUTDIR = "result/N$(N_factor)/"
+#OUTDIR = "result/N$(N_factor)/"
+OUTDIR = ARGS[1]
 IMGDIR = "$OUTDIR/img/"
 run(`mkdir -p $(IMGDIR)`)
 
 println("Loading Data ...")
-@load "$(OUTDIR)/N$(N_factor).jld2" out dat ll lastState c y_dat
+#@load "$(OUTDIR)/N$(N_factor).jld2" out dat ll lastState c y_dat
+@load "$(OUTDIR)/out.jld2" out dat ll lastState c y_dat
 
 I, K = size(dat[:W])
 K_MCMC = size(lastState.W, 2)
