@@ -14,18 +14,22 @@ function update_mus(s::State, c::Constants, d::Data)
 
   for z in 0:1
     for l in 1:c.L
-      priorVar = var(priorMu(z, l, s, c))
-      priorMean = mean(priorMu(z, l, s, c))
-      newDenom = (1 + priorVar * sum(cardinality[z][:, l] ./ s.sig2))
-      if priorVar < 0
-        printstyled("WARNING: mus priorVar is negative: $(priorVar)\n", color=:yellow)
-        priorVar = 1E-10
-      end
-      newMean = (priorMean + priorVar * sumYOverSig2[z][l]) / newDenom
-      newSd = sqrt(priorVar / newDenom)
-      newLower = minimum(priorMu(z, l, s, c))
-      newUpper = maximum(priorMu(z, l, s, c))
-      s.mus[z][l] = rand(TruncatedNormal(newMean, newSd, newLower, newUpper))
+      # Note that priorMu and priorSig are NOT the prior mean and std. They are PARAMETERS in 
+      # the truncated normal!
+      (priorM, priorS, newLower, newUpper) = params(priorMu(z, l, s, c))
+      priorS2 = priorS ^ 2
+      #priorVar = var(priorMu(z, l, s, c))
+      #priorMean = mean(priorMu(z, l, s, c))
+      newDenom = (1 + priorS2 * sum(cardinality[z][:, l] ./ s.sig2))
+      #if priorVar < 0
+      #  printstyled("WARNING: mus priorVar is negative: $(priorVar)\n", color=:yellow)
+      #  priorVar = 1E-10
+      #end
+      newM = (priorM + priorS2 * sumYOverSig2[z][l]) / newDenom
+      newS = sqrt(priorS2 / newDenom)
+      #newLower = minimum(priorMu(z, l, s, c))
+      #newUpper = maximum(priorMu(z, l, s, c))
+      s.mus[z][l] = rand(TruncatedNormal(newM, newS, newLower, newUpper))
     end
   end
 end

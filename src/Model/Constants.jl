@@ -75,9 +75,12 @@ function priorMu(z::Int, l::Int, s::State, c::Constants)
     lower, upper = s.mus[z][l-1], s.mus[z][l+1]
   end
 
-  priorMean = mean(c.mus_prior[z])
-  priorSd = std(c.mus_prior[z])
-  return TruncatedNormal(priorMean, priorSd, lower, upper)
+  # Note that priorM and priorS are NOT the prior mean and std. They are PARAMETERS in 
+  # the truncated normal!
+  (priorM, priorS, _, _) = params(c.mus_prior[z])
+  #priorMean = mean(c.mus_prior[z])
+  #priorSd = std(c.mus_prior[z])
+  return TruncatedNormal(priorM, priorS, lower, upper)
 end
 
 # TODO

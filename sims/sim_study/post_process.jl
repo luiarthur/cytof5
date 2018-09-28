@@ -118,24 +118,29 @@ util.devOff()
 
 # Posterior of y_imputed
 y_imputed = [ o[:y_imputed] for o in out[2] ]
-util.plotPdf("$(OUTDIR)/img/ydatPost.pdf")
+util.plotPdf("$(IMGDIR)/ydatPost.pdf")
 R"par(mfrow=c(4,2))"
 for i in 1:I
   for j in 1:J
-   util.plot(util.density(dat[:y][i][:, j], na=true), col="red", xlim=[-8,8],
-             main="Y sample: $(i), marker: $(j)", bty="n", fg="grey")
+    util.plot(util.density(dat[:y][i][:, j], na=true), col="red", xlim=[-8,8],
+              main="Y sample: $(i), marker: $(j)", bty="n", fg="grey")
     for iter in 1:length(y_imputed)
       yimp = y_imputed[iter]
       util.lines(util.density(yimp[i][:, j]), col=util.rgba("blue", .5))
-      util.lines(util.density(dat[:y_complete][i][:, j]), col="grey")
     end
-    # Plot simulated data
+    util.lines(util.density(dat[:y_complete][i][:, j]), col="grey")
   end
 end
 R"par(mfrow=c(1,1))"
 util.devOff()
 
 
+idx_missing = [ findall(ismissing.(y_dat.y[i])) for i in 1:y_dat.I ]
+idx = idx_missing[2][1]
+util.plotPdf("$(IMGDIR)/y_trace.pdf")
+util.hist([ y_imputed[b][2][idx] for b in 1:length(y_imputed) ], col="blue", border="transparent")
+util.plot([ y_imputed[b][2][idx] for b in 1:length(y_imputed) ], typ="l")
+util.devOff()
 
 # ARI - adjusted Rand Index ∈  (0, 1). Metric for clustering.
 # Higher is better.

@@ -26,6 +26,7 @@ yZ_inspect = R"cytof3::yZ_inspect";
 yZ_inspect = R"cytof3::yZ_inspect";
 abline = R"abline";
 addErrbar = R"rcommon::add.errbar";
+hist = R"hist";
 
 
 function matMean(X)
