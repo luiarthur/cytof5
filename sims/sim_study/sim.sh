@@ -37,7 +37,7 @@ for nFac in $N_factor; do
       mkdir -p $outdir
 
       # Julia Command to run
-      jlCmd="julia sim.jl --I=${I} --J=${J} --N_factor=${nFac} --K=${K} --L=${L} --K_MCMC=${K_MCMC} --L_MCMC=${L_MCMC} --b0PriorSd=${b0Sd} --b1PriorScale=${b1Scale} --SEED=${SEED} --RESULTS_DIR=$RESULTS_DIR"
+      jlCmd="julia sim.jl --I=${I} --J=${J} --N_factor=${nFac} --K=${K} --L=${L} --K_MCMC=${K_MCMC} --L_MCMC=${L_MCMC} --b0PriorSd=${b0Sd} --b1PriorScale=${b1Scale} --SEED=${SEED} --RESULTS_DIR=$RESULTS_DIR --EXP_NAME=$exp_name"
 
       # Sync results to S3
       syncToS3="aws s3 sync $RESULTS_DIR $AWS_BUCKET"
