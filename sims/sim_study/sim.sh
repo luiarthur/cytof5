@@ -30,14 +30,14 @@ for nFac in $N_factor; do
       simNumber=$((simNumber + 1)) 
 
       # Experiment name
-      exp_name="I${I}_J${J}_nFac${nFac}_K${K}_L${L}_K_MCMC${K_MCMC}_L_MCMC${L_MCMC}_b0PriorSd${b0Sd}_b1PriorScale${b1Scale}_SEED${SEED}"
+      exp_name="I${I}_J${J}_N_factor${nFac}_K${K}_L${L}_K_MCMC${K_MCMC}_L_MCMC${L_MCMC}_b0PriorSd${b0Sd}_b1PriorScale${b1Scale}_SEED${SEED}"
 
       # Output directory
       outdir="$RESULTS_DIR/$exp_name/"
       mkdir -p $outdir
 
       # Julia Command to run
-      jlCmd="julia sim.jl --I=${I} --J=${J} --nFac=${nFac} --K=${K} --L=${L} --K_MCMC=${K_MCMC} --L_MCMC=${L_MCMC} --b0PriorSd=${b0Sd} --b1PriorScale=${b1Scale} --SEED=${SEED}"
+      jlCmd="julia sim.jl --I=${I} --J=${J} --N_factor=${nFac} --K=${K} --L=${L} --K_MCMC=${K_MCMC} --L_MCMC=${L_MCMC} --b0PriorSd=${b0Sd} --b1PriorScale=${b1Scale} --SEED=${SEED} --RESULTS_DIR=$RESULTS_DIR"
 
       # Sync results to S3
       syncToS3="aws s3 sync $RESULTS_DIR $AWS_BUCKET"
