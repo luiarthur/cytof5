@@ -6,6 +6,9 @@ MAX_CORES=27
 # AWS Bucket to store results
 AWS_BUCKET="s3://cytof-sim-results"
 
+# STAGGER_TIME in seconds. To avoid mass dumping to disk simultaneously. 
+STAGGER_TIME=100
+
 # Experiment settings
 I=3
 J=32
@@ -51,6 +54,8 @@ for nFac in $N_factor; do
       echo $cmd
 
       echo "Results for simulation $simNumber -> $outdir"
+
+      sleep $STAGGER_TIME
     done
   done
 done
