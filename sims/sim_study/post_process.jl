@@ -167,3 +167,9 @@ for i in 1:I
   util.devOff()
 end
 
+open("$IMGDIR/priorBeta.txt", "w") do file
+  b0Prior = join(c.b0_prior, "\n")
+  b1Prior = join(c.b1_prior, "\n")
+  write(file, "b0Prior:\n$b0Prior\nb1Prior:\n$b1Prior\n")
+end
+
