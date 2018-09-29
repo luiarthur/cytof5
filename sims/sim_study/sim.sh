@@ -12,7 +12,7 @@ STAGGER_TIME=100
 # Experiment settings
 I=3
 J=32
-N_factor="100 1000 10000"
+N_factor="10000 1000 100"
 K=8
 L=4
 K_MCMC=10
