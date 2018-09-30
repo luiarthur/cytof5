@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# Maximum number of cores to use
+MAX_CORES=3
+
+# AWS Bucket to store results
+AWS_BUCKET="s3://cytof-cb-results"
+
+# STAGGER_TIME in seconds. To avoid mass dumping to disk simultaneously. 
+STAGGER_TIME=100
+
+# Experiment settings
+K_MCMC=20
+L_MCMC=5
+betaPriorScales="0.1 1 10"
+RESULTS_DIR="results/"
+SEED=0
+
+# simulation number, just for book keeping. Ignore this.
+simNumber=0
+
+
+for scale in $betaPriorScales; do
+  # Simulation number
+  simNumber=$((simNumber + 1)) 
+
+  # Experiment name
+  exp_name="K_MCMC${K_MCMC}_L_MCMC${L_MCMC}_scale${scale}_SEED${SEED}"
+
+  # Output directory
+  outdir="$RESULTS_DIR/$exp_name/"
+  mkdir -p $outdir
+
+  # Julia Command to run
+  jlCmd="julia cb.jl --K_MCMC=${K_MCMC} --L_MCMC=${L_MCMC} --b0PriorSd=${scale} --b1PriorScale=${scale} --SEED=${SEED} --RESULTS_DIR=$RESULTS_DIR --EXP_NAME=$exp_name"
+
+  # Sync results to S3
+  syncToS3="aws s3 sync $RESULTS_DIR $AWS_BUCKET"
+
+  # Remove output files to save space on cluster
+  rmOutput="rm -rf ${outdir}"
+
+  cmd="$jlCmd > ${outdir}/log.txt && $syncToS3 && $rmOutput"
+
+  sem -j $MAX_CORES $cmd
+  echo $cmd
+
+  echo "Results for simulation $simNumber -> $outdir"
+
+  sleep $STAGGER_TIME
+done
