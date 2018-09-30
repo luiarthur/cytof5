@@ -15,3 +15,6 @@ dirsWithJld.foreach{ d =>
   }
 }
 
+/* run with: 
+  amm --predef genResults.sc
+*/
