@@ -115,7 +115,7 @@ function metLogAdaptive(curr::Float64, ll::Function, lp::Function,
   end
 
   log_x = metropolisAdaptive(log(curr), lfc_logX, tuner,
-                               delta=delta, targetAcc=targetAcc)
+                             delta=delta, targetAcc=targetAcc)
 
   return exp(log_x)
 end
