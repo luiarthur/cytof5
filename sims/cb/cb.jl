@@ -63,6 +63,10 @@ EXP_NAME = PARSED_ARGS["EXP_NAME"]
 Random.seed!(SEED);
 # End of ArgParse
 
+# CREATE RESULTS DIR
+OUTDIR = "$(RESULTS_DIR)/$(EXP_NAME)/"
+mkpath(OUTDIR)
+
 # Read CB Data
 cbDataPath = "data/cytof_cb.jld2"
 @load cbDataPath y_cb
