@@ -1,7 +1,7 @@
 import Pkg
 Pkg.activate("../../")
 
-using Cytof5, Random, RCall
+using Cytof5, Random
 using JLD2, FileIO
 using ArgParse
 
@@ -89,6 +89,7 @@ logger("Fitting Model ...");
                                                              [:y_imputed]],
                                                    thins=[1, 100],
                                                    nmcmc=1000, nburn=15000,
+                                                   #nmcmc=2, nburn=2,
                                                    numPrints=1000,
                                                    flushOutput=true)
 
