@@ -137,7 +137,7 @@ R"par(mfrow=c(1,1))"
 util.devOff()
 
 
-idx_missing = [ findall(ismissing.(y_dat.y[i])) for i in 1:y_dat.I ]
+idx_missing = [ findall(isnan.(y_dat.y[i])) for i in 1:y_dat.I ]
 idx = idx_missing[2][1]
 util.plotPdf("$(IMGDIR)/y_trace.pdf")
 util.hist([ y_imputed[b][2][idx] for b in 1:length(y_imputed) ], col="blue", border="transparent")
