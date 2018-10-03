@@ -1,4 +1,4 @@
-const VecMissMat = Vector{Matrix{Union{T, Missing}}} where T
+#const VecMissMat = Vector{Matrix{Union{T, Missing}}} where T
 
 function nrow(m::Matrix)
   return size(m, 1)
@@ -9,7 +9,8 @@ function ncol(m::Matrix)
 end
 
 struct Data
-  y::VecMissMat{Float64}
+  #y::VecMissMat{Float64}
+  y::Vector{Matrix{Float64}}
   I::Int
   J::Int
   N::Vector{Int}
@@ -20,7 +21,7 @@ struct Data
     I = length(y)
     J = ncol(y[1])
     N = nrow.(y)
-    m = [Int8(1) * ismissing.(y[i]) for i in 1:I]
+    m = [Int8(1) * isnan.(y[i]) for i in 1:I]
     return new(y, I, J, N, m)
   end
 end

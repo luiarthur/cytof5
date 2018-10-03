@@ -26,7 +26,7 @@ function genBPrior(yi, pBounds, yQuantiles)
   @assert pBounds[1] > pBounds[2]
   @assert yQuantiles[1] < yQuantiles[2]
 
-  yiNeg = yi[ (ismissing.(yi) .== false) .& (yi .< 0) ]
+  yiNeg = yi[ (isnan.(yi) .== false) .& (yi .< 0) ]
   yLower = quantile(yiNeg, yQuantiles[1])
   yUpper = quantile(yiNeg, yQuantiles[2])
   yBounds = (yLower, yUpper)
@@ -43,8 +43,8 @@ function defaultConstants(data::Data, K::Int, L::Int; pBounds=(.99, .01), yQuant
   alpha_prior = Gamma(3.0, 0.5)
   mus_prior = Dict{Int, Truncated{Normal{Float64}, Continuous}}()
   vec_y = vcat(vec.(data.y)...)
-  y_neg = filter(y_inj -> !ismissing(y_inj) && y_inj < 0, vec_y)
-  y_pos = filter(y_inj -> !ismissing(y_inj) && y_inj > 0, vec_y)
+  y_neg = filter(y_inj -> !isnan(y_inj) && y_inj < 0, vec_y)
+  y_pos = filter(y_inj -> !isnan(y_inj) && y_inj > 0, vec_y)
   mus_prior[0] = TruncatedNormal(mean(y_neg), std(y_neg), -10, 0)
   mus_prior[1] = TruncatedNormal(mean(y_pos), std(y_pos), 0, 10)
   W_prior = Dirichlet(K, 1.0/K)
@@ -91,14 +91,14 @@ function genInitialState(c::Constants, d::Data)
   I = d.I
   N = d.N
 
-  yVecObserved = [ filter(yinj -> !ismissing(yinj), vec(d.y[i])) for i in 1:I ]
+  yVecObserved = [ filter(yinj -> !isnan(yinj), vec(d.y[i])) for i in 1:I ]
 
   y_imputed = begin
     local out = [zeros(Float64, N[i], J) for i in 1:I]
     for i in 1:I
       for n in 1:N[i]
         for j in 1:J
-          if ismissing(d.y[i][n, j])
+          if isnan(d.y[i][n, j])
             out[i][n, j] = rand(c.mus_prior[0])
           else
             out[i][n, j] = d.y[i][n, j]

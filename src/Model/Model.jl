@@ -26,7 +26,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
     for i in 1:d.I
       for n in 1:d.N[i]
         for j in 1:d.J
-          if ismissing(d.y[i][n, j])
+          if d.m[i][n, j] == 1
             dict[i, n, j] = MCMC.TuningParam(1.0)
           end
         end
