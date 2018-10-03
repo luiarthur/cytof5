@@ -18,7 +18,7 @@ set.seed(3)
 include("../sim_study/util.jl")
 
 # Where to put results from FlowSOM analysis
-OUTDIR = "results/"
+RESULTS_DIR = "results/"
 
 # Where to get data
 if length(ARGS) == 0
@@ -26,6 +26,11 @@ if length(ARGS) == 0
 else
   SIMDIR = ARGS[1]
 end
+
+# Where in results dir to put output
+expName(dir) = filter(x -> length(x) > 0, split(dir, "/"))[end]
+OUTPUT_DIR = "$(RESULTS_DIR)/$(expName(SIMDIR))/"
+mkpath(OUTPUT_DIR)
 
 # READ DATA
 println("Loading Data ...")
@@ -50,6 +55,7 @@ ff_Y = R"colnames(Y_tilde) <- 1:NCOL(Y_tilde); flowFrame(Y_tilde)"
 println("Running FlowSOM...")
 J = y_dat.J
 I = y_dat.I
+N = y_dat.N
 FlowSOM = R"FlowSOM::FlowSOM"
 @time fSOM = FlowSOM(ff_Y,
                      # Input options:
@@ -60,30 +66,47 @@ FlowSOM = R"FlowSOM::FlowSOM"
                      # Seed for reproducible results:
                      seed = 42)
 
-@rput fSOM
+@rput fSOM I J N
 R"""
+idx_upper = cumsum(N)
+idx_lower = c(1,idx_upper[-I]+1)
+idx = cbind(idx_lower, idx_upper)
+
 fSOMClus = fSOM$meta[fSOM$FlowSOM$map$mapping[,1]]
 fsEst = as.list(1:$I)
 fsClus = as.numeric(fSOMClus)
 
 mult=1
-for (i in 1:I) {
+png($OUTPUT_DIR %+% 'YZ%03d_FlowSOM.png', height=500*mult, width=500*mult)
+for (i in 1:$I) {
   clus = fsClus[idx[i,1]:idx[i,2]]
   print(length(unique(clus))) # Number of clusters learned
-  #est = est_ZW_from_clusters(y_tilde[[i]], clus, f=median)
-  #yZ(yi=y[[i]], Zi=est$Z*1, Wi=est$W, cell_types_i=est$clus-1,
-  #   zlim=c(-3,3), na.color='black', thresh=.9, col=blueToRed(7),
-  #   cex.z.b=1.5, cex.z.lab=1.5, cex.z.l=1.5, cex.z.r=1.5,
-  #   cex.y.ylab=1.5, cex.y.xaxs=1.4, cex.y.yaxs=1.4, cex.y.leg=1.5, 
-  #   prop_lower_panel=0)
   clus = relabel_clusters(clus)
-  my.image(y[[i]][order(clus),], col=blueToRed(11), zlim=c(-5,5), addL=TRUE,
+  my.image($(y_dat.y)[[i]][order(clus),], col=blueToRed(11), zlim=c(-5,5), addL=TRUE,
            na.color='black', cex.y.leg=2, xlab='cell types',  ylab='cells',
            cex.lab=1.5, cex.axis=1.5, xaxt='n',
            f=function(z) {
              add.cut(clus) 
-             axis(1, at=1:J, fg='grey', las=2, cex.axis=1.5)
+             axis(1, at=1:$(J), fg='grey', las=2, cex.axis=1.5)
            })
 }
+dev.off()
+
+println("Computing ARI ...")
+true.clus.ls <- $(dat[:lam])
+fs.clus.ls = lapply(1:I, function(i) fsClus[idx_lower[i]:idx_upper[i]])
+
+ARI = sapply(1:I, function(i) {
+  ari(true.clus.ls[[i]], fs.clus.ls[[i]])
+})
+
+ARI_all = 'FlowSOM'=ari(unlist(true.clus.ls), fsClus)
+
+sink($OUTPUT_DIR %+% "ari.txt")
+  println("ARI:")
+  print(ARI)
+  println("ARI all:")
+  print(ARI_all)
+sink()
 """
 
