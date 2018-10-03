@@ -1,19 +1,21 @@
 ### INSTALL ###
-#source("https://bioconductor.org/biocLite.R")
-#biocLite("FlowSOM")
+# source("https://bioconductor.org/biocLite.R")
+# biocLite("FlowSOM")
 
 library(xtable)
 library(FlowSOM)
 library(flowCore)
 library(rcommon)
 library(cytof3)
-source('est_Z_from_clusters.R')
+source("est_Z_from_clusters.R")
 set.seed(3)
 
-OUT_SIM  = '../../out/'
-OUT_FLOW = OUT_SIM %+% 'FlowSOM/'
+args <- commandArgs(trailingOnly=TRUE)
 
-cytof3.results = OUT_SIM %+% '/sim_rand_beta_K20_N1000/checkpoint.rda'
+SIMDIR  = if (length(args) == 0) 'sim_study/results/I3_J32_N_factor100_K8_L4_K_MCMC10_L_MCMC5_b0PriorSd0.1_b1PriorScale0.1_SEED0/output.jld2'
+OUTDIR = "results/"
+
+cytof3.results = SIMDIR
 load(cytof3.results)
 
 ### Indices for each sample ###
