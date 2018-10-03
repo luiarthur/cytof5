@@ -16,3 +16,4 @@
     - LPML can be found in paper by Dey, Gelfand
     - Should the computation be using `m_inj` as well? Specifically,
       `likelihood= prod(Normal(observed y_inj | params)) * prod(Bern(m_inj | p_inj))`
+- [ ] revise manuscript
