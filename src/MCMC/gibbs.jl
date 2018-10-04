@@ -39,10 +39,6 @@ function gibbs(init,
     numMonitors = 1
   end
 
-  # object to return
-  #out = Vector{Vector{Dict{Symbol, Any}}}([]) # monitors, chain, dict
-  #start=Vector{Dict{Symbol, Any}}([])
-
   # Number of Samples for each Monitor
   numSamps = [ div(nmcmc, thins[i]) for i in 1:numMonitors ]
   #out = [ Vector{Dict{Symbol, Any}}([]) for i in 1:numMonitors ]
@@ -50,6 +46,7 @@ function gibbs(init,
   if printProgress
     println("Preallocating memory...")
   end
+  # Object to return
   @time out = [ fill(deepcopyFields(state, monitors[i]), numSamps[i]) for i in 1:numMonitors ]
 
   # Milestones
