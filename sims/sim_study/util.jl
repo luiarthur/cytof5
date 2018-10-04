@@ -29,14 +29,15 @@ addErrbar = R"rcommon::add.errbar";
 hist = R"hist";
 
 
-function matMean(X)
-  X_mean = zeros(size(X[1]))
-  N = length(X)
-  for x in X
-    X_mean += x / N
-  end
-  return X_mean
-end
+# deprecation: Same thing as mean(X)
+#function matMean(X)
+#  X_mean = zeros(size(X[1]))
+#  N = length(X)
+#  for x in X
+#    X_mean += x / N
+#  end
+#  return X_mean
+#end
 
 function getPosterior(sym::Symbol, monitor)
   return [ m[sym] for m in monitor]
