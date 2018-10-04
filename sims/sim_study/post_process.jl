@@ -30,7 +30,7 @@ end
 
 # Plot Z
 Zpost = util.getPosterior(:Z, out[1])
-Zmean = util.matMean(Zpost)
+Zmean = mean(Zpost)
 
 util.plotPdf("$IMGDIR/Z_mean.pdf")
 util.myImage(Zmean, xlab="Features", ylab="Markers", addL=true, col=util.greys(11),
@@ -50,7 +50,7 @@ util.devOff()
 
 # Plot W
 Wpost = util.getPosterior(:W, out[1])
-Wmean = util.matMean(Wpost)
+Wmean = mean(Wpost)
 
 util.plotPdf("$IMGDIR/W_mean.pdf")
 util.myImage(Wmean, xlab="Features", ylab="Samples", col=R"greys(10)", addL=true, zlim=[0,.3]);
