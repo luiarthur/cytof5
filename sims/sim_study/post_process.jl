@@ -1,6 +1,3 @@
-import Pkg
-Pkg.activate("../../")
-
 using Distributions
 using Cytof5, Random, RCall
 using JLD2, FileIO
