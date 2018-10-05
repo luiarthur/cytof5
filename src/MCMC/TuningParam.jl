@@ -19,7 +19,6 @@ function update(param::TuningParam, accept::Bool)
 end
 
 function acceptanceRate(param::TuningParam)
-  #return param.acceptanceCount / param.currentIter
   return param.acceptanceCount / param.batch_size
 end
 

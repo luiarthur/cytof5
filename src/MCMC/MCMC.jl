@@ -6,6 +6,7 @@ export gibbs, TuningParam, metropolis, metropolisAdaptive, logpdfLogX, metLogAda
 include("gibbs.jl")
 include("TuningParam.jl")
 include("Conjugate.jl")
+include("Fitness.jl")
 
 function metropolisBase(curr::Float64, logFullCond::Function, stepSD::Float64)
   cand = curr + randn() * stepSD

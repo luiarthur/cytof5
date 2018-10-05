@@ -19,7 +19,8 @@ function gibbs(init,
                thins::Vector{Int}=deepcopy(thin_default),
                nmcmc::Int64=1000, nburn::Int=0,
                printProgress::Bool=true,
-               numPrints::Int=10, loglike=missing, flushOutput::Bool=false)
+               numPrints::Int=10, loglike=missing,
+               flushOutput::Bool=false, printlnAfterMsg::Bool=true)
   """
   This is my docs...
   """
@@ -55,7 +56,12 @@ function gibbs(init,
   function printMsg(i::Int)
     if milestone > 0 && i % milestone == 0 && printProgress
       loglikeMsg = ismissing(loglike) ? "" : " -- loglike: $(last(loglike))"
-      println("$(Dates.now()) -- $i / $(nburn+nmcmc) $loglikeMsg")
+      print("$(Dates.now()) -- $i / $(nburn+nmcmc) $loglikeMsg")
+
+      if printlnAfterMsg
+        println()
+      end
+
       if flushOutput
         flush(stdout)
       end
@@ -73,7 +79,7 @@ function gibbs(init,
   # Gibbs loop
   for i in 1:nmcmc
     printMsg(i + nburn)
-    update(state, i, out)
+    update(state, i + nburn, out)
 
     for j in 1:numMonitors
       if i % thins[j] == 0
