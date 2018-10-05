@@ -1,6 +1,11 @@
-using Cytof5, Random, RCall
-using JLD2, FileIO
-using ArgParse
+println("Loading packages...")
+@time begin
+  using Cytof5
+  using Random
+  using JLD2, FileIO
+  using ArgParse
+end
+println("Done loading packages.")
 
 function logger(x; newline=true)
   if newline
@@ -94,6 +99,9 @@ logger("Simulating Data ...");
 @time dat = Cytof5.Model.genData(I, J, N, K, L, sortLambda=false, useSimpleZ=false)
 y_dat = Cytof5.Model.Data(dat[:y])
 
+println(y_dat.y[3][27, 1])
+println(y_dat.y[3][51, 3])
+println(y_dat.y[3][79, 3])
 
 logger("Generating priors ...");
 @time c = Cytof5.Model.defaultConstants(y_dat, K_MCMC, L_MCMC, b0PriorSd=b0PriorSd, b1PriorScale=b1PriorScale)
@@ -112,10 +120,14 @@ logger("Fitting Model ...");
                                                    thins=[1, 100],
                                                    nmcmc=1000, nburn=10000,
                                                    #nmcmc=2, nburn=2,
-                                                   numPrints=100,
+                                                   numPrints=100, computeLPML=true,
                                                    flushOutput=true)
 
 logger("Saving Data ...");
 @save "$(OUTDIR)/output.jld2" out dat ll lastState c y_dat
 
 logger("MCMC Completed.");
+
+#= Test
+julia sim.jl --I=3 --J=32 --N_factor=100 --K=8 --L=4 --K_MCMC=10 --L_MCMC=5 --RESULTS_DIR="bla" --EXP_NAME=small
+=#

@@ -26,7 +26,7 @@ function compute_loglike(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data
 end
 
 
-function compute_loglike(s::State, c::Constants, d::Data)
+function compute_loglike(s::State, c::Constants, d::Data; normalize::Bool=true)
   ll = 0
 
   sumN = sum(d.N)
@@ -34,7 +34,11 @@ function compute_loglike(s::State, c::Constants, d::Data)
   for i in 1:d.I
     for j in 1:d.J
       for n in 1:d.N[i]
-        ll += compute_loglike(i, n, j, s, c, d) / sumN
+        if normalize
+          ll += compute_loglike(i, n, j, s, c, d) / sumN
+        else
+          ll += compute_loglike(i, n, j, s, c, d)
+        end
       end
     end
   end

@@ -124,13 +124,30 @@ function computeCPO(x::CPOstream{Vector{Array{T, N}}}) where {T, N}
 end
 
 ### LPML ###
-function computeLPML(x::CPOstream{Array{T, N}}) where {T, N}
+function computeLPML(x::CPOstream{Array{T, N}}; verbose::Int=1) where {T, N}
   return mean(log.(computeCPO(x)))
 end
 
-function computeLPML(x::CPOstream{Vector{Array{T, N}}}) where {T, N}
-  logCpos = [ log.(cpo) for cpo in computeCPO(x) ]
-  return mean(vcat(vec.(logCpos)...))
+function computeLPML(x::CPOstream{Vector{Array{T, N}}}; verbose::Int=1) where {T, N}
+  cpos = computeCPO(x)
+  logCpos = [ log.(cpo) for cpo in cpos ]
+  logCpos = vcat(vec.(logCpos)...)
+  logCposSafe = filter(lcpo -> lcpo > -Inf, logCpos)
+
+  numNegInf = length(logCpos) - length(logCposSafe)
+  if numNegInf > 0 && verbose > 0
+    println(" -- Warning: there were $numNegInf -Inf in log CPO's")
+    if verbose > 1
+      idx = [ findall(c -> log.(c) .== -Inf, cpo) for cpo in cpos ]
+      for i in 1:length(idx)
+        println("$i, $(cpos[i][idx[i]])")
+        println("$i, $(idx[i])")
+      end
+    end
+    x.counter = 0
+  end
+
+  return mean(logCposSafe)
 end
 
 

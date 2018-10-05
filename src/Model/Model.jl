@@ -13,8 +13,21 @@ include("Constants.jl")
 include("Tuners.jl")
 include("update.jl")
 
+mutable struct DICparam
+  # update y_imputed
+  y_imputed::Dict{Tuple{Int,Int}, Float64}
+  # update b0
+  b0::Vector{Float64}
+  # update b1
+  b1::Vector{Float64}
+  # update mus_inj
+  mus::Dict{Tuple{Int,Int}, Float64}
+  # update sig2_i
+  sig2::Vector{Float64}
+end
+
 function cytof5_fit(init::State, c::Constants, d::Data;
-                    nmcmc::Int64=1000, nburn::Int=1000, 
+                    nmcmc::Int=1000, nburn::Int=1000, 
                     monitors=[[:Z, :lam, :W, :b0, :b1, :v, :sig2, :mus,
                                :alpha, :v, :eta]],
                     thins::Vector{Int}=[1],
@@ -47,30 +60,48 @@ function cytof5_fit(init::State, c::Constants, d::Data;
     cpoStream = MCMC.CPOstream{dtype}(d.y)
   end
 
-  # DIC
+  # DIC. TODO
   if computeDIC
-    # TODO
-    #dtype = typeof(d.y)
-    #dicStream = MCMC.DICstream{dtype}(d.y)
+    function updateParams(d::MCMC.DICstream{DICparam}, param::DICparam)
+      # update y_imputed
+      # update b0
+      # update b1
+      # update mus_inj
+      # update sig2_i
+    end
+
+    function paramMeanCompute(d::MCMC.DICstream{State})
+    end
+
+    loglike_fn(state::State) = compute_loglike(state, c, d, normalize=false)
+    dicStream = MCMC.DICstream{State}(deepcopy(init), loglike_fn)
   end
 
+  function printMsg(iter::Int, msg::String)
+    milestone = floor((nburn + nmcmc) / numPrints)
+    if milestone > 0 && iter % milestone == 0 && printProgress
+      print(msg)
+    end
+  end
   
   function update(s::State, iter::Int, out)
     update_state(s, c, d, tuners, loglike)
 
-    # Inverse likelihood for each data point
-    invLike = [ [ 1 / compute_like(i, n, j, s, c, d) for n in 1:d.N[i], j in 1:d.J ]
-                 for i in 1:d.I ]
+    if computeLPML && iter > nburn
+      # Inverse likelihood for each data point
+      invLike = [ [ 1 / compute_like(i, n, j, s, c, d) for n in 1:d.N[i], j in 1:d.J ]
+                   for i in 1:d.I ]
 
-    if computeLPML
       # Update COP
       MCMC.updateCPO(cpoStream, invLike)
 
       # Add to printMsg
-      milestone = floor((nburn + nmcmc) / numPrints)
-      if milestone > 0 && iter % milestone == 0 && printProgress
-        println(" -- LPML: $(MCMC.computeLPML(cpoStream))")
-      end
+      printMsg(iter, " -- LPML: $(MCMC.computeLPML(cpoStream)) \n")
+    else
+      println()
+    end
+
+    if computeDIC
     end
   end
 
@@ -84,6 +115,8 @@ function cytof5_fit(init::State, c::Constants, d::Data;
     LPML = computeLPML ? MCMC.computeLPML(cpoStream) : NaN
     DIC = computeDIC ? MCMC.computeDIC(DICstream) : NaN
     metrics = Dict(:LPML => LPML, :DIC => DIC)
+    println()
+    println("metrics:")
     for (k, v) in metrics
       println("$k => $v")
     end
@@ -92,5 +125,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
     return out, lastState, loglike
   end
 end
+
+#precompile(cytof5_fit, (State, Constants, Data, Int, Int, Vector{Vector{Symbol}}, Vector{Int}, Bool, Int, Bool, Bool, Bool))
 
 end # Model

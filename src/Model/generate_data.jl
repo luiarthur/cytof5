@@ -177,3 +177,5 @@ function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Int,
               :b1=>fill(missMechParams[:b1], I))
 end # genData
 
+#precompile(genData, (String, Int, Vector{Int}, Int, Int, Bool, Float64, Bool, Float64))
+
