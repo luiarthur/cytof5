@@ -13,19 +13,6 @@ include("Constants.jl")
 include("Tuners.jl")
 include("update.jl")
 
-mutable struct DICparam
-  # update y_imputed
-  y_imputed::Dict{Tuple{Int,Int}, Float64}
-  # update b0
-  b0::Vector{Float64}
-  # update b1
-  b1::Vector{Float64}
-  # update mus_inj
-  mus::Dict{Tuple{Int,Int}, Float64}
-  # update sig2_i
-  sig2::Vector{Float64}
-end
-
 function cytof5_fit(init::State, c::Constants, d::Data;
                     nmcmc::Int=1000, nburn::Int=1000, 
                     monitors=[[:Z, :lam, :W, :b0, :b1, :v, :sig2, :mus,
@@ -54,36 +41,21 @@ function cytof5_fit(init::State, c::Constants, d::Data;
   # Loglike
   loglike = Vector{Float64}()
 
-  # CPO
-  if computeLPML
-    dtype = typeof(d.y)
-    cpoStream = MCMC.CPOstream{dtype}(d.y)
-  end
-
-  # DIC. TODO
-  if computeDIC
-    function updateParams(d::MCMC.DICstream{DICparam}, param::DICparam)
-      # update y_imputed
-      # update b0
-      # update b1
-      # update mus_inj
-      # update sig2_i
-    end
-
-    function paramMeanCompute(d::MCMC.DICstream{State})
-    end
-
-    loglike_fn(state::State) = compute_loglike(state, c, d, normalize=false)
-    dicStream = MCMC.DICstream{State}(deepcopy(init), loglike_fn)
-  end
-
   function printMsg(iter::Int, msg::String)
     milestone = floor((nburn + nmcmc) / numPrints)
     if milestone > 0 && iter % milestone == 0 && printProgress
       print(msg)
     end
   end
-  
+
+  # CPO
+  if computeLPML
+    invLike = [ [ 1 / compute_like(i, n, j, init, c, d) for n in 1:d.N[i], j in 1:d.J ]
+                 for i in 1:d.I ]
+    invLikeType = typeof(invLike)
+    cpoStream = MCMC.CPOstream{invLikeType}(invLike)
+  end
+
   function update(s::State, iter::Int, out)
     update_state(s, c, d, tuners, loglike)
 
@@ -97,11 +69,8 @@ function cytof5_fit(init::State, c::Constants, d::Data;
 
       # Add to printMsg
       printMsg(iter, " -- LPML: $(MCMC.computeLPML(cpoStream)) \n")
-    else
-      println()
-    end
-
-    if computeDIC
+    elseif computeLPML
+      printMsg(iter, "\n")
     end
   end
 

@@ -99,10 +99,6 @@ logger("Simulating Data ...");
 @time dat = Cytof5.Model.genData(I, J, N, K, L, sortLambda=false, useSimpleZ=false)
 y_dat = Cytof5.Model.Data(dat[:y])
 
-println(y_dat.y[3][27, 1])
-println(y_dat.y[3][51, 3])
-println(y_dat.y[3][79, 3])
-
 logger("Generating priors ...");
 @time c = Cytof5.Model.defaultConstants(y_dat, K_MCMC, L_MCMC, b0PriorSd=b0PriorSd, b1PriorScale=b1PriorScale)
 
