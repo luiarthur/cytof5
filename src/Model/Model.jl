@@ -13,13 +13,23 @@ include("Constants.jl")
 include("Tuners.jl")
 include("update.jl")
 
+"""
+printFreq: defaults to 0 => prints every 10%. turn off printing by setting to -1.
+"""
 function cytof5_fit(init::State, c::Constants, d::Data;
                     nmcmc::Int=1000, nburn::Int=1000, 
                     monitors=[[:Z, :lam, :W, :b0, :b1, :v, :sig2, :mus,
                                :alpha, :v, :eta]],
                     thins::Vector{Int}=[1],
-                    printProgress::Bool=true, numPrints::Int=10, flushOutput::Bool=false,
+                    printFreq::Int=0, flushOutput::Bool=false,
                     computeDIC::Bool=false, computeLPML::Bool=false)
+
+  @assert printFreq >= -1
+  if printFreq == 0
+    numPrints = 10
+    printFreq = Int(ceil((nburn + nmcmc) / numPrints))
+  end
+
 
   y_tuner = begin
     dict = Dict{Tuple{Int, Int, Int}, MCMC.TuningParam}()
@@ -42,8 +52,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
   loglike = Vector{Float64}()
 
   function printMsg(iter::Int, msg::String)
-    milestone = floor((nburn + nmcmc) / numPrints)
-    if milestone > 0 && iter % milestone == 0 && printProgress
+    if printFreq > 0 && iter % printFreq == 0
       print(msg)
     end
   end
@@ -76,7 +85,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
 
   out, lastState = MCMC.gibbs(init, update, monitors=monitors,
                               thins=thins, nmcmc=nmcmc, nburn=nburn,
-                              printProgress=printProgress, numPrints=numPrints,
+                              printFreq=printFreq,
                               loglike=loglike, flushOutput=flushOutput,
                               printlnAfterMsg=!(computeDIC || computeLPML))
 

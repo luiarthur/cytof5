@@ -13,17 +13,24 @@ function deepcopyFields(state, fields::Vector{Symbol})
   return substate
 end
 
+"""
+TODO...
+"""
 function gibbs(init,
                update::Function;
                monitors::Vector{Vector{Symbol}}=deepcopy(monitor_default),
                thins::Vector{Int}=deepcopy(thin_default),
                nmcmc::Int64=1000, nburn::Int=0,
-               printProgress::Bool=true,
-               numPrints::Int=10, loglike=missing,
+               printFreq::Int=0, loglike=missing,
                flushOutput::Bool=false, printlnAfterMsg::Bool=true)
-  """
-  This is my docs...
-  """
+
+  @assert printFreq >= -1
+  if printFreq == 0
+    numPrints = 10
+    printFreq = Int(ceil((nburn + nmcmc) / numPrints))
+  end
+
+
   state = deepcopy(init)
 
   # Checking number of monitors.
@@ -44,17 +51,14 @@ function gibbs(init,
   numSamps = [ div(nmcmc, thins[i]) for i in 1:numMonitors ]
   #out = [ Vector{Dict{Symbol, Any}}([]) for i in 1:numMonitors ]
 
-  if printProgress
+  if printFreq > 0
     println("Preallocating memory...")
   end
   # Object to return
   @time out = [ fill(deepcopyFields(state, monitors[i]), numSamps[i]) for i in 1:numMonitors ]
 
-  # Milestones
-  milestone = floor((nburn + nmcmc) / numPrints)
-
   function printMsg(i::Int)
-    if milestone > 0 && i % milestone == 0 && printProgress
+    if printFreq > 0 && i % printFreq == 0
       loglikeMsg = ismissing(loglike) ? "" : " -- loglike: $(last(loglike))"
       print("$(Dates.now()) -- $i / $(nburn+nmcmc) $loglikeMsg")
 

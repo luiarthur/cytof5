@@ -116,7 +116,7 @@ logger("Fitting Model ...");
                                                    thins=[1, 100],
                                                    nmcmc=1000, nburn=10000,
                                                    #nmcmc=2, nburn=2,
-                                                   numPrints=100, computeLPML=true,
+                                                   printFreq=10, computeLPML=true,
                                                    flushOutput=true)
 
 logger("Saving Data ...");

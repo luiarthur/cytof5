@@ -35,7 +35,8 @@ end
   end
 
   s = State(0, 0, [0,0])
-  out, lastState = MCMC.gibbs(s, update, monitors=[[:x,:y], [:z]], thins=[1,2], printProgress=printDebug)
+  out, lastState = MCMC.gibbs(s, update, monitors=[[:x,:y], [:z]], thins=[1,2],
+                              printFreq=printDebug ? 0 : -1)
   @test true
 end
 
@@ -120,7 +121,8 @@ end
   end
 
   init = Param(fill(0., J), sig2True, tunerSig2.value)
-  @time out, state = MCMC.gibbs(deepcopy(init), update, nmcmc=2000, nburn=20000, printProgress=printDebug)
+  @time out, state = MCMC.gibbs(deepcopy(init), update, nmcmc=2000, nburn=20000,
+                                printFreq=printDebug ? 0 : -1)
 
   if printDebug
     # Print acceptance rates

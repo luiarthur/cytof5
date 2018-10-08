@@ -90,7 +90,7 @@ logger("Fitting Model ...");
                                                    thins=[1, 100],
                                                    nmcmc=1000, nburn=15000,
                                                    #nmcmc=2, nburn=2,
-                                                   numPrints=1000,
+                                                   printFreq=10,
                                                    flushOutput=true)
 
 logger("Saving Data ...");
