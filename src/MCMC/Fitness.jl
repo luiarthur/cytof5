@@ -3,7 +3,7 @@
 ### DIC ###
 
 # TODO: Test
-function deviance(param::Any, loglike::Function)
+function deviance(param::T, loglike::Function) where T
   return -2 * loglike(param)
 end
 
@@ -21,7 +21,7 @@ end
 # TODO: Test
 """
 Methods to implement:
-- updateParams(d::DICstream{T}, param::T) where T, to add param to d.paramSum
+- updateParams(d::DICstream{T}, param::P) where {T, P}, to add param to d.paramSum
 - paramMeanCompute(d::DICstream{T}) where T, to compute the mean of the parameters
 """
 mutable struct DICstream{T}
@@ -42,7 +42,7 @@ function updateDIC(x::DICstream{T}, param::T) where {T}
   if x.counter == 0
     x.paramSum = deepcopy(param)
   else
-    updateParams{T}(x, param)
+    updateParams{T, P}(x, param)
   end
 
   # update counter
