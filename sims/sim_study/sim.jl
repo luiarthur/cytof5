@@ -96,7 +96,15 @@ OUTDIR = "$(RESULTS_DIR)/$(EXP_NAME)/"
 mkpath(OUTDIR)
 
 logger("Simulating Data ...");
-@time dat = Cytof5.Model.genData(I, J, N, K, L, sortLambda=false, useSimpleZ=false)
+Z = Cytof5.Model.genZ(J, K, 0.6)
+@time dat = Cytof5.Model.genData(I, J, N, K, L, Z,
+                                 Dict(:b0=>-9.2, :b1=>2.3), # missMechParams
+                                 [0.2, 0.1, 0.3], # sig2
+                                 Dict(0=>rand(L) * -5, #mus
+                                      1=>rand(L) *  5),
+                                 [float(i) for i in 1:K], # a_W
+                                 Dict([ z => [float(l) for l in 1:L] for z in 0:1 ]), # a_eta
+                                 sortLambda=false, propMissingScale=0.7)
 y_dat = Cytof5.Model.Data(dat[:y])
 
 logger("Generating priors ...");
@@ -106,18 +114,20 @@ logger("Generating initial state ...");
 @time init = Cytof5.Model.genInitialState(c, y_dat)
 
 logger("Fitting Model ...");
-@time out, lastState, ll = Cytof5.Model.cytof5_fit(init, c, y_dat,
-                                                   monitors=[[:Z, :lam, :W,
-                                                              :b0, :b1, :v,
-                                                              :sig2, :mus,
-                                                              :alpha, :v,
-                                                              :eta],
-                                                             [:y_imputed]],
-                                                   thins=[1, 100],
-                                                   nmcmc=1000, nburn=10000,
-                                                   #nmcmc=2, nburn=2,
-                                                   printFreq=10, computeLPML=true,
-                                                   flushOutput=true)
+@time out, lastState, ll, metrics =
+  Cytof5.Model.cytof5_fit(init, c, y_dat,
+                          monitors=[[:Z, :lam, :W,
+                                     :b0, :b1, :v,
+                                     :sig2, :mus,
+                                     :alpha, :v,
+                                     :eta],
+                                    [:y_imputed]],
+                          thins=[1, 100],
+                          nmcmc=1000, nburn=10000,
+                          #nmcmc=2, nburn=2,
+                          printFreq=50,
+                          computeLPML=true, computeDIC=true,
+                          flushOutput=true)
 
 logger("Saving Data ...");
 @save "$(OUTDIR)/output.jld2" out dat ll lastState c y_dat
@@ -125,5 +135,5 @@ logger("Saving Data ...");
 logger("MCMC Completed.");
 
 #= Test
-julia sim.jl --I=3 --J=32 --N_factor=100 --K=8 --L=4 --K_MCMC=10 --L_MCMC=5 --RESULTS_DIR="bla" --EXP_NAME=small
+julia --color=yes sim.jl --I=3 --J=32 --N_factor=100 --K=8 --L=4 --K_MCMC=10 --L_MCMC=5 --RESULTS_DIR="bla" --EXP_NAME=small
 =#

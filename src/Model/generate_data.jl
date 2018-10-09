@@ -70,14 +70,14 @@ function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Int;
                1=>collect(range(1, length=L, stop=5))),
           [float(i) for i in 1:K], # a_W
           Dict([ z => [float(l) for l in 1:L] for z in 0:1 ]), # a_eta
-          sortLambda, propMissingScale)
+          sortLambda=sortLambda, propMissingScale=propMissingScale)
 end
 
 function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Int,
                  Z::Matrix{Int}, missMechParams::Dict{Symbol,Float64},
                  sig2::Vector{Float64}, mus::Dict{Int, Vector{Float64}}, 
-                 a_W::Vector{Float64}, a_eta::Dict{Int, Vector{Float64}},
-                 sortLambda::Bool, propMissingScale::Float64)
+                 a_W::Vector{Float64}, a_eta::Dict{Int, Vector{Float64}};
+                 sortLambda::Bool=false, propMissingScale::Float64=0.7)
 
   # Check Z dimensions
   @assert ncol(Z) == K && nrow(Z) == J
