@@ -130,7 +130,7 @@ logger("Fitting Model ...");
                           flushOutput=true)
 
 logger("Saving Data ...");
-@save "$(OUTDIR)/output.jld2" out dat ll lastState c y_dat
+@save "$(OUTDIR)/output.jld2" out dat ll lastState c y_dat metrics
 
 logger("MCMC Completed.");
 

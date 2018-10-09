@@ -13,7 +13,7 @@ run(`mkdir -p $(IMGDIR)`)
 
 println("Loading Data ...")
 #@load "$(OUTDIR)/N$(N_factor).jld2" out dat ll lastState c y_dat
-@load "$(OUTDIR)/output.jld2" out dat ll lastState c y_dat
+@load "$(OUTDIR)/output.jld2" out dat ll lastState c y_dat metrics
 
 I, K = size(dat[:W])
 K_MCMC = size(lastState.W, 2)
