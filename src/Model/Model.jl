@@ -12,6 +12,7 @@ include("Data.jl")
 include("Constants.jl")
 include("Tuners.jl")
 include("update.jl")
+include("DIC.jl")
 
 """
 printFreq: defaults to 0 => prints every 10%. turn off printing by setting to -1.
