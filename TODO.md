@@ -1,7 +1,7 @@
 # TODO
 - [x] Stop using missing (bloats storage by 10x)
 - [x] FlowSOM comparison
-- [ ] Generate small data with non-equidistant mu and different sig2
+- [x] Generate small data with non-equidistant mu and different sig2
 - [ ] strong prior for b0, b1
     - [ ] different tuning parameter for b1?
     - [ ] different prior for b1?
