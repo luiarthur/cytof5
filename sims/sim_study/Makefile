@@ -24,3 +24,16 @@ imgClean:
 clean:
 	rm -rf results/*
 
+# Simulation 2 AWS to and fro
+retrieve2:
+	aws s3 sync s3://cytof-sim2-results/ results/sim2/
+
+send2:
+	aws s3 sync results/sim2/ s3://cytof-sim2-results/
+
+# Simulation 1 AWS to and fro
+retrieve:
+	aws s3 sync s3://cytof-sim-results/ results/
+
+send:
+	aws s3 sync results/ s3://cytof-sim-results/
