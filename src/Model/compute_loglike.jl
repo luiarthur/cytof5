@@ -1,14 +1,14 @@
 function compute_like(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)
-  ll = pdf(Bernoulli(prob_miss(s.y_imputed[i][n, j], s.b0[i], s.b1[i])), d.m[i][n, j])
+  like = pdf(Bernoulli(prob_miss(s.y_imputed[i][n, j], s.b0[i], s.b1[i])), d.m[i][n, j])
 
   # multiply to likelihood for y_observed (non-missing)
   if d.m[i][n, j] == 0
     z = s.Z[j, s.lam[i][n]]
     l = s.gam[i][n, j]
-    ll *= pdf(Normal(s.mus[z][l], sqrt(s.sig2[i])), d.y[i][n, j])
+    like *= pdf(Normal(s.mus[z][l], sqrt(s.sig2[i])), d.y[i][n, j])
   end
 
-  return ll
+  return like
 end
 
 
