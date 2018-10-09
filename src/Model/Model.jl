@@ -140,6 +140,9 @@ function cytof5_fit(init::State, c::Constants, d::Data;
     end
 
     printMsg(iter, "\n")
+    if flushOutput
+      flush(stdout)
+    end
   end
 
   out, lastState = MCMC.gibbs(init, update, monitors=monitors,
