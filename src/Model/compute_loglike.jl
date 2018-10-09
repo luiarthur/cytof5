@@ -27,7 +27,7 @@ end
 
 
 function compute_loglike(s::State, c::Constants, d::Data; normalize::Bool=true)
-  ll = 0
+  ll = 0.0
 
   sumN = sum(d.N)
 

@@ -12,7 +12,12 @@ include("Data.jl")
 include("Constants.jl")
 include("Tuners.jl")
 include("update.jl")
-include("DIC.jl")
+
+mutable struct DICparam
+  p::Vector{Matrix{Float64}}
+  mu::Vector{Matrix{Float64}}
+  sig::Vector{Float64}
+end
 
 """
 printFreq: defaults to 0 => prints every 10%. turn off printing by setting to -1.
@@ -66,6 +71,50 @@ function cytof5_fit(init::State, c::Constants, d::Data;
     cpoStream = MCMC.CPOstream{invLikeType}(invLike)
   end
 
+  # DIC
+  if computeDIC
+    local tmp = DICparam(deepcopy(d.y), deepcopy(d.y), zeros(Float64, d.I))
+    dicStream = MCMC.DICstream{DICparam}(tmp)
+
+    function updateParams(d::MCMC.DICstream{DICparam}, param::DICparam)
+      d.paramSum.p += param.p
+      d.paramSum.mu += param.mu
+      d.paramSum.sig += param.sig
+      return
+    end
+
+    function paramMeanCompute(d::MCMC.DICstream{DICparam})::DICparam
+      return DICparam(d.paramSum.p ./ d.counter,
+                      d.paramSum.mu ./ d.counter,
+                      d.paramSum.sig / d.counter)
+    end
+
+    function loglikeDIC(param::DICparam)::Float64
+      ll = 0.0
+
+      for i in 1:d.I
+        for j in 1:d.J
+          for n in 1:d.N[i]
+            ll += logpdf(Bernoulli(param.p[i][n, j]), d.m[i][n, j])
+            if d.m[i][n, j] == 0 # observed
+              ll += logpdf(Normal(param.mu[i][n, j], param.sig[i]), d.y[i][n, j])
+            end
+          end
+        end
+      end
+
+      return ll
+    end
+
+    function convertStateToDicParam(s::State)::DICparam
+      p = [[prob_miss(s.y_imputed[i][n, j], s.b0[i], s.b1[i]) for n in 1:d.N[i], j in 1:d.J] for i in 1:d.I]
+      mu = [[s.mus[s.Z[j, s.lam[i][n]]][s.gam[i][n, j]] for n in 1:d.N[i], j in 1:d.J] for i in 1:d.I]
+      sig = sqrt.(s.sig2)
+      return DICparam(p, mu, sig)
+    end
+  end
+
+
   function update(s::State, iter::Int, out)
     update_state(s, c, d, tuners, loglike)
 
@@ -78,10 +127,19 @@ function cytof5_fit(init::State, c::Constants, d::Data;
       MCMC.updateCPO(cpoStream, invLike)
 
       # Add to printMsg
-      printMsg(iter, " -- LPML: $(MCMC.computeLPML(cpoStream)) \n")
-    elseif computeLPML
-      printMsg(iter, "\n")
+      printMsg(iter, " -- LPML: $(MCMC.computeLPML(cpoStream))")
     end
+
+    if computeDIC && iter > nburn
+      # Update DIC
+      MCMC.updateDIC(dicStream, s, updateParams, loglikeDIC, convertStateToDicParam)
+
+      # Add to printMsg
+      printMsg(iter, " -- DIC: $(MCMC.computeDIC(dicStream, loglikeDIC,
+                                                 paramMeanCompute))")
+    end
+
+    printMsg(iter, "\n")
   end
 
   out, lastState = MCMC.gibbs(init, update, monitors=monitors,
@@ -92,8 +150,9 @@ function cytof5_fit(init::State, c::Constants, d::Data;
 
   if computeDIC || computeLPML
     LPML = computeLPML ? MCMC.computeLPML(cpoStream) : NaN
-    DIC = computeDIC ? MCMC.computeDIC(DICstream) : NaN
-    metrics = Dict(:LPML => LPML, :DIC => DIC)
+    Dmean, pD = computeDIC ? MCMC.computeDIC(dicStream, loglikeDIC, paramMeanCompute,
+                                             return_Dmean_pD=true) : (NaN, NaN)
+    metrics = Dict(:LPML => LPML, :DIC => Dmean + pD, :Dmean => Dmean, :pD => pD)
     println()
     println("metrics:")
     for (k, v) in metrics

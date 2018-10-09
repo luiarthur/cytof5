@@ -99,8 +99,9 @@ end
 
   printstyled("Test Model Fitting...\n", color=:yellow)
   @time out, lastState, ll = Cytof5.Model.cytof5_fit(init, c, y_dat,
-                                                     nmcmc=200, nburn=1000,
-                                                     computeLPML=true)
+                                                     nmcmc=200, nburn=200,
+                                                     computeLPML=true,
+                                                     computeDIC=true)
 
 
   @save "result/out.jld2" out dat ll lastState
