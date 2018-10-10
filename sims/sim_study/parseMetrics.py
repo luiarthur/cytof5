@@ -17,13 +17,12 @@ def writeFile(x, fname):
         f.write(x)
 
 
-def parse(lines, header):
-    y = list(filter(lambda x: "{} => ".format(header)in x, lines))[0]
-    y = y.split("=>")[1].strip()
-    return float(y)
-
-
 if __name__ == '__main__':
+    def parse(lines, header):
+        y = list(filter(lambda x: "{} => ".format(header)in x, lines))[0]
+        y = y.split("=>")[1].strip()
+        return float(y)
+
     if len(sys.argv) < 2:
         print("Usage: ./parseMetrics <path-to-results>")
         sys.exit(1)

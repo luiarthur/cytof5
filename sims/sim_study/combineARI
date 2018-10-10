@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if [ "$#" -ne 1 ]; then
+  echo "Usage:./combineARI <path-to-results>"
+  exit 1
+fi
+
+RESULTS_DIR=$1
+
+K=`ls $RESULTS_DIR | grep -oP "(?<=K_MCMC)\d+"`
+ARI=`cat $RESULTS_DIR/*/img/ari.txt`
+
+tail $RESULTS_DIR/*/img/ari.txt > $RESULTS_DIR/img/ari.txt
+
+

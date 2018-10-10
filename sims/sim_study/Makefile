@@ -5,13 +5,14 @@ sim:
 	 ./sim.sh
 
 postProcess:
-	./genResults results/
+	./genResults.py results/
 	#for d in `ls results/`; do echo $$d; done
 	#for d in `ls results/`; do julia post_process.jl $$d; done
 
 postProcess2:
-	./parseMetrics results/sim2/
-	./genResults results/sim2/
+	./parseMetrics.py results/sim2/
+	./genResults.py results/sim2/
+	./combineARI results/sim2/
 
 zip:
 	zip -r .sandbox/results.zip results -x \*.jld2
@@ -22,6 +23,10 @@ zip2:
 
 litecp:
 	rsync -av --exclude '*.jld*' results .sandbox/results
+
+litecp2:
+	rsync -av --exclude '*.jld*' results/sim2/ .sandbox/results/sim2
+
 
 sandboxClean:
 	rm -rf .sandbox/*
