@@ -31,7 +31,7 @@ mkpath(OUTPUT_DIR)
 
 # READ DATA
 println("Loading Data ...")
-@load "$(SIMDIR)/output.jld2" out dat ll lastState c y_dat
+@load "$(SIMDIR)/output.jld2" out dat ll lastState c y_dat metrics
 
 # MAIN
 function replaceMissing(yi, x)
