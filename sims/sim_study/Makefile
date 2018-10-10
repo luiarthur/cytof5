@@ -16,6 +16,10 @@ postProcess2:
 zip:
 	zip -r .sandbox/results.zip results -x \*.jld2
 
+zip2:
+	zip -r .sandbox/results_varying_K.zip results/sim2/ -x \*.jld2
+
+
 litecp:
 	rsync -av --exclude '*.jld*' results .sandbox/results
 
