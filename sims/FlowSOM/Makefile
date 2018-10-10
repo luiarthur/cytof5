@@ -5,4 +5,7 @@ zip:
 	cp -r results .tmp/results_flowsom
 
 genResults:
-	./genResults
+	./genResults ../sim_study/results/
+
+genResults2:
+	./genResults ../sim_study/results/sim2/

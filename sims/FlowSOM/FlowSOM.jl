@@ -1,6 +1,3 @@
-import Pkg
-Pkg.activate("../../")
-
 using Cytof5
 using RCall, Distributions, Random
 using JLD2, FileIO
@@ -17,14 +14,14 @@ set.seed(3)
 
 include("../sim_study/util.jl")
 
-# Where to put results from FlowSOM analysis
-RESULTS_DIR = "results/"
-
-# Where to get data
 if length(ARGS) == 0
   SIMDIR = "../sim_study/results/I3_J32_N_factor100_K8_L4_K_MCMC10_L_MCMC5_b0PriorSd0.1_b1PriorScale0.1_SEED0/"
+  RESULTS_DIR = "results/"
 else
+  # Where to get data
   SIMDIR = ARGS[1]
+  # Where to put results from FlowSOM analysis
+  RESULTS_DIR = ARGS[2]
 end
 
 # Where in results dir to put output

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import sys
 import glob
 import subprocess
 
@@ -18,7 +19,13 @@ def dirContains(path, word):
 
 
 if __name__ == '__main__':
-    resDir = '../sim_study/results/'
+    if len(sys.argv) < 3:
+        print("Usage: ./genResults <path-to-results> <where-to-put-flowsom-results>")
+        sys.exit(1)
+    
+    resDir = sys.argv[1]
+    outDir = sys.argv[2]
+
     res = list(filter(lambda d: dirContains(resDir+d, 'jld2'),
                       os.listdir(resDir)))
 
@@ -26,7 +33,7 @@ if __name__ == '__main__':
     failures = []
 
     for d in res:
-        out = subprocess.run(['julia', 'FlowSOM.jl', resDir+d])
+        out = subprocess.run(['julia', 'FlowSOM.jl', resDir+d, outDir])
         if out.returncode == 0:
             print("Successful for {}".format(d))
             successes.append(d)
