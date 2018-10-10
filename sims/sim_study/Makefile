@@ -5,9 +5,13 @@ sim:
 	 ./sim.sh
 
 postProcess:
-	./genResults
+	./genResults results/
 	#for d in `ls results/`; do echo $$d; done
 	#for d in `ls results/`; do julia post_process.jl $$d; done
+
+postProcess2:
+	./parseMetrics results/sim2/
+	./genResults results/sim2/
 
 zip:
 	zip -r .sandbox/results.zip results -x \*.jld2

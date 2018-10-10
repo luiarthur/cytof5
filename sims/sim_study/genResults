@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import sys
 import os
 import glob
 import subprocess
@@ -18,7 +19,12 @@ def dirContains(path, word):
 
 
 if __name__ == '__main__':
-    resDir = 'results/'
+    if len(sys.argv) < 2:
+        print("Usage: ./genResults <path-to-results>")
+        sys.exit(1)
+
+    resDir = sys.argv[1] #'results/'
+    
     res = list(filter(lambda d: dirContains(resDir+d, 'jld2'), os.listdir(resDir)))
 
     successes = []
