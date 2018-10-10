@@ -1,13 +1,21 @@
 # TODO
-- [x] Stop using missing (bloats storage by 10x)
-- [x] FlowSOM comparison
-- [x] Generate small data with non-equidistant mu and different sig2
 - [x] strong prior for b0, b1
     - [ ] different tuning parameter for b1?
     - [ ] different prior for b1?
     - [ ] Refer to AMCMC paper
         - [ ] change M
         - [ ] change `delta(n) = min(.01, 1/sqrt(n))` to something else
+- [ ] FlowSOM detective work:
+    - [ ] Simulate data until FlowSOM breaks
+    - [ ] Then, do MCMC
+- [ ] revise manuscript
+- [ ] strategically pre-process data
+    - [ ] if across all samples, a marker has > 90% missing or negative, then remove
+    - [ ] if across all samples, a marker has > 90% positive, then remove
+- [x] Stop using missing (bloats storage by 10x)
+- [x] FlowSOM comparison
+- [x] Generate small data with non-equidistant mu and different sig2
+- [x] replace numPrints with printFreq
 - [x] Try different values for K_MCMC = [6, 7, 8, 9, 10, 11] with L_TRUE=5 and K_TRUE=8
     - we expect that ll should increase from K_MCMC=6 to K_MCMC=8, then plateau.
 - [x] DIC / LPML for model comparison
@@ -15,5 +23,3 @@
     - LPML can be found in paper by Dey, Gelfand
     - Should the computation be using `m_inj` as well? Specifically,
       `likelihood= prod(Normal(observed y_inj | params)) * prod(Bern(m_inj | p_inj))`
-- [ ] revise manuscript
-- [ ] replace numPrints with printFreq
