@@ -36,7 +36,7 @@ println("Loading Data ...")
 # MAIN
 function replaceMissing(yi, x)
   out = deepcopy(yi)
-  out[ismissing.(out)] .= x
+  out[isnan.(out)] .= x
   return out
 end
 
