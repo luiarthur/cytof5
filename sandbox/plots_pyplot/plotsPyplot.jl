@@ -10,12 +10,12 @@ http://docs.juliaplots.org/latest/colors/#colorbrewer
 println("Gen Z")
 J = 32
 K = 8
-Z = Int.(rand(J, K) .> .8);
+Z = Int.(rand(J, K) .> .5);
 
 println("Plot Z")
-heatmap(Z, c=:Greys, legend=:none)
-plot!((1:K) .- .5, linetype=:vline, c=:lightgrey)
-plot!((1:J) .- .5, linetype=:hline, c=:lightgrey)
+hZ = heatmap(Z', c=:Greys, legend=:none)
+plot!((1:J) .- .5, linetype=:vline, c=:lightgrey)
+plot!((1:K) .- .5, linetype=:hline, c=:lightgrey)
 savefig("img/Z.pdf")
 
 ### Heatmap ###
@@ -24,5 +24,9 @@ x = randn(300, 32) * 2;
 x[:, 3] .= NaN;
 
 println("plot x")
-heatmap(x, c=:pu_or, clim=(-3,3), background_color_inside=:black)
+hH = heatmap(x, c=:pu_or, clim=(-3,3), background_color_inside=:black);
 savefig("img/heatmap.pdf")
+
+### Heatmap and IBP
+plot(hH, hZ, layout=(2, 1))
+savefig("img/joint.pdf")
