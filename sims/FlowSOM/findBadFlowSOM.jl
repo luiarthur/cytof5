@@ -46,6 +46,10 @@ function sim(jl_seed::Int)
                              sortLambda=false, propMissingScale=0.7)
   y_dat = Cytof5.Model.Data(dat[:y])
 
+  util.plotPdf("$OUTPUT_DIR/$jl_seed/Z.pdf")
+  util.myImage(dat[:Z])
+  util.devOff()
+
   open("$OUTPUT_DIR/$jl_seed/dat.txt", "w") do f
     write(f, "mu*0: $(dat[:mus][0]) \n")
     write(f, "mu*1: $(dat[:mus][1]) \n")
@@ -115,7 +119,7 @@ end
 
 
 SIMS = 100
-for i in 1:SIMS
+Threads.@threads for i in 1:SIMS
   println("$i / $SIMS")
   sim(i)
 end
