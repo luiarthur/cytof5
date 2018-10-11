@@ -12,6 +12,7 @@
 - [ ] strategically pre-process data
     - [ ] if across all samples, a marker has > 90% missing or negative, then remove
     - [ ] if across all samples, a marker has > 90% positive, then remove
+- [ ] Use `Plots.jl` with `pyplot` backend
 - [x] Stop using missing (bloats storage by 10x)
 - [x] FlowSOM comparison
 - [x] Generate small data with non-equidistant mu and different sig2
