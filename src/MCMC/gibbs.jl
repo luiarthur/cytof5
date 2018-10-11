@@ -3,7 +3,7 @@ import Dates
 const monitor_default = Vector{Vector{Symbol}}([])
 const thin_default = Vector{Int}()
 
-function deepcopyFields(state, fields::Vector{Symbol})
+function deepcopyFields(state::T, fields::Vector{Symbol}) where T
   substate = Dict{Symbol, Any}()
 
   for field in fields
@@ -16,13 +16,13 @@ end
 """
 TODO...
 """
-function gibbs(init,
+function gibbs(init::T,
                update::Function;
                monitors::Vector{Vector{Symbol}}=deepcopy(monitor_default),
                thins::Vector{Int}=deepcopy(thin_default),
                nmcmc::Int64=1000, nburn::Int=0,
                printFreq::Int=0, loglike=missing,
-               flushOutput::Bool=false, printlnAfterMsg::Bool=true)
+               flushOutput::Bool=false, printlnAfterMsg::Bool=true) where T
 
   @assert printFreq >= -1
   if printFreq == 0
