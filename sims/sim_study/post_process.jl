@@ -76,16 +76,9 @@ b0Sd = std(b0Post, dims=1)
 
 #=
 include("CytofImg.jl")
-function plotPost(x::Vector{T}; a::Float64=0.05, q_digits=3, kw...) where {T <: Number}
-  histogram(b0Post[:,1], legend=:none, label=:none, normed=true,
-            linecolor=:transparent, c=:steelblue; kw...)
-  xmean = mean(x)
-  q = quantile(x, [a/2, 1-a/2])
-  xticks!(round.(q, digits=q_digits))
-  vline!([q; xmean], linetype=:vline, c=:red, linewidths=2, line=[:dot, :dot, :solid],
-         label=["a","b","c"], legend=true)
-end
-plotPost(b0Post[:,1])
+CytofImg.plotPost(b0Post[:,1])
+CytofImg.plotPosts(Matrix(b0Post))
+savefig("$IMGDIR/b0_v2.pdf")
 =#
 
 util.plotPdf("$IMGDIR/b0.pdf")
