@@ -76,8 +76,13 @@ b0Sd = std(b0Post, dims=1)
 
 #=
 include("CytofImg.jl")
+Plots.reset_defaults()
+Plots.scalefontsizes(.8)
 CytofImg.plotPost(b0Post[:,1])
-CytofImg.plotPosts(Matrix(b0Post))
+CytofImg.plotPosts(Matrix(b0Post), q_digits=2)
+N = 2000
+X = randn(N, 3)
+CytofImg.plotPosts([X (X[:,1] .+ randn(N)*.1)], q_digits=2, titles=["1", "2", "μ₀", "bob"])
 savefig("$IMGDIR/b0_v2.pdf")
 =#
 
