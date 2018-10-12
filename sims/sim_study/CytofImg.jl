@@ -2,8 +2,19 @@ module CytofImg
 
 using Plots
 pyplot()
+using StatPlots
 using Distributions # std, mean, quantile
 
+startupMsg = """
+To scale font size globally for plots (for presentations mostly), do this:
+```
+julia> Plots.scalefontsizes(2) # scales all texts by factor of 2
+
+# To reset
+julia> Plots.reset_defaults()
+```
+"""
+println(startupMsg)
 
 function getPosterior(sym::Symbol, monitor)
   return [ m[sym] for m in monitor]
@@ -56,21 +67,39 @@ function annotateHeatmap(mat::Matrix{T}; digits=2, textsize=6) where T
   end
 end
 
-function plotPost(x::Vector{T}; a::Float64=0.05, q_digits::Int=3, sd_digits::Int=3, add=false, trace::Bool=false, kw...) where {T <: Number}
-  if add
-    img = histogram!(x, label="", normed=true, grid=:off,
-                     bordercolor=:white, yaxis=:off,
-                     linecolor=:transparent, c=:steelblue; kw...)
+function plotPost(x::Vector{T}; a::Float64=0.05, q_digits::Int=3, sd_digits::Int=3, add=false,
+                  trace::Bool=true, useDensity::Bool=true,
+                  parent=1, offset=1, traceFont=font(16), kw...) where {T <: Number}
+  denColor = (0, .99, :steelblue)
+  if useDensity
+    if add
+      img = StatPlots.density!(x, label="", grid=false, yaxis=false,
+                               linecolor=:transparent,
+                               fill=denColor, bordercolor=:transparent; kw...)
+    else
+      img = StatPlots.density(x, label="", grid=false, bordercolor=:transparent, yaxis=false,
+                              fill=denColor, linecolor=:transparent; kw...)
+    end
   else
-    img = histogram(x, label="", normed=true, grid=:off,
-                    bordercolor=:white, yaxis=:off,
-                    linecolor=:transparent, c=:steelblue; kw...)
+    if add
+      img = histogram!(x, label="", normed=true, grid=false,
+                       bordercolor=:white, yaxis=false,
+                       linecolor=:transparent, c=:steelblue; kw...)
+    else
+      img = histogram(x, label="", normed=true, grid=false,
+                      bordercolor=:white, yaxis=false,
+                      linecolor=:transparent, c=:steelblue; kw...)
+    end
   end
 
+
   if trace
-    #                       x     y    W     H
-    plot!(x, inset=(1, bbox(0, 0, 0.3, 0.3, :top, :right)),
-          axis=:off, bg_inside=nothing; kw...)
+    accRate = length(unique(x)) / length(x)
+    #                                x    y   W   H
+    plot!(x, inset_subplots=(parent, bbox(0, .1, .3, .3, :top, :right)), subplot=parent+offset,
+          axis=false, legend=false, title="acc: $(Int(round(accRate*100)))%",
+          c=:grey70, grid=false, titlefont=traceFont, linewidths=.5)
+
   end
 
   xmean = mean(x)
@@ -93,7 +122,7 @@ function plotPost(x::Vector{T}; a::Float64=0.05, q_digits::Int=3, sd_digits::Int
   return img
 end
 
-function plotPosts(X::Matrix{T}; a::Float64=0.05, q_digits::Int=3, sd_digits::Int=3, cor_digits::Int=3, titles=:none, detail=false, kw...) where {T <: Number}
+function plotPosts(X::Matrix{T}; a::Float64=0.05, q_digits::Int=3, sd_digits::Int=3, cor_digits::Int=3, titles=:none, detail=false, hist2d::Bool=false, trace::Bool=true, traceFont=font(16), kw...) where {T <: Number}
   N = size(X, 2)
 
   if titles == :none
@@ -102,24 +131,33 @@ function plotPosts(X::Matrix{T}; a::Float64=0.05, q_digits::Int=3, sd_digits::In
 
   img = plot(;layout=(N, N))
   counter = 0
+  offset = 0
   for r in 1:N
     for c in 1:N
       counter += 1
 
       if r == c
-        plotPost(X[:, r], a=a, q_digits=q_digits, sd_digits=sd_digits, subplot=counter, add=true, title=titles[c])
+        offset += 1
+        plotPost(X[:, r], a=a, q_digits=q_digits, sd_digits=sd_digits, subplot=counter,
+                 add=true, title=titles[c], trace=trace,
+                 parent=counter, offset=N*N-counter+offset, traceFont=traceFont; kw...)
       elseif r < c
-        if detail
-          histogram2d!(X[:, c], X[:,r], subplot=counter, colorbar=:none, grid=:off)
+        if hist2d
+          if detail
+            histogram2d!(X[:, c], X[:,r], subplot=counter, colorbar=:none, grid=false)
+          else
+            histogram2d!(X[:, c], X[:,r], subplot=counter, colorbar=:none, grid=false,
+                         axis=:off)
+          end
         else
-          histogram2d!(X[:, c], X[:,r], subplot=counter, colorbar=:none, grid=:off,
-                       axis=:off)
+          plot!(X[:, c], X[:,r], subplot=counter, c=:grey70, grid=false,
+                axis=false, legend=false, linewidths=.5)
         end
       else # r > c
         corXrc = cor(X[:, r], X[:, c])
         annotate!([(0.5, 0.5, text("r=$(round(corXrc, digits=cor_digits))", 
                                    Int(ceil(abs(corXrc) * 5))+5, :center))],
-                  subplot=counter, axis=:off, grid=:off)
+                  subplot=counter, axis=false, grid=false)
       end
     end
   end

@@ -2,6 +2,7 @@ using Distributions
 using Cytof5, Random
 using JLD2, FileIO
 using Plots; pyplot()
+using LaTeXStrings
 #= Dependencies for Plots & pyplot
 import Pkg
 Pkg.add("Plots")
@@ -11,6 +12,8 @@ Pkg.add("LaTeXStrings")
 run(`pip install matplotlib`) # OR
 run(`pip3 install matplotlib`) 
 =#
+
+const tex = latexstring
 
 include("CytofImg.jl")
 
@@ -74,29 +77,23 @@ b0Post = hcat(CytofImg.getPosterior(:b0, out[1])...)'
 b0Mean = mean(b0Post, dims=1)
 b0Sd = std(b0Post, dims=1)
 
-#=
-include("CytofImg.jl")
-Plots.reset_defaults()
-Plots.scalefontsizes(.8)
-CytofImg.plotPost(b0Post[:,1])
-CytofImg.plotPosts(Matrix(b0Post), q_digits=2)
-N = 2000
-X = randn(N, 3)
-CytofImg.plotPosts([X (X[:,1] .+ randn(N)*.1)], q_digits=2, titles=["1", "2", "μ₀", "bob"])
-savefig("$IMGDIR/b0_v2.pdf")
-=#
+CytofImg.plotPosts(Matrix(b1Post), q_digits=2, useDensity=true, traceFont=font(5),
+                   titles=[tex("\$\\beta_{0$i}\$") for i in 1:I])
+savefig("$IMGDIR/b0.pdf")
 
-util.plotPdf("$IMGDIR/b0.pdf")
+#=
+util.plotPdf("$IMGDIR/b0_old.pdf")
 util.plotPosts(b0Post, cnames=["truth=$b0" for b0 in dat[:b0]]);
 util.devOff()
+=#
 
 # Get b1
 b1Post = hcat(util.getPosterior(:b1, out[1])...)'
 b1Mean = mean(b1Post, dims=1)
 b1Sd = std(b1Post, dims=1)
-util.plotPdf("$IMGDIR/b1.pdf")
-util.plotPosts(b1Post, cnames=["truth=$b1" for b1 in dat[:b1]]);
-util.devOff()
+CytofImg.plotPosts(Matrix(b1Post), q_digits=2, useDensity=true, traceFont=font(5),
+                   titles=[tex("\$\\beta_{1$i}\$") for i in 1:I])
+savefig("$IMGDIR/b1.pdf")
 
 # Plot Posterior Prob of Missing
 util.plotPdf("$IMGDIR/probMissPost.pdf")
