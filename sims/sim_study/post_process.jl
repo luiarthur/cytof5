@@ -1,18 +1,30 @@
 using Distributions
-using Cytof5, Random, RCall
+using Cytof5, Random
 using JLD2, FileIO
+using Plots; pyplot()
+#= Dependencies for Plots & pyplot
+import Pkg
+Pkg.add("Plots")
+Pkg.add("PyCall")
+Pkg.add("LaTeXStrings")
 
+run(`pip install matplotlib`) # OR
+run(`pip3 install matplotlib`) 
+=#
+
+include("CytofImg.jl")
+
+
+# TODO: REMOVE WHEN DONE
 include("util.jl")
+using RCall
 
-#N_factor = parse(Int, ARGS[1]) # 100
-#N_factor = 100
-#OUTDIR = "result/N$(N_factor)/"
+
 OUTDIR = ARGS[1]
 IMGDIR = "$OUTDIR/img/"
 run(`mkdir -p $(IMGDIR)`)
 
 println("Loading Data ...")
-#@load "$(OUTDIR)/N$(N_factor).jld2" out dat ll lastState c y_dat
 @load "$(OUTDIR)/output.jld2" out dat ll lastState c y_dat metrics
 
 I, K = size(dat[:W])
@@ -20,54 +32,61 @@ K_MCMC = size(lastState.W, 2)
 J = size(lastState.Z, 1)
 
 # Plot loglikelihood
-util.plotPdf("$(IMGDIR)/ll.pdf")
-util.plot(ll[1000:end], ylab="log-likelihood", xlab="MCMC iteration", typ="l");
-util.devOff()
-
-function addGridLines(J::Int, K::Int, col="grey")
-  util.abline(v=(1:K) .+ .5, h=(1:J) .+ .5, col=col);
-end
+plot(ll[1000:end], ylab="log-likelihood", xlab="MCMC iteration", legend=:none, c=:grey20)
+savefig("$(IMGDIR)/ll.pdf")
 
 # Plot Z
-Zpost = util.getPosterior(:Z, out[1])
+Zpost = CytofImg.getPosterior(:Z, out[1])
 Zmean = mean(Zpost)
 
-util.plotPdf("$IMGDIR/Z_mean.pdf")
-util.myImage(Zmean, xlab="Features", ylab="Markers", addL=true, col=util.greys(11),
-             f=Z->addGridLines(J,K_MCMC));
-util.devOff()
+CytofImg.plotZ(Zmean, colorbar=true, xlabel="Features", ylabel="Markers")
+savefig("$IMGDIR/Z_mean.pdf")
 
-util.plotPdf("$IMGDIR/Z_mean_est_leftordered.pdf")
-util.myImage(Cytof5.Model.leftOrder((Zmean .> .5)*1),
-             xlab="Features", ylab="Markers", addL=true, col=util.greys(11),
-             f=Z->addGridLines(J,K_MCMC));
-util.devOff()
+Z_mean_est_leftordered = Cytof5.Model.leftOrder((Zmean .> .5)*1)
+CytofImg.plotZ(Z_mean_est_leftordered, xlabel="Features", ylabel="Markers")
+savefig("$IMGDIR/Z_mean_est_leftordered.pdf")
 
-util.plotPdf("$IMGDIR/Z_true.pdf")
-util.myImage(dat[:Z], xlab="Features", ylab="Markers");
-addGridLines(J, K)
-util.devOff()
+CytofImg.plotZ(dat[:Z], xlabel="Features", ylabel="Markers")
+savefig("$IMGDIR/Z_true.pdf")
 
 # Plot W
-Wpost = util.getPosterior(:W, out[1])
+# Annotate heatmap
+# https://discourse.julialang.org/t/annotations-and-line-widths-in-plots-jl-heatmaps/4259/2
+Wpost = CytofImg.getPosterior(:W, out[1])
 Wmean = mean(Wpost)
 
-util.plotPdf("$IMGDIR/W_mean.pdf")
-util.myImage(Wmean, xlab="Features", ylab="Samples", col=R"greys(10)", addL=true, zlim=[0,.3]);
-util.devOff()
+heatmap(Wmean, xlabel="Features", ylabel="Sampels", c=:viridis, legend=true,
+        border=true, yticks=1:I)
+CytofImg.annotateHeatmap(Wmean)
+savefig("$IMGDIR/W_mean.pdf")
 
-util.plotPdf("$IMGDIR/W_true.pdf")
-util.myImage(dat[:W], xlab="Features", ylab="Samples", col=R"greys(10)", addL=true, zlim=[0,.3]);
-util.devOff()
+heatmap(dat[:W], xlabel="Features", ylabel="Sampels", c=:viridis, legend=true,
+        border=true, yticks=1:I)
+CytofImg.annotateHeatmap(Wmean)
+savefig("$IMGDIR/W_true.pdf")
 
 # Get lam
-lamPost = util.getPosterior(:lam, out[1])
+lamPost = CytofImg.getPosterior(:lam, out[1])
 unique(lamPost)
 
 # Get b0
-b0Post = hcat(util.getPosterior(:b0, out[1])...)'
+b0Post = hcat(CytofImg.getPosterior(:b0, out[1])...)'
 b0Mean = mean(b0Post, dims=1)
 b0Sd = std(b0Post, dims=1)
+
+#=
+include("CytofImg.jl")
+function plotPost(x::Vector{T}; a::Float64=0.05, q_digits=3, kw...) where {T <: Number}
+  histogram(b0Post[:,1], legend=:none, label=:none, normed=true,
+            linecolor=:transparent, c=:steelblue; kw...)
+  xmean = mean(x)
+  q = quantile(x, [a/2, 1-a/2])
+  xticks!(round.(q, digits=q_digits))
+  vline!([q; xmean], linetype=:vline, c=:red, linewidths=2, line=[:dot, :dot, :solid],
+         label=["a","b","c"], legend=true)
+end
+plotPost(b0Post[:,1])
+=#
 
 util.plotPdf("$IMGDIR/b0.pdf")
 util.plotPosts(b0Post, cnames=["truth=$b0" for b0 in dat[:b0]]);
