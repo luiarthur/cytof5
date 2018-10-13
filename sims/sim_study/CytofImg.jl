@@ -1,5 +1,6 @@
 module CytofImg
 
+import Cytof5
 using Plots
 pyplot()
 using StatPlots
@@ -45,16 +46,17 @@ function plotZ(Z::Matrix{T}; kw...) where {T <: Number}
   return img
 end
 
-function plotY_heatmap(y::Matrix{Float64}; clim=(-5, 5), c=:pu_or)
+function plotY_heatmap(y::Matrix{T}; clim=(-5, 5), c=:pu_or) where {T <: Number}
   img = heatmap(y, c=c, clim=clim, background_color_inside=:black);
   return img
 end
 
-function plotYZ(y::Matrix{Float64}, Z::Matrix{Float64}; clim=(-5, 5))
-  heatY = plotY_heatmap(y)
-  heatZ = plotZ(Z)
-  img = plot(hH, hZ, layout=(2, 1))
-  return (img, heatY, heatZ)
+function plotYZ(y::Matrix{V}, Z::Matrix{T}; ycolor=:balance, clim=(-5, 5), kw...) where {T <: Number, V <: Number}
+  # TODO: change proportions
+  heatY = plotY_heatmap(y, c=ycolor, clim=clim)
+  heatZ = plotZ(Matrix(Z'))
+  img = plot(heatY, heatZ, layout=(2, 1); kw...);
+  return img
 end
 
 function annotateHeatmap(mat::Matrix{T}; digits=2, textsize=6) where T
@@ -147,7 +149,7 @@ function plotPosts(X::Matrix{T}; a::Float64=0.05, q_digits::Int=3, sd_digits::In
             histogram2d!(X[:, c], X[:,r], subplot=counter, colorbar=:none, grid=false)
           else
             histogram2d!(X[:, c], X[:,r], subplot=counter, colorbar=:none, grid=false,
-                         axis=:off)
+                         axis=false)
           end
         else
           plot!(X[:, c], X[:,r], subplot=counter, c=:grey70, grid=false,
@@ -164,6 +166,107 @@ function plotPosts(X::Matrix{T}; a::Float64=0.05, q_digits::Int=3, sd_digits::In
 
   return img
 end
+
+function postProbMiss(b0, b1, i::Int;
+                      y::Vector{Float64}=collect(-10:.1:10),
+                      credibility::Float64=.95)
+
+  N, I = size(b0)
+  @assert size(b0) == size(b1)
+  
+  len_y = length(y)
+  alpha = 1 - credibility
+  p_lower = alpha / 2
+  p_upper = 1 - alpha / 2
+
+  pmiss = hcat([Cytof5.Model.prob_miss.(yi, b0[:,i], b1[:,i]) for yi in y]...)
+  pmiss_mean = vec(mean(pmiss, dims=1))
+  pmiss_lower = [ quantile(pmiss[:, col], p_lower) for col in 1:len_y ]
+  pmiss_upper = [ quantile(pmiss[:, col], p_upper) for col in 1:len_y ]
+
+  return (pmiss_mean, pmiss_lower, pmiss_upper, y)
+end
+
+function pairwiseAlloc(Z, W, i)
+  J, K = size(Z)
+  A = zeros(J, J)
+  for r in 1:J
+    for c in 1:J
+      for k in 1:K
+        if Z[r, k] == 1 && Z[c, k] == 1
+          A[r, c] += W[i, k]
+          A[c, r] += W[i, k]
+        end
+      end
+    end
+  end
+
+  return A
+end # pairwiseAlloc
+
+function estimate_ZWi_index(monitor, i)
+  As = [pairwiseAlloc(m[:Z], m[:W], i) for m in monitor]
+
+  Amean = mean(As)
+  mse = [ mean((A - Amean) .^ 2) for A in As]
+
+  return argmin(mse)
+end
+
+function countmap(x::Vector{T}) where {T <: Number}
+  out = Dict{Int, T}()
+  for xi in x
+    if xi in keys(out)
+      out[xi] += 1
+    else
+      out[xi] = 1
+    end
+  end
+  return out
+end
+
+function reorder_lam_i(lam_i::Vector{T}, W_i::Vector{V}) where {T <: Number, V <: Number}
+  N = length(lam_i)
+  new_lam_i = Vector{Int}(undef, N)
+  K = length(W_i)
+  ord = sortperm(W_i)
+
+  for k in 1:K
+    new_lam_i[lam_i .== ord[k]] .= k
+  end
+
+  return new_lam_i
+end
+
+function yZ_inspect(monitor, y::Vector{Matrix{Float64}},
+                    i::Int; thresh=0.7, ycolor=:balance,
+                    addLines=true,
+                    clim=(-5,5), W_digits=1, order=true, kw...)
+  idx_best = estimate_ZWi_index(monitor, i)
+  Zi = monitor[idx_best][:Z]
+  Wi = monitor[idx_best][:W][i, :]
+  lami = monitor[idx_best][:lam][i]
+  new_lami = reorder_lam_i(lami, Wi)
+  ord = sortperm(new_lami)
+
+  # TODO: print Wi
+  # sort ord by Wi
+
+  if order
+    plotYZ(y[i][ord, :], Zi[:, sortperm(Wi)], clim=clim, ycolor=ycolor)
+  else
+    plotYZ(y[i], Zi, clim=clim, ycolor=ycolor)
+  end
+
+  # FIXME
+  yticks!(sort(Wi), subplot=2)
+
+  if addLines
+    groups = cumsum(sort(collect(values(countmap(new_lami)))))
+    hline!(groups, c=:yellow, subplot=1, linewidths=3, legend=false)
+  end
+end
+
 
 # save by savefig
 end

@@ -8,6 +8,7 @@ import Pkg
 Pkg.add("Plots")
 Pkg.add("PyCall")
 Pkg.add("LaTeXStrings")
+Pkg.add("StatPlots")
 
 run(`pip install matplotlib`) # OR
 run(`pip3 install matplotlib`) 
@@ -77,7 +78,7 @@ b0Post = hcat(CytofImg.getPosterior(:b0, out[1])...)'
 b0Mean = mean(b0Post, dims=1)
 b0Sd = std(b0Post, dims=1)
 
-CytofImg.plotPosts(Matrix(b1Post), q_digits=2, useDensity=true, traceFont=font(5),
+CytofImg.plotPosts(Matrix(b0Post), q_digits=2, useDensity=true, traceFont=font(5),
                    titles=[tex("\$\\beta_{0$i}\$") for i in 1:I])
 savefig("$IMGDIR/b0.pdf")
 
@@ -95,15 +96,25 @@ CytofImg.plotPosts(Matrix(b1Post), q_digits=2, useDensity=true, traceFont=font(5
                    titles=[tex("\$\\beta_{1$i}\$") for i in 1:I])
 savefig("$IMGDIR/b1.pdf")
 
+# color between
+x = range(0, stop=2*pi, length=100)
+y1 = sin.(x)
+y2 = sin.(x) .* exp.(-x/10)
+Plots.plot(x, y1, legend=false, fill=y2)
+
+plot(x, y1, legend=false, fill=(0, y2, :green))
+
+
 # Plot Posterior Prob of Missing
-util.plotPdf("$IMGDIR/probMissPost.pdf")
-R"par(mfrow=c($(I), 1))"
+#include("CytofImg.jl");
+layout=(I, 1)
+plot(layout=layout, border=true, bordercolor=:lightgrey, grid=false)
 for i in 1:I
-  pmiss_mean, pmiss_lower, pmiss_upper, y_seq = util.postProbMiss(b0Post, b1Post, i)
-  util.plotPostProbMiss(pmiss_mean, pmiss_lower, pmiss_upper, y_seq, i, main=i)
+  pmiss_mean, pmiss_lower, pmiss_upper, y_seq = CytofImg.postProbMiss(b0Post, b1Post, i)
+  # FIXME: why do I need to add 5E-3?!
+  Plots.plot!(y_seq, pmiss_lower, legend=false, title="$i", fill=pmiss_upper .+ 5E-3, subplot=i)
 end
-R"par(mfrow=c(1, 1))"
-util.devOff()
+savefig("$IMGDIR/probMissPost.pdf")
 
 # Get mus
 mus0Post = hcat([m[:mus][0] for m in out[1]]...)'
@@ -166,6 +177,14 @@ end
 y_141 = [ yimp[1][4, 1] for yimp in y_imputed ]
 R"hist"(y_141)
 R"plot"(y_141, typ="l")
+=#
+
+#=
+include("CytofImg.jl")
+for i in 1:I
+  CytofImg.yZ_inspect(out[i], lastState.y_imputed, 1, clim=(-6,6), ycolor=:bluesreds)
+  @time savefig("$IMGDIR/yZ$(i).png")
+end
 =#
 
 for i in 1:I
