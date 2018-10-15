@@ -17,6 +17,7 @@ run(`pip3 install matplotlib`)
 const tex = latexstring
 
 include("CytofImg.jl")
+Plots.scalefontsizes(.8)
 
 
 # TODO: REMOVE WHEN DONE
@@ -60,12 +61,12 @@ Wpost = CytofImg.getPosterior(:W, out[1])
 Wmean = mean(Wpost)
 
 heatmap(Wmean, xlabel="Features", ylabel="Sampels", c=:viridis, legend=true,
-        border=true, yticks=1:I)
+        border=true, yticks=1:I, clim=(0, .3))
 CytofImg.annotateHeatmap(Wmean)
 savefig("$IMGDIR/W_mean.pdf")
 
 heatmap(dat[:W], xlabel="Features", ylabel="Sampels", c=:viridis, legend=true,
-        border=true, yticks=1:I)
+        border=true, yticks=1:I, clim=(0, .3))
 CytofImg.annotateHeatmap(Wmean)
 savefig("$IMGDIR/W_true.pdf")
 
@@ -75,34 +76,28 @@ unique(lamPost)
 
 # Get b0
 b0Post = hcat(CytofImg.getPosterior(:b0, out[1])...)'
-b0Mean = mean(b0Post, dims=1)
-b0Sd = std(b0Post, dims=1)
-
 CytofImg.plotPosts(Matrix(b0Post), q_digits=2, useDensity=true, traceFont=font(5),
-                   titles=[tex("\$\\beta_{0$i}\$") for i in 1:I])
+                   titles=[("truth=$b0") for b0 in dat[:b0]])
+                   #titles=[tex("\$\\beta_{0$i}\$") for i in 1:I])
 savefig("$IMGDIR/b0.pdf")
 
-#=
-util.plotPdf("$IMGDIR/b0_old.pdf")
-util.plotPosts(b0Post, cnames=["truth=$b0" for b0 in dat[:b0]]);
-util.devOff()
-=#
+include("CytofImg.jl")
+x = CytofImg.postSummary(Matrix(b0Post))
 
 # Get b1
-b1Post = hcat(util.getPosterior(:b1, out[1])...)'
-b1Mean = mean(b1Post, dims=1)
-b1Sd = std(b1Post, dims=1)
+b1Post = hcat(CytofImg.getPosterior(:b1, out[1])...)'
 CytofImg.plotPosts(Matrix(b1Post), q_digits=2, useDensity=true, traceFont=font(5),
                    titles=[tex("\$\\beta_{1$i}\$") for i in 1:I])
 savefig("$IMGDIR/b1.pdf")
 
-# color between
+#= color between
 x = range(0, stop=2*pi, length=100)
 y1 = sin.(x)
 y2 = sin.(x) .* exp.(-x/10)
 Plots.plot(x, y1, legend=false, fill=y2)
-
 plot(x, y1, legend=false, fill=(0, y2, :green))
+=#
+
 
 
 # Plot Posterior Prob of Missing
@@ -112,7 +107,7 @@ plot(layout=layout, border=true, bordercolor=:lightgrey, grid=false)
 for i in 1:I
   pmiss_mean, pmiss_lower, pmiss_upper, y_seq = CytofImg.postProbMiss(b0Post, b1Post, i)
   # FIXME: why do I need to add 5E-3?!
-  Plots.plot!(y_seq, pmiss_lower, legend=false, title="$i", fill=pmiss_upper .+ 5E-3, subplot=i)
+  Plots.plot!(y_seq, pmiss_lower, legend=false, title=latexstring("I=$i"), fill=pmiss_upper .+ 5E-3, subplot=i)
 end
 savefig("$IMGDIR/probMissPost.pdf")
 
@@ -121,27 +116,20 @@ mus0Post = hcat([m[:mus][0] for m in out[1]]...)'
 mus1Post = hcat([m[:mus][1] for m in out[1]]...)'
 musPost = [ mus0Post mus1Post ]
 
-util.plotPdf("$IMGDIR/mus.pdf")
-R"boxplot"(musPost, ylab="mu*", xlab="", xaxt="n", col="steelblue", pch=20, cex=0);
-#util.plot(1:size(musPost, 2), mean(musPost, dims=1), typ="n", ylab="μ*", xlab="", xaxt="n")
-#util.addErrbar(R"t(apply($musPost, 2, quantile, c(.025, .975)))", 
-#               x=1:size(musPost, 2), ylab="μ*", xlab="", xaxt="n", col="blue", lend=1, lwd=10);
-util.abline(h=0, v=size(musPost, 2)/2 + .5, col="grey30", lty=1);
-util.abline(h=dat[:mus][0], lty=2, col="steelblue");
-util.abline(h=dat[:mus][1], lty=2, col="steelblue");
-util.devOff()
+CytofImg.StatPlots.boxplot(musPost, ylabel=L"$\mu^*$", legend=false, xaxis=false, c=:steelblue,
+                           grid=false, yrotation=90, border=true)
+vline!([size(musPost, 2)/2 + .5], c=:grey30)
+hline!([0], c=:grey30)
+hline!(dat[:mus][0], line=:dot, c=:steelblue)
+hline!(dat[:mus][1], line=:dot, c=:steelblue)
+savefig("$IMGDIR/mus.pdf")
 
 # Get sig2
-sig2Post = hcat(util.getPosterior(:sig2, out[1])...)'
-sig2Mean = mean(sig2Post, dims=1)
-sig2Sd = std(sig2Post, dims=1)
-
-util.plotPdf("$IMGDIR/sig2.pdf")
-util.plotPosts(sig2Post, cnames=["truth: $s2" for s2 in dat[:sig2]]);
-util.devOff()
+sig2Post = hcat(CytofImg.getPosterior(:sig2, out[1])...)'
+CytofImg.plotPosts(Matrix(sig2Post), titles= ["truth: $s2" for s2 in dat[:sig2]], showAccRate=false)
+savefig("$IMGDIR/sig2.pdf")
 
 # Posterior of y_imputed
-y_imputed = [ o[:y_imputed] for o in out[2] ]
 util.plotPdf("$(IMGDIR)/ydatPost.pdf")
 R"par(mfrow=c(4,2))"
 for i in 1:I
@@ -179,23 +167,24 @@ R"hist"(y_141)
 R"plot"(y_141, typ="l")
 =#
 
+for i in 1:I
+  CytofImg.yZ_inspect(out[1], dat[:y], i, clim=(-6,6), ycolor=:bluesreds, marker_names=1:32)
+  @time savefig("$IMGDIR/yDataSorted$(i).pdf")
+
+  CytofImg.yZ_inspect(out[1], lastState.y_imputed, i, clim=(-6,6),
+                      ycolor=:bluesreds, marker_names=1:32)
+  @time savefig("$IMGDIR/y_imputed$(i).pdf")
+end
+
+
 #=
 include("CytofImg.jl")
-for i in 1:I
-  CytofImg.yZ_inspect(out[i], lastState.y_imputed, 1, clim=(-6,6), ycolor=:bluesreds)
-  @time savefig("$IMGDIR/yZ$(i).png")
-end
+i=1
+x = CytofImg.yZ_inspect(out[1], lastState.y_imputed, i, clim=(-6,6), ycolor=:bluesreds, marker_names=1:32)
+sp2 = Plots.get_subplot(x, 2)
+ax_y = Plots.get_axis(sp2, :y)
+attr!(ax_y, :mirror);
 =#
-
-for i in 1:I
-  util.plotPng("$IMGDIR/y_imputed$(i).png")
-  util.yZ_inspect(out[1], i=i, lastState.y_imputed, zlim=[-4,4], using_zero_index=false) 
-  util.devOff()
-
-  util.plotPng("$IMGDIR/y_true$(i).png")
-  util.yZ_inspect(out[1], i=i, dat[:y], zlim=[-4,4], na="black", using_zero_index=false)
-  util.devOff()
-end
 
 open("$IMGDIR/priorBeta.txt", "w") do file
   b0Prior = join(c.b0_prior, "\n")

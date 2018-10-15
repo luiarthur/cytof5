@@ -5,6 +5,7 @@ using Plots
 pyplot()
 using StatPlots
 using Distributions # std, mean, quantile
+using RCall # TODO: GET RID OF THIS DEPENDENCY!
 
 startupMsg = """
 To scale font size globally for plots (for presentations mostly), do this:
@@ -51,11 +52,11 @@ function plotY_heatmap(y::Matrix{T}; clim=(-5, 5), c=:pu_or) where {T <: Number}
   return img
 end
 
-function plotYZ(y::Matrix{V}, Z::Matrix{T}; ycolor=:balance, clim=(-5, 5), kw...) where {T <: Number, V <: Number}
+function plotYZ(y::Matrix{V}, Z::Matrix{T}; ycolor=:balance, clim=(-5, 5), heights=[.7, .3], kw...) where {T <: Number, V <: Number}
   # TODO: change proportions
   heatY = plotY_heatmap(y, c=ycolor, clim=clim)
   heatZ = plotZ(Matrix(Z'))
-  img = plot(heatY, heatZ, layout=(2, 1); kw...);
+  img = plot(heatY, heatZ, layout=grid(2, 1, heights=heights); kw...);
   return img
 end
 
@@ -70,7 +71,7 @@ function annotateHeatmap(mat::Matrix{T}; digits=2, textsize=6) where T
 end
 
 function plotPost(x::Vector{T}; a::Float64=0.05, q_digits::Int=3, sd_digits::Int=3, add=false,
-                  trace::Bool=true, useDensity::Bool=true,
+                  trace::Bool=true, useDensity::Bool=true, showAccRate::Bool=true,
                   parent=1, offset=1, traceFont=font(16), kw...) where {T <: Number}
   denColor = (0, .99, :steelblue)
   if useDensity
@@ -97,9 +98,10 @@ function plotPost(x::Vector{T}; a::Float64=0.05, q_digits::Int=3, sd_digits::Int
 
   if trace
     accRate = length(unique(x)) / length(x)
+		traceTitle = showAccRate ? "acc: $(Int(round(accRate*100)))%" : ""
     #                                x    y   W   H
     plot!(x, inset_subplots=(parent, bbox(0, .1, .3, .3, :top, :right)), subplot=parent+offset,
-          axis=false, legend=false, title="acc: $(Int(round(accRate*100)))%",
+          axis=false, legend=false, title=traceTitle,
           c=:grey70, grid=false, titlefont=traceFont, linewidths=.5)
 
   end
@@ -124,7 +126,10 @@ function plotPost(x::Vector{T}; a::Float64=0.05, q_digits::Int=3, sd_digits::Int
   return img
 end
 
-function plotPosts(X::Matrix{T}; a::Float64=0.05, q_digits::Int=3, sd_digits::Int=3, cor_digits::Int=3, titles=:none, detail=false, hist2d::Bool=false, trace::Bool=true, traceFont=font(16), kw...) where {T <: Number}
+function plotPosts(X::Matrix{T}; a::Float64=0.05, q_digits::Int=3,
+                   sd_digits::Int=3, cor_digits::Int=3, titles=:none,
+                   detail=false, hist2d::Bool=false, trace::Bool=true,
+                   traceFont=font(16), kw...) where {T <: Number}
   N = size(X, 2)
 
   if titles == :none
@@ -140,9 +145,10 @@ function plotPosts(X::Matrix{T}; a::Float64=0.05, q_digits::Int=3, sd_digits::In
 
       if r == c
         offset += 1
-        plotPost(X[:, r], a=a, q_digits=q_digits, sd_digits=sd_digits, subplot=counter,
-                 add=true, title=titles[c], trace=trace,
-                 parent=counter, offset=N*N-counter+offset, traceFont=traceFont; kw...)
+        plotPost(X[:, r], a=a, q_digits=q_digits, sd_digits=sd_digits,
+                 subplot=counter, add=true, title=titles[c], trace=trace,
+                 parent=counter, offset=N*N-counter+offset,
+                 traceFont=traceFont; kw...)
       elseif r < c
         if hist2d
           if detail
@@ -240,7 +246,7 @@ end
 
 function yZ_inspect(monitor, y::Vector{Matrix{Float64}},
                     i::Int; thresh=0.7, ycolor=:balance,
-                    addLines=true,
+                    addLines::Bool=true, marker_names = missing,
                     clim=(-5,5), W_digits=1, order=true, kw...)
   idx_best = estimate_ZWi_index(monitor, i)
   Zi = monitor[idx_best][:Z]
@@ -248,25 +254,89 @@ function yZ_inspect(monitor, y::Vector{Matrix{Float64}},
   lami = monitor[idx_best][:lam][i]
   new_lami = reorder_lam_i(lami, Wi)
   ord = sortperm(new_lami)
+  K = length(Wi)
+  J = size(y[i], 2)
 
-  # TODO: print Wi
-  # sort ord by Wi
+  W_order = sortperm(Wi)
 
   if order
-    plotYZ(y[i][ord, :], Zi[:, sortperm(Wi)], clim=clim, ycolor=ycolor)
+    plotYZ(y[i][ord, :], Zi[:, W_order], clim=clim, ycolor=ycolor)
   else
     plotYZ(y[i], Zi, clim=clim, ycolor=ycolor)
   end
 
-  # FIXME
-  yticks!(sort(Wi), subplot=2)
+  # TODO: cell types on left, percentage on right
+  W_val = map(x->"$(x)%", round.(Wi[W_order] * 100, digits=W_digits))
+  #plot!(yticks=(1:K, W_order), subplot=2)
+  #plot!(yticks=(1:K, W_val), subplot=2, ymirror=true)
+  plot!(yticks=(1:K, W_val), subplot=2)
+  if !ismissing(marker_names)
+    plot!(xticks=(1:J, marker_names), subplot=1, rotation=90)
+  end
 
   if addLines
     groups = cumsum(sort(collect(values(countmap(new_lami)))))
-    hline!(groups, c=:yellow, subplot=1, linewidths=3, legend=false)
+    hline!(groups, c=:yellow, subplot=1, linewidths=1, legend=false)
   end
 end
 
+function postSummary(x::Matrix{T}; alpha::Float64=.05) where {T <: Number}
+  K = size(x, 2)
+  xmean = mean(x, dims=1)
+  xsd = std(x, dims=1)
+  xqLower = [ quantile(x[:, k], alpha / 2) for k in 1:K ]
+  xqLower = reshape(xqLower, 1, K)
+  xqUpper = [ quantile(x[:, k], 1- alpha / 2) for k in 1:K ]
+  xqUpper = reshape(xqUpper, 1, K)
+  xmedian = median(x, dims=1)
 
-# save by savefig
+  summaryMatrix = Matrix([xmean; xsd; xqLower; xmedian; xqUpper]')
+  println("mean   sd  lower  upper  median")
+  return summaryMatrix
+end
+
+# TODO: GET RID OF THIS!
+R"""
+ari <- function(x, y) {
+  x = as.vector(x)
+  y = as.vector(y)
+  n = length(x)
+  stopifnot(n == length(y))
+  tab = table(x, y)
+  index = sum(choose(tab, 2))
+  rowSumsChoose2.sum = sum(choose(rowSums(tab), 2))
+  colSumsChoose2.sum = sum(choose(colSums(tab), 2))
+  expected.index = rowSumsChoose2.sum * colSumsChoose2.sum/choose(n,
+      2)
+  max.index = mean(c(rowSumsChoose2.sum, colSumsChoose2.sum))
+  (index - expected.index)/(max.index - expected.index)
+}
+"""
+ari = R"ari"
+
+function confusion(x::Vector{T}, y::Vector{T}) where {T <: Number}
+  @assert length(y) == length(x)
+  n = length(x)
+  confusionMat = zeros(Int, n, n)
+  for i in 1:n
+    for j in 1:n
+      if x[i] == y[j]
+        confusionMat[i, j] += 1
+      end
+    end
+  end
+  return confusionMat
+end
+
+#=
+function ari(x::Vector{T}, y::Vector{T}) where {T <: Number}
+  @assert length(y) == length(x)
+  n = length(x)
+  tab = confusion(x, y)
+  # TODO: https://en.wikipedia.org/wiki/Rand_index
+end
+=#
+
+
+
 end

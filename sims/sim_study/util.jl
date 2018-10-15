@@ -27,6 +27,7 @@ yZ_inspect = R"cytof3::yZ_inspect";
 abline = R"abline";
 addErrbar = R"rcommon::add.errbar";
 hist = R"hist";
+colorBtwn = R"color.btwn";
 
 
 function getPosterior(sym::Symbol, monitor)
@@ -82,15 +83,11 @@ function postProbMiss(b0, b1, i::Int;
   return (pmiss_mean, pmiss_lower, pmiss_upper, y)
 end
 
-R"""
-plotPostProbMiss <- function(pmiss_mean, pmiss_lower, pmiss_upper, y_seq, i, ...) {
+function plotPostProbMiss(pmiss_mean, pmiss_lower, pmiss_upper, y_seq, i; kw...)
   plot(y_seq, pmiss_mean, xlab="y", ylab="prob miss", lwd=2, col="steelblue",
-       type="l", fg="grey", ...)
-  color.btwn(y_seq, pmiss_lower, pmiss_upper, from=min(y_seq), to=max(y_seq),
+       typ="l", fg="grey"; kw...)
+  colorBtwn(y_seq, pmiss_lower, pmiss_upper, from=minimum(y_seq), to=maximum(y_seq),
              rgba("blue", .3))
-}
-"""
-
-plotPostProbMiss = R"plotPostProbMiss"
+end
 
 end # util
