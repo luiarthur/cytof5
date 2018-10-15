@@ -1,29 +1,9 @@
 using Distributions
-using Cytof5, Random
+using Cytof5, Random, RCall
 using JLD2, FileIO
-using Plots; pyplot()
-using LaTeXStrings
-#= Dependencies for Plots & pyplot
-import Pkg
-Pkg.add("Plots")
-Pkg.add("PyCall")
-Pkg.add("LaTeXStrings")
-Pkg.add("StatPlots")
 
-run(`pip install matplotlib`) # OR
-run(`pip3 install matplotlib`) 
-=#
-
-const tex = latexstring
-
-include("CytofImg.jl")
-Plots.scalefontsizes(.8)
-
-
-# TODO: REMOVE WHEN DONE
 include("util.jl")
-using RCall
-
+#include("CytofImg.jl")
 
 OUTDIR = ARGS[1]
 IMGDIR = "$OUTDIR/img/"
@@ -37,99 +17,103 @@ K_MCMC = size(lastState.W, 2)
 J = size(lastState.Z, 1)
 
 # Plot loglikelihood
-plot(ll[1000:end], ylab="log-likelihood", xlab="MCMC iteration", legend=:none, c=:grey20)
-savefig("$(IMGDIR)/ll.pdf")
+util.plotPdf("$(IMGDIR)/ll.pdf")
+util.plot(ll[1000:end], ylab="log-likelihood", xlab="MCMC iteration", typ="l");
+util.devOff()
+
+function addGridLines(J::Int, K::Int, col="grey")
+  util.abline(v=(1:K) .+ .5, h=(1:J) .+ .5, col=col);
+end
 
 # Plot Z
-Zpost = CytofImg.getPosterior(:Z, out[1])
+Zpost = util.getPosterior(:Z, out[1])
 Zmean = mean(Zpost)
 
-CytofImg.plotZ(Zmean, colorbar=true, xlabel="Features", ylabel="Markers")
-savefig("$IMGDIR/Z_mean.pdf")
+util.plotPdf("$IMGDIR/Z_mean.pdf")
+util.myImage(Zmean, xlab="Features", ylab="Markers", addL=true, col=util.greys(11),
+             f=Z->addGridLines(J,K_MCMC));
+util.devOff()
 
-Z_mean_est_leftordered = Cytof5.Model.leftOrder((Zmean .> .5)*1)
-CytofImg.plotZ(Z_mean_est_leftordered, xlabel="Features", ylabel="Markers")
-savefig("$IMGDIR/Z_mean_est_leftordered.pdf")
+util.plotPdf("$IMGDIR/Z_mean_est_leftordered.pdf")
+util.myImage(Cytof5.Model.leftOrder((Zmean .> .5)*1),
+             xlab="Features", ylab="Markers", addL=true, col=util.greys(11),
+             f=Z->addGridLines(J,K_MCMC));
+util.devOff()
 
-CytofImg.plotZ(dat[:Z], xlabel="Features", ylabel="Markers")
-savefig("$IMGDIR/Z_true.pdf")
+util.plotPdf("$IMGDIR/Z_true.pdf")
+util.myImage(dat[:Z], xlab="Features", ylab="Markers");
+addGridLines(J, K)
+util.devOff()
 
 # Plot W
-# Annotate heatmap
-# https://discourse.julialang.org/t/annotations-and-line-widths-in-plots-jl-heatmaps/4259/2
-Wpost = CytofImg.getPosterior(:W, out[1])
+Wpost = util.getPosterior(:W, out[1])
 Wmean = mean(Wpost)
 
-heatmap(Wmean, xlabel="Features", ylabel="Sampels", c=:viridis, legend=true,
-        border=true, yticks=1:I, clim=(0, .3))
-CytofImg.annotateHeatmap(Wmean)
-savefig("$IMGDIR/W_mean.pdf")
+util.plotPdf("$IMGDIR/W_mean.pdf")
+util.myImage(Wmean, xlab="Features", ylab="Samples", col=R"greys(10)", addL=true, zlim=[0,.3]);
+util.devOff()
 
-heatmap(dat[:W], xlabel="Features", ylabel="Sampels", c=:viridis, legend=true,
-        border=true, yticks=1:I, clim=(0, .3))
-CytofImg.annotateHeatmap(Wmean)
-savefig("$IMGDIR/W_true.pdf")
+util.plotPdf("$IMGDIR/W_true.pdf")
+util.myImage(dat[:W], xlab="Features", ylab="Samples", col=R"greys(10)", addL=true, zlim=[0,.3]);
+util.devOff()
 
 # Get lam
-lamPost = CytofImg.getPosterior(:lam, out[1])
+lamPost = util.getPosterior(:lam, out[1])
 unique(lamPost)
 
 # Get b0
-b0Post = hcat(CytofImg.getPosterior(:b0, out[1])...)'
-CytofImg.plotPosts(Matrix(b0Post), q_digits=2, useDensity=true, traceFont=font(5),
-                   titles=[("truth=$b0") for b0 in dat[:b0]])
-                   #titles=[tex("\$\\beta_{0$i}\$") for i in 1:I])
-savefig("$IMGDIR/b0.pdf")
+b0Post = hcat(util.getPosterior(:b0, out[1])...)'
+b0Mean = mean(b0Post, dims=1)
+b0Sd = std(b0Post, dims=1)
 
-include("CytofImg.jl")
-x = CytofImg.postSummary(Matrix(b0Post))
+util.plotPdf("$IMGDIR/b0.pdf")
+util.plotPosts(b0Post, cnames=["truth=$b0" for b0 in dat[:b0]]);
+util.devOff()
 
 # Get b1
-b1Post = hcat(CytofImg.getPosterior(:b1, out[1])...)'
-CytofImg.plotPosts(Matrix(b1Post), q_digits=2, useDensity=true, traceFont=font(5),
-                   titles=[tex("\$\\beta_{1$i}\$") for i in 1:I])
-savefig("$IMGDIR/b1.pdf")
-
-#= color between
-x = range(0, stop=2*pi, length=100)
-y1 = sin.(x)
-y2 = sin.(x) .* exp.(-x/10)
-Plots.plot(x, y1, legend=false, fill=y2)
-plot(x, y1, legend=false, fill=(0, y2, :green))
-=#
-
-
+b1Post = hcat(util.getPosterior(:b1, out[1])...)'
+b1Mean = mean(b1Post, dims=1)
+b1Sd = std(b1Post, dims=1)
+util.plotPdf("$IMGDIR/b1.pdf")
+util.plotPosts(b1Post, cnames=["truth=$b1" for b1 in dat[:b1]]);
+util.devOff()
 
 # Plot Posterior Prob of Missing
-#include("CytofImg.jl");
-layout=(I, 1)
-plot(layout=layout, border=true, bordercolor=:lightgrey, grid=false)
+util.plotPdf("$IMGDIR/probMissPost.pdf")
+R"par(mfrow=c($(I), 1))"
 for i in 1:I
-  pmiss_mean, pmiss_lower, pmiss_upper, y_seq = CytofImg.postProbMiss(b0Post, b1Post, i)
-  # FIXME: why do I need to add 5E-3?!
-  Plots.plot!(y_seq, pmiss_lower, legend=false, title=latexstring("I=$i"), fill=pmiss_upper .+ 5E-3, subplot=i)
+  pmiss_mean, pmiss_lower, pmiss_upper, y_seq = util.postProbMiss(b0Post, b1Post, i)
+  util.plotPostProbMiss(pmiss_mean, pmiss_lower, pmiss_upper, y_seq, i, main=i)
 end
-savefig("$IMGDIR/probMissPost.pdf")
+R"par(mfrow=c(1, 1))"
+util.devOff()
 
 # Get mus
 mus0Post = hcat([m[:mus][0] for m in out[1]]...)'
 mus1Post = hcat([m[:mus][1] for m in out[1]]...)'
 musPost = [ mus0Post mus1Post ]
 
-CytofImg.StatPlots.boxplot(musPost, ylabel=L"$\mu^*$", legend=false, xaxis=false, c=:steelblue,
-                           grid=false, yrotation=90, border=true)
-vline!([size(musPost, 2)/2 + .5], c=:grey30)
-hline!([0], c=:grey30)
-hline!(dat[:mus][0], line=:dot, c=:steelblue)
-hline!(dat[:mus][1], line=:dot, c=:steelblue)
-savefig("$IMGDIR/mus.pdf")
+util.plotPdf("$IMGDIR/mus.pdf")
+R"boxplot"(musPost, ylab="mu*", xlab="", xaxt="n", col="steelblue", pch=20, cex=0);
+#util.plot(1:size(musPost, 2), mean(musPost, dims=1), typ="n", ylab="μ*", xlab="", xaxt="n")
+#util.addErrbar(R"t(apply($musPost, 2, quantile, c(.025, .975)))", 
+#               x=1:size(musPost, 2), ylab="μ*", xlab="", xaxt="n", col="blue", lend=1, lwd=10);
+util.abline(h=0, v=size(musPost, 2)/2 + .5, col="grey30", lty=1);
+util.abline(h=dat[:mus][0], lty=2, col="steelblue");
+util.abline(h=dat[:mus][1], lty=2, col="steelblue");
+util.devOff()
 
 # Get sig2
-sig2Post = hcat(CytofImg.getPosterior(:sig2, out[1])...)'
-CytofImg.plotPosts(Matrix(sig2Post), titles= ["truth: $s2" for s2 in dat[:sig2]], showAccRate=false)
-savefig("$IMGDIR/sig2.pdf")
+sig2Post = hcat(util.getPosterior(:sig2, out[1])...)'
+sig2Mean = mean(sig2Post, dims=1)
+sig2Sd = std(sig2Post, dims=1)
+
+util.plotPdf("$IMGDIR/sig2.pdf")
+util.plotPosts(sig2Post, cnames=["truth: $s2" for s2 in dat[:sig2]]);
+util.devOff()
 
 # Posterior of y_imputed
+y_imputed = [ o[:y_imputed] for o in out[2] ]
 util.plotPdf("$(IMGDIR)/ydatPost.pdf")
 R"par(mfrow=c(4,2))"
 for i in 1:I
@@ -161,29 +145,24 @@ open("$IMGDIR/ari.txt", "w") do file
   write(file, "ARI lam: $ariCytof\n")
 end
 
-#=
-y_141 = [ yimp[1][4, 1] for yimp in y_imputed ]
-R"hist"(y_141)
-R"plot"(y_141, typ="l")
-=#
-
 for i in 1:I
-  CytofImg.yZ_inspect(out[1], dat[:y], i, clim=(-6,6), ycolor=:bluesreds, marker_names=1:32)
-  @time savefig("$IMGDIR/yDataSorted$(i).pdf")
+  util.plotPng("$IMGDIR/y_imputed$(i).png", typ="cairo")
+  util.yZ_inspect(out[1], i=i, lastState.y_imputed, zlim=[-4,4], using_zero_index=false) 
+  util.devOff()
 
-  CytofImg.yZ_inspect(out[1], lastState.y_imputed, i, clim=(-6,6),
-                      ycolor=:bluesreds, marker_names=1:32)
-  @time savefig("$IMGDIR/y_imputed$(i).pdf")
+  util.plotPng("$IMGDIR/y_dat$(i).png", typ="cairo")
+  util.yZ_inspect(out[1], i=i, dat[:y], zlim=[-4,4], na="black", using_zero_index=false)
+  util.devOff()
 end
 
+#= Plots.jl
+for i in 1:I
+  CytofImg.yZ_inspect(out[1], lastState.y_imputed, i, thresh=.9)
+  CytofImg.Plots.savefig("$IMGDIR/y_imputed$(i).pdf")
 
-#=
-include("CytofImg.jl")
-i=1
-x = CytofImg.yZ_inspect(out[1], lastState.y_imputed, i, clim=(-6,6), ycolor=:bluesreds, marker_names=1:32)
-sp2 = Plots.get_subplot(x, 2)
-ax_y = Plots.get_axis(sp2, :y)
-attr!(ax_y, :mirror);
+  CytofImg.yZ_inspect(out[1], dat[:y], i, thresh=.9)
+  CytofImg.Plots.savefig("$IMGDIR/y_dat$(i).pdf")
+end
 =#
 
 open("$IMGDIR/priorBeta.txt", "w") do file
@@ -191,4 +170,3 @@ open("$IMGDIR/priorBeta.txt", "w") do file
   b1Prior = join(c.b1_prior, "\n")
   write(file, "b0Prior:\n$b0Prior\nb1Prior:\n$b1Prior\n")
 end
-

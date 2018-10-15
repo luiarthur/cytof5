@@ -36,19 +36,26 @@ julia> plotZ(Z, xlabel="my xlab")
 
 """
 function plotZ(Z::Matrix{T}; kw...) where {T <: Number}
-  img = heatmap(Z, c=:Greys, legend=:none, border=true, bordercolor=:lightgrey; kw...)
+  # FIXME: doesn't work for Z having either 1 row or 1 column!
   J, K = size(Z)
+  if J < 2 || K < 2
+    println("heatmap is not supported for single row / column matrices")
+    return
+  end
+
+  img = heatmap(Z, c=:Greys, legend=:none, border=true, bordercolor=:lightgrey; kw...)
   if J > 1
     hline!((2:J) .- .5, c=:lightgrey)
   end
   if K > 1
     vline!((2:K) .- .5, c=:lightgrey)
   end
+
   return img
 end
 
 function plotY_heatmap(y::Matrix{T}; clim=(-5, 5), c=:pu_or) where {T <: Number}
-  img = heatmap(y, c=c, clim=clim, background_color_inside=:black);
+  img = heatmap(y, c=c, clim=clim, background_color_inside=:black, bordercolor=:transparent);
   return img
 end
 
@@ -244,10 +251,11 @@ function reorder_lam_i(lam_i::Vector{T}, W_i::Vector{V}) where {T <: Number, V <
   return new_lam_i
 end
 
+# TODO: Implement the threshold
 function yZ_inspect(monitor, y::Vector{Matrix{Float64}},
                     i::Int; thresh=0.7, ycolor=:balance,
                     addLines::Bool=true, marker_names = missing,
-                    clim=(-5,5), W_digits=1, order=true, kw...)
+                    clim=(-5,5), W_digits=1, kw...)
   idx_best = estimate_ZWi_index(monitor, i)
   Zi = monitor[idx_best][:Z]
   Wi = monitor[idx_best][:W][i, :]
@@ -259,17 +267,24 @@ function yZ_inspect(monitor, y::Vector{Matrix{Float64}},
 
   W_order = sortperm(Wi)
 
-  if order
-    plotYZ(y[i][ord, :], Zi[:, W_order], clim=clim, ycolor=ycolor)
-  else
-    plotYZ(y[i], Zi, clim=clim, ycolor=ycolor)
+  cumProb = 0.0; k = K
+  for w in reverse(Wi[W_order])
+    cumProb += w
+    if cumProb > thresh
+      break
+    end
+    k -= 1
   end
+  W_order = W_order[k:end]
+
+  plotYZ(y[i][ord, :], Zi[:, W_order], clim=clim, ycolor=ycolor)
 
   # TODO: cell types on left, percentage on right
   W_val = map(x->"$(x)%", round.(Wi[W_order] * 100, digits=W_digits))
   #plot!(yticks=(1:K, W_order), subplot=2)
-  #plot!(yticks=(1:K, W_val), subplot=2, ymirror=true)
-  plot!(yticks=(1:K, W_val), subplot=2)
+  plot!(yticks=(1:length(W_order), W_val), subplot=2, ymirror=true)
+
+  # add marker names if provided
   if !ismissing(marker_names)
     plot!(xticks=(1:J, marker_names), subplot=1, rotation=90)
   end
