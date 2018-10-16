@@ -1,32 +1,39 @@
 import PyPlot
-const pplt = PyPlot
+const plt = PyPlot
 printKeys(x) = [print("$k  ") for k in keys(x)]
-#pplt.ioff() # turn off interactive graphics. turn on with pplt.ion()
+#=
+plt.ioff() # turn off interactive graphics. turn on with plt.ion()
+=#
 
 ### IBP ###
 J = 32
 K = 8
 Z = Int.(rand(J, K) .> .6);
 
-pplt.imshow(Z, aspect="auto", vmin=.01, vmax=.99);
-ax = pplt.gca()
-cm = pplt.cm_get_cmap()
+plt.imshow(Z, aspect="auto", vmin=.01, vmax=.99);
+ax = plt.gca()
+cm = plt.cm_get_cmap()
 cm[:set_under](color="white")
 cm[:set_over](color="black")
-[ pplt.axhline(y=i+.5, color="grey", linewidth=.5) for i in 0:(J-1)];
-[ pplt.axvline(x=i+.5, color="grey", linewidth=.5) for i in 0:(K-1)];
-pplt.xticks(0:(K-1), 1:K);
-pplt.yticks(0:(J-1), 1:J);
-pplt.savefig("img/Z.pdf")
+[ plt.axhline(y=i+.5, color="grey", linewidth=.5) for i in 0:(J-1)];
+[ plt.axvline(x=i+.5, color="grey", linewidth=.5) for i in 0:(K-1)];
+plt.xticks(0:(K-1), 1:K);
+plt.yticks(0:(J-1), 1:J);
+plt.savefig("img/Z.pdf")
+plt.close()
 
 ### Heatmap ###
-x = randn(300, 32) * 2;
+x = randn(30000, 32) * 2;
 x[:, 3] .= NaN;
 
-pplt.imshow(x, vmin=-2, vmax=2, aspect="auto", cmap="bwr")
-pplt.plt[:colorbar]();
-cm = pplt.cm_get_cmap()
-cm[:set_under](color="red")
-cm[:set_over](color="blue")
-cm[:set_bad](color="black") # WTF?
-pplt.savefig("img/heatmap.pdf")
+cm = plt.cm_get_cmap(:bwr)
+cm[:set_under](color=:blue)
+cm[:set_over](color=:red)
+cm[:set_bad](color=:black)
+plt.imshow(x, vmin=-2, vmax=2, aspect="auto", cmap=cm)
+plt.plt[:colorbar]();
+
+plt.savefig("img/heatmap.pdf")
+
+# yZ plot
+plt.figure()
