@@ -3,7 +3,7 @@ using Cytof5, Random, RCall
 using JLD2, FileIO
 
 include("util.jl")
-#include("CytofImg.jl")
+include("CytofImg.jl")
 
 OUTDIR = ARGS[1]
 IMGDIR = "$OUTDIR/img/"
@@ -145,6 +145,7 @@ open("$IMGDIR/ari.txt", "w") do file
   write(file, "ARI lam: $ariCytof\n")
 end
 
+#= R plots
 for i in 1:I
   util.plotPng("$IMGDIR/y_imputed$(i).png", typ="cairo")
   util.yZ_inspect(out[1], i=i, lastState.y_imputed, zlim=[-4,4], using_zero_index=false) 
@@ -154,16 +155,17 @@ for i in 1:I
   util.yZ_inspect(out[1], i=i, dat[:y], zlim=[-4,4], na="black", using_zero_index=false)
   util.devOff()
 end
+=#
 
 #= Plots.jl
+=#
 for i in 1:I
   CytofImg.yZ_inspect(out[1], lastState.y_imputed, i, thresh=.9)
-  CytofImg.Plots.savefig("$IMGDIR/y_imputed$(i).pdf")
+  CytofImg.Plots.savefig("$IMGDIR/y_imputed$(i).png")
 
   CytofImg.yZ_inspect(out[1], dat[:y], i, thresh=.9)
-  CytofImg.Plots.savefig("$IMGDIR/y_dat$(i).pdf")
+  CytofImg.Plots.savefig("$IMGDIR/y_dat$(i).png")
 end
-=#
 
 open("$IMGDIR/priorBeta.txt", "w") do file
   b0Prior = join(c.b0_prior, "\n")
