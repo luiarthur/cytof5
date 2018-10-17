@@ -10,6 +10,10 @@ function pyRange(n::Int)
   return collect(0:(n-1))
 end
 
+function saveimg(path::String)
+  plt.savefig(path)
+  plt.close()
+end
 
 function plotZ(Z::Matrix{T}) where {T <: Number}
   J, K = size(Z)
@@ -39,16 +43,14 @@ K = 8
 Z = Int.(rand(J, K) .> .6);
 
 plotZ(Matrix(Z'))
-plt.savefig("img/Z.pdf")
-plt.close()
+saveimg("img/Z.pdf")
 
 ### Heatmap ###
 Y = randn(30000, 32) * 2;
 Y[:, 3] .= NaN;
 
 plotY(Y)
-plt.savefig("img/heatmap.pdf")
-plt.close()
+saveimg("img/heatmap.pdf")
 
 # yZ plot
 plt.subplot2grid((1, 10), (0, 0), colspan=3)
@@ -59,7 +61,7 @@ plotY(Matrix(Y'));
 plt.yticks(pyRange(J), 1:J);
 plt.xticks(rotation=:vertical)
 plt.tight_layout()
-plt.savefig("img/yZ.pdf")
+saveimg("img/yZ.pdf")
 
 # kde
 function kde(x::Vector{T}; from::T=minimum(x), to::T=maximum(x), numPoints::Int=10000,
@@ -82,7 +84,7 @@ plt.fill_between(d[:x][x_ci[1] .< d[:x] .< x_ci[2]], d[:dx][x_ci[1] .< d[:x] .< 
                 color=:orange)
 plt.tight_layout()
 plt.legend()
-plt.savefig("img/den.pdf")
+saveimg("img/den.pdf")
 
 
 # Axis everywhere
@@ -97,4 +99,4 @@ ax1[:tick_params]("y", colors=:blue)
 ax2 = ax1[:twinx]()
 ax2[:set_ylabel](:blabla)
 ax2[:tick_params](:blable)
-plt.savefig("img/axisGalore.pdf")
+saveimg("img/axisGalore.pdf")
