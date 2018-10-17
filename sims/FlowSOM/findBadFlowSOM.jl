@@ -1,6 +1,7 @@
 using Random
 using RCall
 using Cytof5
+using JLD2, FileIO
 
 # Import R libs
 R"""
@@ -39,8 +40,8 @@ function sim(jl_seed::Int)
   dat = Cytof5.Model.genData(I, J, N, K, L, Z,
                              Dict(:b0=>-9.2, :b1=>2.3), # missMechParams
                              [0.2, 0.1, 0.3], # sig2
-                             Dict(0=>-(0.5 .+ rand(L) * 4.5), #mus
-                                  1=>  0.5 .+ rand(L) * 4.5),
+                             Dict(0=>-(0 .+ rand(L) * 5), #mus
+                                  1=>  0 .+ rand(L) * 5),
                              rand(K)*10, # a_W
                              Dict([ z => rand(L)*10 for z in 0:1 ]), # a_eta
                              sortLambda=false, propMissingScale=0.7)
@@ -115,11 +116,17 @@ function sim(jl_seed::Int)
     print(ARI_all)
   sink()
   """
+
+  if any(R"ARI" .< .5)
+    println("saving sim $jl_seed")
+    @save "$(OUTPUT_DIR)/$(jl_seed)/dat.jld2" dat
+  end
 end
 
 
 SIMS = 100
-Threads.@threads for i in 1:SIMS
+#Threads.@threads for i in 1:SIMS
+Threads.@threads for i in [98, 87, 69, 64, 100]
   println("$i / $SIMS")
   sim(i)
 end

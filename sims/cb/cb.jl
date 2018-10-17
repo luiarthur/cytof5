@@ -1,6 +1,4 @@
-import Pkg
-Pkg.activate("../../")
-
+println("Loading packages...") 
 using Cytof5, Random
 using JLD2, FileIO
 using ArgParse
@@ -20,6 +18,12 @@ function parse_cmd()
   s = ArgParseSettings()
 
   @add_arg_table s begin
+    "--MCMC_ITER"
+      arg_type = Int
+      required = true
+    "--BURN"
+      arg_type = Int
+      required = true
     "--K_MCMC"
       arg_type = Int
       required = true
@@ -42,16 +46,22 @@ function parse_cmd()
     "--EXP_NAME"
       arg_type = String
       required = true
+    "--DATA_PATH"
+      arg_type = String
+      default = "data/cytof_cb.jld2"
   end
 
   return parse_args(s)
 end
 
+println("Parsing command args ...") 
 PARSED_ARGS = parse_cmd()
 for (k,v) in PARSED_ARGS
   logger("$k => $v")
 end
 
+MCMC_ITER = PARSED_ARGS["MCMC_ITER"]
+BURN = PARSED_ARGS["BURN"]
 K_MCMC = PARSED_ARGS["K_MCMC"]
 L_MCMC = PARSED_ARGS["L_MCMC"]
 b0PriorSd = PARSED_ARGS["b0PriorSd"]
@@ -59,6 +69,7 @@ b1PriorScale = PARSED_ARGS["b1PriorScale"]
 SEED = PARSED_ARGS["SEED"]
 RESULTS_DIR = PARSED_ARGS["RESULTS_DIR"]
 EXP_NAME = PARSED_ARGS["EXP_NAME"]
+cbDataPath = PARSED_ARGS["DATA_PATH"]
 
 Random.seed!(SEED);
 # End of ArgParse
@@ -68,7 +79,6 @@ OUTDIR = "$(RESULTS_DIR)/$(EXP_NAME)/"
 mkpath(OUTDIR)
 
 # Read CB Data
-cbDataPath = "data/cytof_cb.jld2"
 @load cbDataPath y_cb
 dat = Cytof5.Model.Data(y_cb)
 
@@ -88,7 +98,7 @@ logger("Fitting Model ...");
                                                               :eta],
                                                              [:y_imputed]],
                                                    thins=[1, 100],
-                                                   nmcmc=1000, nburn=15000,
+                                                   nmcmc=MCMC_ITER, nburn=BURN,
                                                    #nmcmc=2, nburn=2,
                                                    printFreq=10,
                                                    flushOutput=true)

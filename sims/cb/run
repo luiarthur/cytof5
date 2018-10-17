@@ -10,6 +10,8 @@ AWS_BUCKET="s3://cytof-cb-results"
 STAGGER_TIME=100
 
 # Experiment settings
+MCMC_ITER=1000
+BURN=15000
 K_MCMC=20
 L_MCMC=5
 betaPriorScales="0.1 1 10"
@@ -32,7 +34,7 @@ for scale in $betaPriorScales; do
   mkdir -p $outdir
 
   # Julia Command to run
-  jlCmd="julia cb.jl --K_MCMC=${K_MCMC} --L_MCMC=${L_MCMC} --b0PriorSd=${scale} --b1PriorScale=${scale} --SEED=${SEED} --RESULTS_DIR=$RESULTS_DIR --EXP_NAME=$exp_name"
+  jlCmd="julia cb.jl --K_MCMC=${K_MCMC} --L_MCMC=${L_MCMC} --b0PriorSd=${scale} --b1PriorScale=${scale} --SEED=${SEED} --RESULTS_DIR=$RESULTS_DIR --EXP_NAME=$exp_name --MCMC_ITER=$MCMC_ITER --BURN=$BURN"
 
   # Sync results to S3
   syncToS3="aws s3 sync $RESULTS_DIR $AWS_BUCKET"
