@@ -118,7 +118,35 @@ saveimg("img/axisGalore.pdf")
 
 # TODO: Plot in plot
 # https://stackoverflow.com/questions/17458580/embedding-small-plots-inside-subplots-in-matplotlib
-y = randn(100)
-plt.plt[:hist](y)
+# https://matplotlib.org/api/_as_gen/matplotlib.pyplot.subplots.html
+y = randn(3000)
+function plotSamples(y, fig::PyPlot.Figure, ax::PyPlot.PyObject)
+  subax = fig[:add_axes]([.7, .7, .3, .2]) # x, y, w, h
+  subax[:axis](:off)
+  subax[:plot](1:length(y), y, c=:grey)
+  accRate = length(unique(y)) / length(y)
+  subax[:set_title]("acc: $(accRate*100)%")
+  ax[:hist](y)
+  ax[:spines]["right"][:set_visible](false)
+  ax[:spines]["top"][:set_visible](false)
+end
+fig, ax = plt.subplots(3,3)
+plotSamples(y, fig, ax[1]);
+
+# mypairs
+Y = randn(100, 3)
+J = size(Y, 2)
+fig, axs = plt.subplots(J, J)
+for r in 1:J
+  for c in 1:J
+    if r == c
+      axs[r, c][:hist](Y[:, r])
+    elseif r < c
+      axs[r, c][:plot](Y[:, c], Y[:, r], c=:black, alpha=.3)
+    else
+    end
+  end
+end
+plt.tight_layout()
 
 
