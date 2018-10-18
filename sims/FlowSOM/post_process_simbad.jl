@@ -1,11 +1,11 @@
-using Distributions
 using Cytof5, Random, RCall
 using JLD2, FileIO
-
 include("../sim_study/util.jl")
-#include("CytofImg.jl")
+R"source('est_Z_from_clusters.R')";
+relabel_clusters = R"relabel_clusters"
+using Distributions
 
-PATH_TO_OUTPUT = ARGS[1]
+PATH_TO_OUTPUT = ARGS[1] # "results/flowSearch/98/mcmcout.jld2"
 JLD_FILENAME = split(PATH_TO_OUTPUT, "/")[end]
 OUTDIR = join(split(PATH_TO_OUTPUT, "/")[1:end-1], "/")
 println("OUTDIR: $OUTDIR")
@@ -68,17 +68,29 @@ lamPost = util.getPosterior(:lam, out[1])
 open("$IMGDIR/lamPost.txt", "w") do file
   nUniqueLam = length(unique(lamPost))
   write(file, "unique lam posterior: $nUniqueLam\n")
+end
 
-  # stdLamPost = [std([lam[i] for lam in lamPost]) for i in 1:I]
-  uqLamPost = [sum([lam[i] .!= lastState.lam[i] for lam in lamPost]) for i in 1:I]
-  util.plotPdf("$IMGDIR/lamPost.pdf")
-  R"par(mfrow=c($(I), 1))"
-  for i in 1:I
-    util.plot(uqLamPost[i] / length(lamPost), typ="p", col="blue", main="i: $i", xlab="obs",
-              pch=20, ylab="% disagreements from lam_$(i) hat")
-  end
-  R"par(mfrow=c(1, 1))"
+# TODO: Add this to cb and sim_study post_processs.jl
+idx_best = [util.estimate_ZWi_index(out[1], i) for i in 1:I]
+lam_best = [lamPost[idx_best[i]][i] for i in 1:I]
+uqLamPost = [sum([lam[i] .!= lam_best[i] for lam in lamPost]) for i in 1:I]
+util.plotPdf("$IMGDIR/lamPost.pdf")
+R"par(mfrow=c($(I), 1))"
+for i in 1:I
+  util.plot(uqLamPost[i] / length(lamPost), typ="p", col="blue", main="i: $i", xlab="obs",
+            pch=20, ylab="% disagreements from lam_$(i) hat")
+end
+R"par(mfrow=c(1, 1))"
+util.devOff()
 
+# TODO: Add this to cb and sim_study post_processs.jl
+Z_each = [[Zpost[iter][:, lamPost[iter][i]] for iter in 1:length(out[1])] for i in 1:I]
+Z_each_mean = mean.(Z_each)
+lam_relabelled = [relabel_clusters(lam_best[i]) .+ 0 for i in 1:I]
+for i in 1:I
+  util.plotPdf("$IMGDIR/Z_each_mean$(i).pdf")
+  util.myImage(Matrix(Z_each_mean[i]')[sortperm(lam_relabelled[i]),:],
+               xlab="Markers", ylab="Observations", addL=true, col=util.greys(11))
   util.devOff()
 end
 
@@ -177,16 +189,6 @@ for i in 1:I
                  thresh=.99)
   util.devOff()
 end
-
-#= Plots.jl
-for i in 1:I
-  CytofImg.yZ_inspect(out[1], lastState.y_imputed, i, thresh=.9)
-  CytofImg.Plots.savefig("$IMGDIR/y_imputed$(i).png")
-
-  CytofImg.yZ_inspect(out[1], dat[:y], i, thresh=.9)
-  CytofImg.Plots.savefig("$IMGDIR/y_dat$(i).png")
-end
-=#
 
 open("$IMGDIR/priorBeta.txt", "w") do file
   b0Prior = join(c.b0_prior, "\n")

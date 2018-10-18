@@ -57,7 +57,7 @@ end # pairwiseAlloc
 function estimate_ZWi_index(monitor, i)
   As = [pairwiseAlloc(m[:Z], m[:W], i) for m in monitor]
 
-  Amean = matMean(As)
+  Amean = mean(As)
   mse = [ mean((A - Amean) .^ 2) for A in As]
 
   return argmin(mse)
