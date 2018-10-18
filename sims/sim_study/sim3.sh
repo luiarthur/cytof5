@@ -7,7 +7,7 @@ MAX_CORES=18
 AWS_BUCKET="s3://cytof-sim-beta-tuner-init-results"
 
 # STAGGER_TIME in seconds. To avoid mass dumping to disk simultaneously. 
-STAGGER_TIME=100
+STAGGER_TIME=30
 
 # Experiment settings
 MCMC_ITER=1000

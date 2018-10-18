@@ -57,10 +57,10 @@ function parse_cmd()
     "--b1PriorScale"
       arg_type = Float64
       default = 1.0
-    "--b0TuneInit"
+    "--b0TunerInit"
       arg_type = Float64
       default = 1.0
-    "--b1TuneInit"
+    "--b1TunerInit"
       arg_type = Float64
       default = 1.0
     "--SEED"
@@ -100,8 +100,8 @@ EXP_NAME = PARSED_ARGS["EXP_NAME"]
 SEED = PARSED_ARGS["SEED"]
 b0PriorSd = PARSED_ARGS["b0PriorSd"]
 b1PriorScale = PARSED_ARGS["b1PriorScale"]
-b0TuneInit = PARSED_ARGS["b0TuneInit"]
-b1TuneInit = PARSED_ARGS["b1TuneInit"]
+b0TunerInit = PARSED_ARGS["b0TunerInit"]
+b1TunerInit = PARSED_ARGS["b1TunerInit"]
 RESULTS_DIR = PARSED_ARGS["RESULTS_DIR"]
 
 Random.seed!(SEED);
@@ -144,8 +144,8 @@ logger("Fitting Model ...");
                           nmcmc=MCMC_ITER, nburn=BURN,
                           #nmcmc=2, nburn=2,
                           printFreq=50,
-                          b0_tune_init=b0TuneInit,
-                          b1_tune_init=b1TuneInit,
+                          b0_tune_init=b0TunerInit,
+                          b1_tune_init=b1TunerInit,
                           computeLPML=true, computeDIC=true,
                           flushOutput=true)
 
