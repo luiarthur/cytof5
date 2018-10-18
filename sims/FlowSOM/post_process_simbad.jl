@@ -2,20 +2,20 @@ using Distributions
 using Cytof5, Random, RCall
 using JLD2, FileIO
 
-include("util.jl")
+include("../sim_study/util.jl")
 #include("CytofImg.jl")
 
-OUTDIR = ARGS[1]
-if length(ARGS) > 1
-  JLD_FILENAME = ARGS[2]
-else
-  JLD_FILENAME = "output.jld2"
-end
+PATH_TO_OUTPUT = ARGS[1]
+JLD_FILENAME = split(PATH_TO_OUTPUT, "/")[end]
+OUTDIR = join(split(PATH_TO_OUTPUT, "/")[1:end-1], "/")
+println("OUTDIR: $OUTDIR")
+println("JLD2: $JLD_FILENAME")
+
 IMGDIR = "$OUTDIR/img/"
 run(`mkdir -p $(IMGDIR)`)
 
 println("Loading Data ...")
-@load "$(OUTDIR)/$(JLD_FILENAME)" out dat ll lastState c y_dat metrics
+@load "$(OUTDIR)/$(JLD_FILENAME)" out ll lastState c dat metrics
 
 I, K = size(dat[:W])
 K_MCMC = size(lastState.W, 2)
@@ -63,8 +63,24 @@ util.myImage(dat[:W], xlab="Features", ylab="Samples", col=R"greys(10)", addL=tr
 util.devOff()
 
 # Get lam
+# TODO: Add this to cb and sim_study post_processs.jl
 lamPost = util.getPosterior(:lam, out[1])
-unique(lamPost)
+open("$IMGDIR/lamPost.txt", "w") do file
+  nUniqueLam = length(unique(lamPost))
+  write(file, "unique lam posterior: $nUniqueLam\n")
+
+  # stdLamPost = [std([lam[i] for lam in lamPost]) for i in 1:I]
+  uqLamPost = [sum([lam[i] .!= lastState.lam[i] for lam in lamPost]) for i in 1:I]
+  util.plotPdf("$IMGDIR/lamPost.pdf")
+  R"par(mfrow=c($(I), 1))"
+  for i in 1:I
+    util.plot(uqLamPost[i] / length(lamPost), typ="p", col="blue", main="i: $i", xlab="obs",
+              pch=20, ylab="% disagreements from lam_$(i) hat")
+  end
+  R"par(mfrow=c(1, 1))"
+
+  util.devOff()
+end
 
 # Get b0
 b0Post = hcat(util.getPosterior(:b0, out[1])...)'
@@ -136,7 +152,7 @@ R"par(mfrow=c(1,1))"
 util.devOff()
 
 
-idx_missing = [ findall(isnan.(y_dat.y[i])) for i in 1:y_dat.I ]
+idx_missing = [ findall(isnan.(dat[:y][i])) for i in 1:I ]
 idx = idx_missing[2][1]
 util.plotPdf("$(IMGDIR)/y_trace.pdf")
 util.hist([ y_imputed[b][2][idx] for b in 1:length(y_imputed) ], col="blue", border="transparent")
@@ -152,11 +168,13 @@ end
 
 for i in 1:I
   util.plotPng("$IMGDIR/y_imputed$(i).png", typ="cairo")
-  util.yZ_inspect(out[1], i=i, lastState.y_imputed, zlim=[-4,4], using_zero_index=false) 
+  util.yZ_inspect(out[1], i=i, lastState.y_imputed, zlim=[-4,4], using_zero_index=false,
+                  thresh=.99) 
   util.devOff()
 
   util.plotPng("$IMGDIR/y_dat$(i).png", typ="cairo")
-  util.yZ_inspect(out[1], i=i, dat[:y], zlim=[-4,4], na="black", using_zero_index=false)
+  util.yZ_inspect(out[1], i=i, dat[:y], zlim=[-4,4], na="black", using_zero_index=false,
+                 thresh=.99)
   util.devOff()
 end
 
@@ -175,3 +193,9 @@ open("$IMGDIR/priorBeta.txt", "w") do file
   b1Prior = join(c.b1_prior, "\n")
   write(file, "b0Prior:\n$b0Prior\nb1Prior:\n$b1Prior\n")
 end
+
+#= run
+julia post_process_simbad.jl results/flowSearch/64/mcmcout.jld2
+julia post_process_simbad.jl results/flowSearch/98/mcmcout.jld2
+julia post_process_simbad.jl results/flowSearch/100/mcmcout.jld2
+=#

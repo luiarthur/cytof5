@@ -4,6 +4,7 @@ printKeys(x) = [print("$k  ") for k in keys(x)]
 using Distributions
 #=
 plt.ioff() # turn off interactive graphics. turn on with plt.ion()
+plt.ion() # turn on interactive graphics. turn on with plt.ion()
 =#
 
 function pyRange(n::Int)
@@ -64,7 +65,7 @@ plt.tight_layout()
 saveimg("img/yZ.pdf")
 
 # kde
-function kde(x::Vector{T}; from::T=minimum(x), to::T=maximum(x), numPoints::Int=10000,
+function kde(x::Vector{T}; from::T=minimum(x), to::T=maximum(x), numPoints::Int=1000,
              bw::Float64=0.0, kernel::Function=z->pdf(Normal(), z)) where {T <: Number}
   n = length(x)
   if bw == 0.0
@@ -74,6 +75,7 @@ function kde(x::Vector{T}; from::T=minimum(x), to::T=maximum(x), numPoints::Int=
   return Dict(:dx => [sum(kernel.((xi .- x) / bw)) / (n * bw) for xi in x_grid], :x => x_grid)
 end
 
+# Density
 dist = Gamma(3, 200)
 @time x = rand(dist, 10000);
 @time d = kde(x, numPoints=100, bw=100.);
@@ -86,6 +88,19 @@ plt.tight_layout()
 plt.legend()
 saveimg("img/den.pdf")
 
+# Histogram vs KDE
+x = sort([rand(Normal(10, 1), 3000); rand(Normal(-10, 1), 3000)])
+true_den = (pdf.(Normal(10, 1), x) .+ pdf.(Normal(-10, 1), x)) / 2
+@time d = kde(x, numPoints=1000, from=-20., to=20., bw=.1)
+@time d_auto = kde(x, numPoints=1000, from=-20., to=20.)
+plt.plot(d[:x], d[:dx], color=:orange, label="kde: bw fixed at .1")
+plt.plot(d_auto[:x], d_auto[:dx], color=:red, label="kde: auto-bw")
+plt.plt[:hist](x, density=true, label=:hist, bins=50)
+plt.plot(x, true_den, label="true density", c=:black)
+plt.tight_layout()
+plt.legend()
+#plt.show()
+saveimg("img/kde_vs_den.pdf")
 
 # Axis everywhere
 # https://matplotlib.org/examples/api/two_scales.html
@@ -100,3 +115,6 @@ ax2 = ax1[:twinx]()
 ax2[:set_ylabel](:blabla)
 ax2[:tick_params](:blable)
 saveimg("img/axisGalore.pdf")
+
+# TODO: Plot in plot
+
