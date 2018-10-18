@@ -117,4 +117,8 @@ ax2[:tick_params](:blable)
 saveimg("img/axisGalore.pdf")
 
 # TODO: Plot in plot
+# https://stackoverflow.com/questions/17458580/embedding-small-plots-inside-subplots-in-matplotlib
+y = randn(100)
+plt.plt[:hist](y)
+
 
