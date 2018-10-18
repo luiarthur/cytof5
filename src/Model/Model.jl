@@ -28,7 +28,8 @@ function cytof5_fit(init::State, c::Constants, d::Data;
                                :alpha, :v, :eta]],
                     thins::Vector{Int}=[1],
                     printFreq::Int=0, flushOutput::Bool=false,
-                    computeDIC::Bool=false, computeLPML::Bool=false)
+                    computeDIC::Bool=false, computeLPML::Bool=false,
+                    b0_tune_init::Float64=1.0, b1_tune_init::Float64=1.0)
 
   @assert printFreq >= -1
   if printFreq == 0
@@ -50,8 +51,8 @@ function cytof5_fit(init::State, c::Constants, d::Data;
     end
     dict
   end
-  tuners = Tuners([MCMC.TuningParam(1.0) for i in 1:d.I], # b0i, 1...I
-                  [MCMC.TuningParam(1.0) for i in 1:d.I], # b1i, 1...I
+  tuners = Tuners([MCMC.TuningParam(b0_tune_init) for i in 1:d.I], # b0i, 1...I
+                  [MCMC.TuningParam(b1_tune_init) for i in 1:d.I], # b1i, 1...I
                   y_tuner) # yinj, for inj s.t. yinj is missing
 
   # Loglike

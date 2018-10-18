@@ -21,6 +21,12 @@ function parse_cmd()
   s = ArgParseSettings()
 
   @add_arg_table s begin
+    "--MCMC_ITER"
+      arg_type = Int
+      default = 1000
+    "--BURN"
+      arg_type = Int
+      default = 10000
     "--I"
       arg_type = Int
       required = true
@@ -51,6 +57,12 @@ function parse_cmd()
     "--b1PriorScale"
       arg_type = Float64
       default = 1.0
+    "--b0TuneInit"
+      arg_type = Float64
+      default = 1.0
+    "--b1TuneInit"
+      arg_type = Float64
+      default = 1.0
     "--SEED"
       arg_type = Int
       default = 0
@@ -74,6 +86,8 @@ for (k,v) in PARSED_ARGS
   logger("$k => $v")
 end
 
+MCMC_ITER = PARSED_ARGS["MCMC_ITER"]
+BURN = PARSED_ARGS["BURN"]
 I = PARSED_ARGS["I"]
 J = PARSED_ARGS["J"]
 N_factor = PARSED_ARGS["N_factor"]
@@ -86,6 +100,8 @@ EXP_NAME = PARSED_ARGS["EXP_NAME"]
 SEED = PARSED_ARGS["SEED"]
 b0PriorSd = PARSED_ARGS["b0PriorSd"]
 b1PriorScale = PARSED_ARGS["b1PriorScale"]
+b0TuneInit = PARSED_ARGS["b0TuneInit"]
+b1TuneInit = PARSED_ARGS["b1TuneInit"]
 RESULTS_DIR = PARSED_ARGS["RESULTS_DIR"]
 
 Random.seed!(SEED);
@@ -125,9 +141,11 @@ logger("Fitting Model ...");
                                      :eta],
                                     [:y_imputed]],
                           thins=[1, 100],
-                          nmcmc=1000, nburn=10000,
+                          nmcmc=MCMC_ITER, nburn=BURN,
                           #nmcmc=2, nburn=2,
                           printFreq=50,
+                          b0_tune_init=b0TuneInit,
+                          b1_tune_init=b1TuneInit,
                           computeLPML=true, computeDIC=true,
                           flushOutput=true)
 

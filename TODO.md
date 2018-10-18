@@ -5,9 +5,9 @@
     - [ ] Refer to AMCMC paper
         - [ ] change M
         - [ ] change `delta(n) = min(.01, 1/sqrt(n))` to something else
-- [ ] FlowSOM detective work:
-    - [ ] Simulate data until FlowSOM breaks
-    - [ ] Then, do MCMC
+- [x] FlowSOM detective work:
+    - [x] Simulate data until FlowSOM breaks
+    - [x] Then, do MCMC
 - [ ] revise manuscript
 - [ ] strategically pre-process data
     - [ ] if across all samples, a marker has > 90% missing or negative, then remove
