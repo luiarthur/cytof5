@@ -1,5 +1,7 @@
 .PHONY: sim
 
+dirsize3:
+	aws s3 ls --summarize --human-readable --recursive s3://cytof-sim-beta-tuner-init-results/
 
 sim:
 	 ./sim.sh
