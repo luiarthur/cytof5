@@ -175,7 +175,7 @@ function plotPost(y, ax::PyPlot.PyObject; rect=[.7, .7, .3, .2], showTrace::Bool
     ax[:fill_between](d[:x][y_ci[1] .< d[:x] .< y_ci[2]],
                       d[:dx][y_ci[1] .< d[:x] .< y_ci[2]], color=c)
     ax[:fill_between](d[:x][minimum(y) .< d[:x] .< maximum(y)],
-                      d[:dx][minimum(y) .< d[:x] .< maximum(y)], color=c, alpha=0.3)
+                      d[:dx][minimum(y) .< d[:x] .< maximum(y)], color=c, alpha=.3)
     ax[:set_xticks](round.(y_ci, digits=digits_ci))
     y_mean = mean(y)
     ax[:vlines](y_mean, ymin=0, ymax=d[:dx][argmin(abs.(d[:x] .- y_mean))],
@@ -207,7 +207,7 @@ end
 
 
 
-function plotPosts(Y; fig_settings::Function=fig_settings_default, use_tight_layout=true,
+function plotPosts(Y; use_tight_layout=true,
                    fig_size_inches=missing,
                    fig_subplots_adjust=missing,
                    kw...)
@@ -241,7 +241,7 @@ function plotPosts(Y, fig, ax; details=false, digits_cor=2, kw...)
         ax[counter][:axis](:off)
         #xpos, ypos, w, h = infig_position(ax[counter], [.5, .5, .5, .5])
         cor_ycr = round(cor(Y[:, c], Y[:, r]), digits=digits_cor)
-        ax[counter][:text](.1, .1, "r = $cor_ycr", fontsize=abs(cor_ycr)*10+10)
+        ax[counter][:text](0, .4, "r = $cor_ycr", fontsize=abs(cor_ycr)*10+10)
       else
         ax[counter][:plot](Y[:, c], Y[:, r], c=:grey, linewidth=.5)
         if !details
@@ -253,8 +253,12 @@ function plotPosts(Y, fig, ax; details=false, digits_cor=2, kw...)
   return fig, ax
 end
 
-Y = randn(300, 5)
-Y[:,1] .= Y[:, 5] .+ 10
+#Y = randn(300, 5)
+#Y[:,1] .= Y[:, 5] .+ 10
+s = [[-1., 0., -3., 2.] [0., .5, .8, .2] [-3., .8, .6, .2] [2, .2, .2, -1.]] 
+S = s * s'
+Y = rand(MvNormal([1,2,3,4], S), 1000)'
+
 fig, ax = plotPosts(Y, digits_ci=1, fig_subplots_adjust=(.2, .2), fig_size_inches=(8,8), annfs=6);
 saveimg("img/plotPosts.pdf")
 
