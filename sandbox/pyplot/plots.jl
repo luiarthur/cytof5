@@ -119,34 +119,151 @@ saveimg("img/axisGalore.pdf")
 # TODO: Plot in plot
 # https://stackoverflow.com/questions/17458580/embedding-small-plots-inside-subplots-in-matplotlib
 # https://matplotlib.org/api/_as_gen/matplotlib.pyplot.subplots.html
-y = randn(3000)
-function plotSamples(y, fig::PyPlot.Figure, ax::PyPlot.PyObject)
-  subax = fig[:add_axes]([.7, .7, .3, .2]) # x, y, w, h
-  subax[:axis](:off)
-  subax[:plot](1:length(y), y, c=:grey)
-  accRate = length(unique(y)) / length(y)
-  subax[:set_title]("acc: $(accRate*100)%")
-  ax[:hist](y)
-  ax[:spines]["right"][:set_visible](false)
-  ax[:spines]["top"][:set_visible](false)
-end
-fig, ax = plt.subplots(3,3)
-plotSamples(y, fig, ax[1]);
+function infig_position(ax, rect)
+  # Get current figure
+  fig = plt.gcf()
 
-# mypairs
-Y = randn(100, 3)
-J = size(Y, 2)
-fig, axs = plt.subplots(J, J)
-for r in 1:J
-  for c in 1:J
-    if r == c
-      axs[r, c][:hist](Y[:, r])
-    elseif r < c
-      axs[r, c][:plot](Y[:, c], Y[:, r], c=:black, alpha=.3)
-    else
+  box = ax[:get_position]()
+  inax_position = ax[:transAxes][:transform](rect[1:2])
+  transFigure = fig[:transFigure][:inverted]()
+  infig_pos = transFigure[:transform](inax_position)    
+  width = box[:width] * rect[3]
+  height = box[:height] * rect[4]
+  xpos = infig_pos[1]
+  ypos = infig_pos[2]
+
+  return xpos, ypos, width, height
+end
+
+function plotPost(y, ax::PyPlot.PyObject; rect=[.7, .7, .3, .2], showTrace::Bool=true,
+                  showAcc::Bool=true, digits_ci=2, numPoints=100, c=:steelblue,
+                  alpha_level=.05, useHistogram=false, normalizeHist=true, histBins=0,
+                  accFontsize=6, annfs=6)
+  # Get current figure
+  fig = plt.gcf()
+
+  if showTrace
+    # Get box position / dimensions
+    xpos, ypos, width, height = infig_position(ax, rect)
+
+    subax = fig[:add_axes]([xpos, ypos, width, height])
+    subax[:axis](:off)
+    subax[:plot](1:length(y), y, c=:grey, linewidth=.5)
+    accRate = length(unique(y)) / length(y)
+    if showAcc
+      subax[:set_title]("acc: $(accRate*100)%", fontsize=accFontsize)
     end
   end
+
+  # plot histogram / density
+  if useHistogram
+    # Not really supported
+    if histBins == 0
+      ax[:hist](y, density=normalizeHist)
+    else
+      ax[:hist](y, density=normalizeHist, bins=histBins)
+    end
+  else
+    # Confidence Interval
+    a_lower = alpha_level / 2
+    a_upper = 1 - a_lower
+    y_ci = quantile(y, [a_lower, a_upper])
+    d_ci = kde(y, numPoints=numPoints, from=y_ci[1], to=y_ci[2])
+    d = kde(y, numPoints=numPoints)
+    ax[:plot](d_ci[:x], d_ci[:dx], c=c)
+    ax[:plot](d[:x], d[:dx], c=c, alpha=.5)
+    ax[:fill_between](d[:x][y_ci[1] .< d[:x] .< y_ci[2]],
+                      d[:dx][y_ci[1] .< d[:x] .< y_ci[2]], color=c)
+    ax[:fill_between](d[:x][minimum(y) .< d[:x] .< maximum(y)],
+                      d[:dx][minimum(y) .< d[:x] .< maximum(y)], color=c, alpha=0.3)
+    ax[:set_xticks](round.(y_ci, digits=digits_ci))
+    y_mean = mean(y)
+    ax[:vlines](y_mean, ymin=0, ymax=d[:dx][argmin(abs.(d[:x] .- y_mean))],
+                color=:red, linewidth=1)
+
+    # Plot Annotations
+    ax[:annotate]("mean: $(round(y_mean, digits=digits_ci))", color=:red,
+                  xy=(.8, .6), fontsize=annfs, xycoords="axes fraction")
+    ax[:annotate]("$(Int(round((1-alpha_level) * 100)))% CI", color=c,
+                  xy=(.8, .5), fontsize=annfs, xycoords="axes fraction")
+    ax[:annotate]("SD: $(round(std(y), digits=digits_ci))",
+                  xy=(.8, .4), fontsize=annfs, xycoords="axes fraction")
+  end
+
+  ax[:spines]["right"][:set_visible](false)
+  ax[:spines]["top"][:set_visible](false)
+  ax[:spines]["left"][:set_color]("grey")
+  ax[:spines]["bottom"][:set_color]("grey")
 end
-plt.tight_layout()
+
+function plotPost(y; kw...)
+  fig, ax = plt.subplots()
+  plotPost(y, ax; kw...)
+  return fig, ax
+end
+
+#plotPost(Y[:,1], useHistogram=true, histBins=30)
+#plotPost(Y[:,1])
 
 
+
+function plotPosts(Y; fig_settings::Function=fig_settings_default, use_tight_layout=true,
+                   fig_size_inches=missing,
+                   fig_subplots_adjust=missing,
+                   kw...)
+  J = size(Y, 2)
+  fig, ax = plt.subplots(J,J)
+  if use_tight_layout
+    fig[:tight_layout]()
+  end
+
+  if !ismissing(fig_size_inches)
+    fig[:set_size_inches](fig_size_inches[1], fig_size_inches[2])
+  end
+
+  if !ismissing(fig_subplots_adjust)
+    fig[:subplots_adjust](wspace=fig_subplots_adjust[1],
+                          hspace=fig_subplots_adjust[2])
+  end
+
+  plotPosts(Y, fig, ax; kw...)
+end
+
+function plotPosts(Y, fig, ax; details=false, digits_cor=2, kw...)
+  J = size(Y, 2)
+  counter = 0
+  for c in 1:J
+    for r in 1:J
+      counter += 1
+      if r == c
+        plotPost(Y[:, r], ax[counter]; kw...)
+      elseif r > c
+        ax[counter][:axis](:off)
+        #xpos, ypos, w, h = infig_position(ax[counter], [.5, .5, .5, .5])
+        cor_ycr = round(cor(Y[:, c], Y[:, r]), digits=digits_cor)
+        ax[counter][:text](.1, .1, "r = $cor_ycr", fontsize=abs(cor_ycr)*10+10)
+      else
+        ax[counter][:plot](Y[:, c], Y[:, r], c=:grey, linewidth=.5)
+        if !details
+          ax[counter][:axis](:off)
+        end
+      end
+    end
+  end
+  return fig, ax
+end
+
+Y = randn(300, 5)
+Y[:,1] .= Y[:, 5] .+ 10
+fig, ax = plotPosts(Y, digits_ci=1, fig_subplots_adjust=(.2, .2), fig_size_inches=(8,8), annfs=6);
+saveimg("img/plotPosts.pdf")
+
+#= Or for more control
+J = size(Y, 2)
+fig, ax = plt.subplots(J,J);
+fig[:tight_layout]()
+fig[:set_size_inches](8, 8)
+fig[:subplots_adjust](wspace=.1, hspace=.1)
+plotPosts(Y, fig, ax, digits_ci=1);
+saveimg("img/plotPosts.pdf")
+=#
