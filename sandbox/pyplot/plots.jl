@@ -16,10 +16,10 @@ function saveimg(path::String)
   plt.close()
 end
 
-function plotZ(Z::Matrix{T}) where {T <: Number}
+function plotZ(Z::Matrix{T}; kw...) where {T <: Number}
   J, K = size(Z)
   cm = plt.cm_get_cmap(:Greys)
-  img = plt.imshow(Z, aspect="auto", vmin=0, vmax=1, cmap=cm);
+  img = plt.imshow(Z, aspect="auto", vmin=0, vmax=1, cmap=cm; kw...);
   ax = plt.gca()
   [ plt.axhline(y=i+.5, color="grey", linewidth=.5) for i in pyRange(J)];
   [ plt.axvline(x=i+.5, color="grey", linewidth=.5) for i in pyRange(K)];
@@ -28,12 +28,12 @@ function plotZ(Z::Matrix{T}) where {T <: Number}
   return img
 end
 
-function plotY(Y::Matrix{T}, clim=(-3,3)) where {T  <: Number}
+function plotY(Y::Matrix{T}; kw...) where {T  <: Number}
   cm = plt.cm_get_cmap(:bwr)
   cm[:set_under](color=:blue)
   cm[:set_over](color=:red)
   cm[:set_bad](color=:black)
-  img = plt.imshow(Y, vmin=clim[1], vmax=clim[2], aspect="auto", cmap=cm)
+  img = plt.imshow(Y, aspect="auto", cmap=cm; kw...) # vmin, vmax
   plt.plt[:colorbar]();
   return img
 end
@@ -44,25 +44,32 @@ K = 8
 Z = Int.(rand(J, K) .> .6);
 
 plotZ(Matrix(Z'))
+ax = plt.gca()
+ax[:set_xlabel]("Features", fontsize=12)
+ax[:set_ylabel]("Observations", fontsize=12)
+plt.tight_layout()
 saveimg("img/Z.pdf")
 
 ### Heatmap ###
 Y = randn(30000, 32) * 2;
 Y[:, 3] .= NaN;
 
-plotY(Y)
+plotY(Y, vmin=-3, vmax=3)
+plt.tight_layout()
 saveimg("img/heatmap.pdf")
 
 # yZ plot
+#plt.rc_context(Dict("axes.edgecolor" => "grey", "xtick.color" => "grey", "ytick.color" => "grey"))
 plt.subplot2grid((1, 10), (0, 0), colspan=3)
 plotZ(Matrix(Z))
 plt.xticks(rotation=:horizontal)
 plt.subplot2grid((1, 10), (0, 3), colspan=7)
-plotY(Matrix(Y'));
+plotY(Matrix(Y'), vmin=-3, vmax=3);
 plt.yticks(pyRange(J), 1:J);
 plt.xticks(rotation=:vertical)
 plt.tight_layout()
 saveimg("img/yZ.pdf")
+#plt.rcdefaults()
 
 # kde
 function kde(x::Vector{T}; from::T=minimum(x), to::T=maximum(x), numPoints::Int=1000,
@@ -136,7 +143,7 @@ function infig_position(ax, rect)
 end
 
 function plotPost(y, ax::PyPlot.PyObject; rect=[.7, .7, .3, .2], showTrace::Bool=true,
-                  showAcc::Bool=true, digits_ci=2, numPoints=100, c=:steelblue,
+                  showAcc::Bool=true, digits_ci=2, numPoints=100, c=:royalblue,
                   alpha_level=.05, useHistogram=false, normalizeHist=true, histBins=0,
                   accFontsize=6, annfs=6)
   # Get current figure
@@ -164,30 +171,37 @@ function plotPost(y, ax::PyPlot.PyObject; rect=[.7, .7, .3, .2], showTrace::Bool
       ax[:hist](y, density=normalizeHist, bins=histBins)
     end
   else
-    # Confidence Interval
-    a_lower = alpha_level / 2
-    a_upper = 1 - a_lower
-    y_ci = quantile(y, [a_lower, a_upper])
-    d_ci = kde(y, numPoints=numPoints, from=y_ci[1], to=y_ci[2])
-    d = kde(y, numPoints=numPoints)
-    ax[:plot](d_ci[:x], d_ci[:dx], c=c)
-    ax[:plot](d[:x], d[:dx], c=c, alpha=.5)
-    ax[:fill_between](d[:x][y_ci[1] .< d[:x] .< y_ci[2]],
-                      d[:dx][y_ci[1] .< d[:x] .< y_ci[2]], color=c)
-    ax[:fill_between](d[:x][minimum(y) .< d[:x] .< maximum(y)],
-                      d[:dx][minimum(y) .< d[:x] .< maximum(y)], color=c, alpha=.3)
-    ax[:set_xticks](round.(y_ci, digits=digits_ci))
-    y_mean = mean(y)
-    ax[:vlines](y_mean, ymin=0, ymax=d[:dx][argmin(abs.(d[:x] .- y_mean))],
-                color=:red, linewidth=1)
+    if length(unique(y)) == 1
+      ax[:annotate]("mean: $(round(mean(y), digits=digits_ci))", color=:red,
+                    xy=(.8, .6), fontsize=annfs, xycoords="axes fraction")
+      ax[:annotate]("SD: $(round(std(y), digits=digits_ci))",
+                    xy=(.8, .4), fontsize=annfs, xycoords="axes fraction")
+    else
+      # Confidence Interval
+      a_lower = alpha_level / 2
+      a_upper = 1 - a_lower
+      y_ci = quantile(y, [a_lower, a_upper])
+      d_ci = kde(y, numPoints=numPoints, from=y_ci[1], to=y_ci[2])
+      d = kde(y, numPoints=numPoints)
+      ax[:plot](d_ci[:x], d_ci[:dx], c=c)
+      ax[:plot](d[:x], d[:dx], c=c, alpha=.5)
+      ax[:fill_between](d[:x][y_ci[1] .< d[:x] .< y_ci[2]],
+                        d[:dx][y_ci[1] .< d[:x] .< y_ci[2]], color=c)
+      ax[:fill_between](d[:x][minimum(y) .< d[:x] .< maximum(y)],
+                        d[:dx][minimum(y) .< d[:x] .< maximum(y)], color=c, alpha=.3)
+      ax[:set_xticks](round.(y_ci, digits=digits_ci))
+      y_mean = mean(y)
+      ax[:vlines](y_mean, ymin=0, ymax=d[:dx][argmin(abs.(d[:x] .- y_mean))],
+                  color=:red, linewidth=1)
 
-    # Plot Annotations
-    ax[:annotate]("mean: $(round(y_mean, digits=digits_ci))", color=:red,
-                  xy=(.8, .6), fontsize=annfs, xycoords="axes fraction")
-    ax[:annotate]("$(Int(round((1-alpha_level) * 100)))% CI", color=c,
-                  xy=(.8, .5), fontsize=annfs, xycoords="axes fraction")
-    ax[:annotate]("SD: $(round(std(y), digits=digits_ci))",
-                  xy=(.8, .4), fontsize=annfs, xycoords="axes fraction")
+      # Plot Annotations
+      ax[:annotate]("mean: $(round(y_mean, digits=digits_ci))", color=:red,
+                    xy=(.8, .6), fontsize=annfs, xycoords="axes fraction")
+      ax[:annotate]("$(Int(round((1-alpha_level) * 100)))% CI", color=c,
+                    xy=(.8, .5), fontsize=annfs, xycoords="axes fraction")
+      ax[:annotate]("SD: $(round(std(y), digits=digits_ci))",
+                    xy=(.8, .4), fontsize=annfs, xycoords="axes fraction")
+    end
   end
 
   ax[:spines]["right"][:set_visible](false)
@@ -229,7 +243,8 @@ function plotPosts(Y; use_tight_layout=true,
   plotPosts(Y, fig, ax; kw...)
 end
 
-function plotPosts(Y, fig, ax; details=false, digits_cor=2, kw...)
+function plotPosts(Y, fig, ax; details=false, digits_cor=2, scatter_alpha=.7, scatter_s=.5,
+                   warn=true, kw...)
   J = size(Y, 2)
   counter = 0
   for c in 1:J
@@ -241,9 +256,17 @@ function plotPosts(Y, fig, ax; details=false, digits_cor=2, kw...)
         ax[counter][:axis](:off)
         #xpos, ypos, w, h = infig_position(ax[counter], [.5, .5, .5, .5])
         cor_ycr = round(cor(Y[:, c], Y[:, r]), digits=digits_cor)
-        ax[counter][:text](0, .4, "r = $cor_ycr", fontsize=abs(cor_ycr)*10+10)
+        if !isnan(cor_ycr)
+          ax[counter][:text](0, .4, "r = $cor_ycr", fontsize=abs(cor_ycr)*10+10)
+        else
+          if warn
+            @warn "Correlation was NaN."
+          end
+          ax[counter][:text](0, .4, "r = ???", fontsize=10)
+        end
       else
-        ax[counter][:plot](Y[:, c], Y[:, r], c=:grey, linewidth=.5)
+        #ax[counter][:plot](Y[:, c], Y[:, r], c=:grey, linewidth=.5)
+        ax[counter][:scatter](Y[:, c], Y[:, r], c=:grey, alpha=scatter_alpha, s=scatter_s)
         if !details
           ax[counter][:axis](:off)
         end
@@ -258,6 +281,8 @@ end
 s = [[-1., 0., -3., 2.] [0., .5, .8, .2] [-3., .8, .6, .2] [2, .2, .2, -1.]] 
 S = s * s'
 Y = rand(MvNormal([1,2,3,4], S), 1000)'
+Y[:, 2] .= 2.0
+
 
 fig, ax = plotPosts(Y, digits_ci=1, fig_subplots_adjust=(.2, .2), fig_size_inches=(8,8), annfs=6);
 saveimg("img/plotPosts.pdf")
@@ -271,3 +296,29 @@ fig[:subplots_adjust](wspace=.1, hspace=.1)
 plotPosts(Y, fig, ax, digits_ci=1);
 saveimg("img/plotPosts.pdf")
 =#
+
+# Heatmap with annotations
+W = rand(3, 10)
+function plotW(W; digits_W=2, pad_colorbar=.05, shrink_colorbar=1, show_colorbar=true, kw...)
+  I, K = size(W)
+  img = plt.imshow(W, aspect=:auto; kw...)
+  for i in pyRange(I)
+    for k in pyRange(K)
+      img[:axes][:text](k, i, round(W[i+1, k+1], digits=digits_W),
+                        ha=:center, va=:center, color=:white)
+    end
+  end
+  plt.xticks(pyRange(K), 1:K)
+  plt.yticks(pyRange(I), 1:I)
+  if show_colorbar
+    plt.plt[:colorbar](pad=pad_colorbar, shrink=shrink_colorbar);
+  end
+  return img
+end
+
+img = plotW(W; pad_colorbar=.01, vmin=0., vmax=1.)
+ax = plt.gca()
+ax[:set_xlabel]("Features", fontsize=12)
+ax[:set_ylabel]("Samples", fontsize=12)
+plt.tight_layout()
+saveimg("img/W.pdf")

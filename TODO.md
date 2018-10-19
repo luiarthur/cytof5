@@ -1,8 +1,8 @@
 # TODO
 - [x] strong prior for b0, b1
-    - [ ] different tuning parameter for b1?
-    - [ ] different prior for b1?
-    - [ ] Refer to AMCMC paper
+    - [x] different tuning parameter for b1?
+    - [x] different prior for b1?
+    - [x] Refer to AMCMC paper
         - [ ] change M
         - [ ] change `delta(n) = min(.01, 1/sqrt(n))` to something else
 - [x] FlowSOM detective work:
