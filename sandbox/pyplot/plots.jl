@@ -25,6 +25,8 @@ function plotZ(Z::Matrix{T}; kw...) where {T <: Number}
   [ plt.axvline(x=i+.5, color="grey", linewidth=.5) for i in pyRange(K)];
   plt.yticks(pyRange(J), 1:J);
   plt.xticks(pyRange(K), 1:K, rotation=:vertical);
+  ax = plt.gca()
+  ax[:tick_params](length=0)
   return img
 end
 
@@ -35,6 +37,8 @@ function plotY(Y::Matrix{T}; kw...) where {T  <: Number}
   cm[:set_bad](color=:black)
   img = plt.imshow(Y, aspect="auto", cmap=cm; kw...) # vmin, vmax
   plt.plt[:colorbar]();
+  ax = plt.gca()
+  ax[:tick_params](length=0)
   return img
 end
 
@@ -145,7 +149,7 @@ end
 function plotPost(y, ax::PyPlot.PyObject; rect=[.7, .7, .3, .2], showTrace::Bool=true,
                   showAcc::Bool=true, digits_ci=2, numPoints=100, c=:royalblue,
                   alpha_level=.05, useHistogram=false, normalizeHist=true, histBins=0,
-                  accFontsize=6, annfs=6)
+                  accFontsize=6, annfs=6, hide_yaxis=true)
   # Get current figure
   fig = plt.gcf()
 
@@ -206,7 +210,13 @@ function plotPost(y, ax::PyPlot.PyObject; rect=[.7, .7, .3, .2], showTrace::Bool
 
   ax[:spines]["right"][:set_visible](false)
   ax[:spines]["top"][:set_visible](false)
-  ax[:spines]["left"][:set_color]("grey")
+
+  if hide_yaxis
+    ax[:axes][:yaxis][:set_ticklabels]([])
+    ax[:spines]["left"][:set_visible](false)
+    ax[:tick_params](length=0, axis="y")
+  end
+
   ax[:spines]["bottom"][:set_color]("grey")
 end
 
@@ -281,10 +291,10 @@ end
 s = [[-1., 0., -3., 2.] [0., .5, .8, .2] [-3., .8, .6, .2] [2, .2, .2, -1.]] 
 S = s * s'
 Y = rand(MvNormal([1,2,3,4], S), 1000)'
-Y[:, 2] .= 2.0
+#Y[:, 2] .= 2.0
 
 
-fig, ax = plotPosts(Y, digits_ci=1, fig_subplots_adjust=(.2, .2), fig_size_inches=(8,8), annfs=6);
+fig, ax = plotPosts(Y, digits_ci=1, fig_subplots_adjust=(.1, .1), fig_size_inches=(7, 7), annfs=8);
 saveimg("img/plotPosts.pdf")
 
 #= Or for more control
