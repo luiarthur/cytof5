@@ -30,6 +30,9 @@ litecp:
 litecp2:
 	rsync -av --exclude '*.jld*' results/sim2/ .sandbox/results/sim2
 
+litecp3:
+	rsync -av --exclude '*.jld*' --exclude '*.nfs*' results/sim3/ .sandbox/results/sim3
+
 
 sandboxClean:
 	rm -rf .sandbox/*

@@ -29,7 +29,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
                     thins::Vector{Int}=[1],
                     printFreq::Int=0, flushOutput::Bool=false,
                     computeDIC::Bool=false, computeLPML::Bool=false,
-                    b0_tune_init::Float64=1.0, b1_tune_init::Float64=1.0)
+                    b0_tune_init::Float64=0.1, b1_tune_init::Float64=0.1)
 
   @assert printFreq >= -1
   if printFreq == 0

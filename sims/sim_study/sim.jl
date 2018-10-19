@@ -59,10 +59,10 @@ function parse_cmd()
       default = 1.0
     "--b0TunerInit"
       arg_type = Float64
-      default = 1.0
+      default = 0.1
     "--b1TunerInit"
       arg_type = Float64
-      default = 1.0
+      default = 0.1
     "--SEED"
       arg_type = Int
       default = 0
