@@ -14,6 +14,9 @@ postProcess2:
 	./genResults.py results/sim2/
 	./combineARI results/sim2/
 
+postProcess3:
+	./genResults.jl results/sim3/
+
 zip:
 	zip -r .sandbox/results.zip results -x \*.jld2
 
@@ -54,9 +57,7 @@ send2:
 
 # Simulation 3 AWS to and fro
 retrieve3:
-	aws s3 sync s3://cytof-sim-beta-tuner-init-results/ results/sim3/
-
+	aws s3 sync s3://cytof-sim-beta-tuner-init-results/ results/sim3/ --exclude "*.nfs*"
 send3:
-	aws s3 sync results/sim3/ s3://cytof-sim-beta-tuner-init-results/
-
+	aws s3 sync results/sim3/ s3://cytof-sim-beta-tuner-init-results/ --exclude "*.nfs*"
 
