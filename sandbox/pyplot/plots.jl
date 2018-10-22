@@ -20,14 +20,13 @@ function plotZ(Z::Matrix{T}; kw...) where {T <: Number}
   J, K = size(Z)
   cm = plt.cm_get_cmap(:Greys)
   img = plt.imshow(Z, aspect="auto", vmin=0, vmax=1, cmap=cm; kw...);
-  ax = plt.gca()
   [ plt.axhline(y=i+.5, color="grey", linewidth=.5) for i in pyRange(J)];
   [ plt.axvline(x=i+.5, color="grey", linewidth=.5) for i in pyRange(K)];
   plt.yticks(pyRange(J), 1:J);
   plt.xticks(pyRange(K), 1:K, rotation=:vertical);
   ax = plt.gca()
   ax[:tick_params](length=0)
-  return img
+  return ax
 end
 
 function plotY(Y::Matrix{T}; kw...) where {T  <: Number}
@@ -65,15 +64,20 @@ saveimg("img/heatmap.pdf")
 # yZ plot
 #plt.rc_context(Dict("axes.edgecolor" => "grey", "xtick.color" => "grey", "ytick.color" => "grey"))
 plt.subplot2grid((1, 10), (0, 0), colspan=3)
-plotZ(Matrix(Z))
+ax = plotZ(Matrix(Z))
 plt.xticks(rotation=:horizontal)
 # Add ticks to other axis
-# ax2 = plt.gca()[:twinx]()
-# ax2[:tick_params](length=0)
+ax = plt.gca()
+ax2 = ax[:twiny]()
+
+# Change default ticks! Comment this out to see the difference.
+ax2[:set_xticks](pyRange(K))
+plt.xticks((K-1) / K * pyRange(K) .+ .5, 1:K)
+ax2[:tick_params](length=0)
 
 plt.subplot2grid((1, 10), (0, 3), colspan=7)
 plotY(Matrix(Y'), vmin=-3, vmax=3);
-plt.yticks(pyRange(J));
+plt.yticks(pyRange(J), 1:J);
 plt.xticks(rotation=:vertical)
 plt.tight_layout()
 
