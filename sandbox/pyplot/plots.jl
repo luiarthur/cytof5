@@ -67,11 +67,16 @@ saveimg("img/heatmap.pdf")
 plt.subplot2grid((1, 10), (0, 0), colspan=3)
 plotZ(Matrix(Z))
 plt.xticks(rotation=:horizontal)
+# Add ticks to other axis
+# ax2 = plt.gca()[:twinx]()
+# ax2[:tick_params](length=0)
+
 plt.subplot2grid((1, 10), (0, 3), colspan=7)
 plotY(Matrix(Y'), vmin=-3, vmax=3);
-plt.yticks(pyRange(J), 1:J);
+plt.yticks(pyRange(J));
 plt.xticks(rotation=:vertical)
 plt.tight_layout()
+
 saveimg("img/yZ.pdf")
 #plt.rcdefaults()
 
