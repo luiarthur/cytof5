@@ -113,16 +113,15 @@ mkpath(OUTDIR)
 
 logger("Simulating Data ...");
 Z = Cytof5.Model.genZ(J, K, 0.6)
-@time dat = Cytof5.Model.genData(I, J, N, K, L, Z,
-                                 Dict(:b0=>-9.2, :b1=>2.3), # missMechParams
-                                 [0.2, 0.1, 0.3], # sig2
-                                 #Dict(0=>rand(L) * -5, #mus
-                                 #     1=>rand(L) *  5),
-                                 Dict(0=>1.0 * [-5, -2, -1.5, -1], #mus
-                                      1=>1.0 * [1, 2, 4, 5]),
-                                 [float(i) for i in 1:K], # a_W
-                                 Dict([ z => [float(l) for l in 1:L] for z in 0:1 ]), # a_eta
-                                 sortLambda=false, propMissingScale=0.7)
+dat = Cytof5.Model.genData(I, J, N, K, L, Z,
+                           Dict(:b0=>-9.2, :b1=>2.3), # missMechParams
+                           [0.2, 0.1, 0.3], # sig2
+                           Dict(0=>-(0 .+ rand(L) * 5), #mus
+                                1=>  0 .+ rand(L) * 5),
+                           rand(K)*10, # a_W
+                           Dict([ z => rand(L)*10 for z in 0:1 ]), # a_eta
+                           sortLambda=false, propMissingScale=0.7)
+
 y_dat = Cytof5.Model.Data(dat[:y])
 
 logger("Generating priors ...");

@@ -1,3 +1,4 @@
+SIM4_BUCKET = "s3://cytof-vary-kmcmc-n1000/"
 .PHONY: sim
 
 dirsize3:
@@ -5,6 +6,9 @@ dirsize3:
 
 sim:
 	 ./sim.sh
+
+sim4:
+	./sim4.sh
 
 postProcess:
 	./genResults.py results/
@@ -18,6 +22,9 @@ postProcess2:
 
 postProcess3:
 	./genResults.jl results/sim3/
+
+postProcess4:
+	./genResults.jl results/sim4/
 
 zip:
 	zip -r .sandbox/results.zip results -x \*.jld2
@@ -65,4 +72,10 @@ retrieve3:
 	aws s3 sync s3://cytof-sim-beta-tuner-init-results/ results/sim3/ --exclude "*.nfs*"
 send3:
 	aws s3 sync results/sim3/ s3://cytof-sim-beta-tuner-init-results/ --exclude "*.nfs*"
+
+# Simulation 4 AWS to and fro
+retrieve4:
+	aws s3 sync $(SIM4_BUCKET) results/sim4/ --exclude "*.nfs*"
+send4:
+	aws s3 sync results/sim3/ $(SIM4_BUCKET) --exclude "*.nfs*"
 
