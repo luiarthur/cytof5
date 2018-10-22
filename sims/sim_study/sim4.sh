@@ -28,40 +28,42 @@ SEED="98 64"
 simNumber=0
 
 
-for nFac in $N_factor; do
-  for bs in $betaPriorScale; do
-    for k_mcmc in $K_MCMC; do
-      # Simulation number
-      simNumber=$((simNumber + 1)) 
+for seed in $SEED; do
+  for nFac in $N_factor; do
+    for bs in $betaPriorScale; do
+      for k_mcmc in $K_MCMC; do
+        # Simulation number
+        simNumber=$((simNumber + 1)) 
 
-      # Experiment name
-      exp_name="I${I}_J${J}_N_factor${nFac}_K${K}_L${L}_K_MCMC${k_mcmc}_L_MCMC${L_MCMC}_betaPriorScale${bs}_betaTunerInit${betaTunerInit}_SEED${SEED}"
+        # Experiment name
+        exp_name="I${I}_J${J}_N_factor${nFac}_K${K}_L${L}_K_MCMC${k_mcmc}_L_MCMC${L_MCMC}_betaPriorScale${bs}_betaTunerInit${betaTunerInit}_SEED${seed}"
 
-      # Output directory
-      outdir="$RESULTS_DIR/$exp_name/"
-      mkdir -p $outdir
+        # Output directory
+        outdir="$RESULTS_DIR/$exp_name/"
+        mkdir -p $outdir
 
-      # Julia Command to run
-      jlCmd="julia sim.jl --I=${I} --J=${J} --N_factor=${nFac} --K=${K} \
-        --L=${L} --K_MCMC=${k_mcmc} --L_MCMC=${L_MCMC} --b0PriorSd=${bs} \
-        --b1PriorScale=${bs} --SEED=${SEED} --RESULTS_DIR=$RESULTS_DIR \
-        --EXP_NAME=$exp_name --MCMC_ITER=${MCMC_ITER} --BURN=${BURN} \
-        --b0TunerInit=${betaTunerInit} --b1TunerInit=${betaTunerInit}"
+        # Julia Command to run
+        jlCmd="julia sim.jl --I=${I} --J=${J} --N_factor=${nFac} --K=${K} \
+          --L=${L} --K_MCMC=${k_mcmc} --L_MCMC=${L_MCMC} --b0PriorSd=${bs} \
+          --b1PriorScale=${bs} --SEED=${seed} --RESULTS_DIR=$RESULTS_DIR \
+          --EXP_NAME=$exp_name --MCMC_ITER=${MCMC_ITER} --BURN=${BURN} \
+          --b0TunerInit=${betaTunerInit} --b1TunerInit=${betaTunerInit}"
 
-      # Sync results to S3
-      syncToS3="aws s3 sync $RESULTS_DIR $AWS_BUCKET"
+        # Sync results to S3
+        syncToS3="aws s3 sync $RESULTS_DIR $AWS_BUCKET"
 
-      # Remove output files to save space on cluster
-      rmOutput="rm -rf ${outdir}"
+        # Remove output files to save space on cluster
+        rmOutput="rm -rf ${outdir}"
 
-      cmd="$jlCmd > ${outdir}/log.txt && $syncToS3 && $rmOutput"
+        cmd="$jlCmd > ${outdir}/log.txt && $syncToS3 && $rmOutput"
 
-      sem -j $MAX_CORES $cmd
-      echo $cmd
+        sem -j $MAX_CORES $cmd
+        echo $cmd
 
-      echo "Results for simulation $simNumber -> $outdir"
+        echo "Results for simulation $simNumber -> $outdir"
 
-      sleep $STAGGER_TIME
+        sleep $STAGGER_TIME
+      done
     done
   done
 done
