@@ -14,7 +14,7 @@ MCMC_ITER=1000
 BURN=10000
 I=3
 J=32
-N_factor="1000 10000"
+N_factor="100 1000 10000"
 K=8
 L=4
 K_MCMC="6 7 8 9 10"
@@ -50,7 +50,7 @@ for seed in $SEED; do
           --b0TunerInit=${betaTunerInit} --b1TunerInit=${betaTunerInit}"
 
         # Sync results to S3
-        syncToS3="aws s3 sync $RESULTS_DIR $AWS_BUCKET"
+        syncToS3="aws s3 sync $outdir $AWS_BUCKET/$exp_name --exclude '*.nfs*'"
 
         # Remove output files to save space on cluster
         rmOutput="rm -rf ${outdir}"
