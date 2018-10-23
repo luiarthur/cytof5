@@ -25,7 +25,7 @@ postProcess3:
 
 postProcess4:
 	./genResults.jl results/sim4/
-	aws s3 sync results/sim3/ $(SIM4_BUCKET) --exclude "*.nfs*"
+	aws s3 sync results/sim4/ $(SIM4_BUCKET) --exclude "*.nfs*"
 
 zip:
 	zip -r .sandbox/results.zip results -x \*.jld2
@@ -78,5 +78,5 @@ send3:
 retrieve4:
 	aws s3 sync $(SIM4_BUCKET) results/sim4/ --exclude "*.nfs*"
 send4:
-	aws s3 sync results/sim3/ $(SIM4_BUCKET) --exclude "*.nfs*"
+	aws s3 sync results/sim4/ $(SIM4_BUCKET) --exclude "*.nfs*"
 
