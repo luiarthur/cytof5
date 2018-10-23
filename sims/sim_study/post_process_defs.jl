@@ -17,10 +17,18 @@ function post_process(PATH_TO_OUTPUT) # path/to/output.jld2
   I, K = size(dat[:W])
   K_MCMC = size(lastState.W, 2)
   J = size(lastState.Z, 1)
+  MCMC_ITER = length(out[1])
+  BURN = length(ll) - MCMC_ITER
 
   # Plot loglikelihood
   util.plotPdf("$(IMGDIR)/ll.pdf")
-  util.plot(ll[1000:end], ylab="log-likelihood", xlab="MCMC iteration", typ="l");
+  util.plot(ll[(end-MCMC_ITER):end], ylab="log-likelihood", xlab="MCMC iteration (post-burn)",
+            typ="l");
+  util.devOff()
+
+  util.plotPdf("$(IMGDIR)/ll_entire_history.pdf")
+  util.plot(ll, ylab="log-likelihood", xlab="MCMC iteration", typ="l");
+  util.abline(v=BURN);
   util.devOff()
 
   function addGridLines(J::Int, K::Int, col="grey")

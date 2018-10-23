@@ -27,6 +27,9 @@ postProcess4:
 	./genResults.jl results/sim4/
 	aws s3 sync results/sim4/ $(SIM4_BUCKET) --exclude "*.nfs*"
 
+parseMetrics4:
+	./parseMetrics4.py results/sim4/
+
 zip:
 	zip -r .sandbox/results.zip results -x \*.jld2
 
