@@ -39,6 +39,12 @@ function parse_cmd()
     "--SEED"
       arg_type = Int
       default = 0
+    "--b0TunerInit"
+      arg_type = Float64
+      default = 0.1
+    "--b1TunerInit"
+      arg_type = Float64
+      default = 0.1
 
     "--RESULTS_DIR"
       arg_type = String
@@ -48,7 +54,7 @@ function parse_cmd()
       required = true
     "--DATA_PATH"
       arg_type = String
-      default = "data/cytof_cb.jld2"
+      default = "data/cytof_cb_with_nan.jld2"
   end
 
   return parse_args(s)
@@ -66,6 +72,8 @@ K_MCMC = PARSED_ARGS["K_MCMC"]
 L_MCMC = PARSED_ARGS["L_MCMC"]
 b0PriorSd = PARSED_ARGS["b0PriorSd"]
 b1PriorScale = PARSED_ARGS["b1PriorScale"]
+b0TunerInit = PARSED_ARGS["b0TunerInit"]
+b1TunerInit = PARSED_ARGS["b1TunerInit"]
 SEED = PARSED_ARGS["SEED"]
 RESULTS_DIR = PARSED_ARGS["RESULTS_DIR"]
 EXP_NAME = PARSED_ARGS["EXP_NAME"]
@@ -80,11 +88,14 @@ mkpath(OUTDIR)
 
 # Read CB Data
 @load cbDataPath y_cb
+
+
 dat = Cytof5.Model.Data(y_cb)
 
 # MAIN
 logger("Generating priors ...");
-@time c = Cytof5.Model.defaultConstants(dat, K_MCMC, L_MCMC, b0PriorSd=b0PriorSd, b1PriorScale=b1PriorScale)
+@time c = Cytof5.Model.defaultConstants(dat, K_MCMC, L_MCMC,
+                                        b0PriorSd=b0PriorSd, b1PriorScale=b1PriorScale)
 
 logger("Generating initial state ...");
 @time init = Cytof5.Model.genInitialState(c, dat)
@@ -99,9 +110,10 @@ logger("Fitting Model ...");
                                                              [:y_imputed]],
                                                    thins=[1, 100],
                                                    nmcmc=MCMC_ITER, nburn=BURN,
-                                                   #nmcmc=2, nburn=2,
-                                                   printFreq=10,
-                                                   flushOutput=true)
+                                                   computeLPML=true, computeDIC=true,
+                                                   b0_tune_init=b0TunerInit,
+                                                   b1_tune_init=b1TunerInit,
+                                                   printFreq=10, flushOutput=true)
 
 logger("Saving Data ...");
 @save "$(OUTDIR)/output.jld2" out ll lastState c
