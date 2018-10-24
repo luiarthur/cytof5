@@ -14,12 +14,8 @@ source("est_Z_from_clusters.R")
 set.seed(3)
 """
 
-OUTPUT_DIR = "results/flowSearch/"
-mkpath(OUTPUT_DIR)
-
 # Include utils 
 include("../sim_study/util.jl")
-
 
 function replaceMissing(yi, x)
   out = deepcopy(yi)
@@ -28,12 +24,15 @@ function replaceMissing(yi, x)
 end
 
 
-function sim(jl_seed::Int)
+function sim(jl_seed::Int, n_fac::Int)
   Random.seed!(jl_seed)
+  OUTPUT_DIR = "results/flowSearch/N$(n_fac)/"
+  mkpath(OUTPUT_DIR)
+
   mkpath("$OUTPUT_DIR/$jl_seed/")
   I=3
   J=32
-  N = [3, 1, 2] * 100
+  N = [3, 1, 2] * n_fac
   K=8
   L=5
   Z=Cytof5.Model.genZ(J, K, .6)
@@ -126,7 +125,9 @@ end
 
 SIMS = 100
 #Threads.@threads for i in 1:SIMS
-Threads.@threads for i in [98, 87, 69, 64, 100]
-  println("$i / $SIMS")
-  sim(i)
+for n_fac in [100, 1000, 10000]
+  for i in [1, 10, 98, 87, 69, 64, 100]
+    println("$i / $SIMS | n_fac: $n_fac")
+    sim(i, n_fac)
+  end
 end
