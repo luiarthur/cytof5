@@ -12,6 +12,10 @@ function logger(x; newline=true)
   flush(stdout)
 end
 
+function loadSingleObj(objPath)
+  data = load(objPath)
+  return data[collect(keys(data))[1]]
+end
 
 # ARG PARSING
 function parse_cmd()
@@ -54,7 +58,7 @@ function parse_cmd()
       required = true
     "--DATA_PATH"
       arg_type = String
-      default = "data/cytof_cb_with_nan.jld2"
+      required=true
   end
 
   return parse_args(s)
@@ -87,10 +91,59 @@ OUTDIR = "$(RESULTS_DIR)/$(EXP_NAME)/"
 mkpath(OUTDIR)
 
 # Read CB Data
-@load cbDataPath y_cb
+cbData = loadSingleObj(cbDataPath)
+#= TODO: Preprocess data
+  - [ ] if across all samples, a marker has > 90% missing or negative, then remove
+  - [ ] if across all samples, a marker has > 90% positive, then remove
+=#
+function isBadColumn(x::Vector{T};
+                     maxNanOrNegProp::Float64=.9,
+                     maxPosProp::Float64=.9)::Bool where {T <: Number}
+  n = length(x)
 
+  missOrNegProp = sum((isnan.(x)) .| (x .< 0)) / n
+  posProp = sum(x .> 0) / n
 
-dat = Cytof5.Model.Data(y_cb)
+  return missOrNegProp > maxNanOrNegProp || posProp > maxPosProp
+end
+
+function isBadColumnForAllSamples(j::Int, y::Vector{Matrix{T}};
+                                  maxNanOrNegProp::Float64=.9,
+                                  maxPosProp::Float64=.9) where {T}
+  I = length(y)
+  results = [isBadColumn(y[i][:, j], maxNanOrNegProp=maxNanOrNegProp, maxPosProp=maxPosProp) for i in 1:I]
+  result = all(results)
+  return result
+end
+
+function reduceData!(y::Vector{Matrix{T}}; maxNanOrNegProp::Float64=.9,
+                     maxPosProp::Float64=.9) where {T}
+  Js = size.(y, 2)
+  J = Js[1]
+  I = length(y)
+  @assert all(J .== Js)
+
+  goodColumns = [!isBadColumnForAllSamples(j, y, maxNanOrNegProp=maxNanOrNegProp,
+                                           maxPosProp=maxPosProp) for j in 1:J]
+
+  for i in 1:I
+    y[i] = y[i][:, goodColumns]
+  end
+
+  return goodColumns, J
+end
+
+# Reduce Data by removing highly non-expressive / expressive columns
+goodColumns, J = reduceData!(cbData, maxNanOrNegProp=.9, maxPosProp=.9)
+logger(size.(cbData))
+
+# Save Reduced Data
+mkpath("$(OUTDIR)/reduced_data/")
+@save "$(OUTDIR)/reduced_data/reduced_cb.jld2" out ll lastState c
+
+# Create Data Object
+dat = Cytof5.Model.Data(cbData)
+
 
 # MAIN
 logger("Generating priors ...");

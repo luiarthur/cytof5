@@ -1,3 +1,5 @@
+AWS_BUCKET_CB_PREPROCESSED = "s3://cytof-cb-results/cb-preprocessed"
+
 .PHONY: run test postProcess postProcess2 clean retrieve send2 retrieve2 retrieve
 
 run:
@@ -21,7 +23,7 @@ postProcess2:
 	echo "TO DO!"
 
 send2:
-	echo "TO DO!"
+	aws s3 sync results/cb_preprocessed $(AWS_BUCKET_CB_PREPROCESSED) --exclude '*.nfs*'
 
 retrieve2:
 	echo "TO DO!"
