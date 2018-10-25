@@ -99,7 +99,7 @@ logger(size.(cbData))
 
 # Save Reduced Data
 mkpath("$(OUTDIR)/reduced_data/")
-@save "$(OUTDIR)/reduced_data/reduced_cb.jld2" out ll lastState c
+@save "$(OUTDIR)/reduced_data/reduced_cb.jld2" cbData
 
 # Create Data Object
 dat = Cytof5.Model.Data(cbData)
