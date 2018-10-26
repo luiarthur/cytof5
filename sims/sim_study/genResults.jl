@@ -27,6 +27,9 @@ end
 ### MAIN ###
 RESULTS_DIR = length(ARGS) >= 1 ? ARGS[1] : "results/sim3/"
 MCMC_OUTPUT = filter(d -> occursin(".jld2", d), lsRec(RESULTS_DIR))
+# TODO: make retrieve4
+# Then make postprocess4 with this extra line
+#MCMC_OUTPUT = filter(d -> occursin("N_factor10000", d), MCMC_OUTPUT) # Run this additional filter
 successes = []
 failures = []
 
