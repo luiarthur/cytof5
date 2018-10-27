@@ -75,7 +75,7 @@ end
     function update_muj(j::Int)
       function lfc(muj::Float64)
         ll = sum(logpdf.(Normal(muj, sqrt(s.sig2)), y[j]))
-        lp = logpdf(Normal(muPriorMean, sqrt(muPriorSd)), muj)
+        lp = logpdf(Normal(muPriorMean, muPriorSd), muj)
         return ll + lp
       end
 
