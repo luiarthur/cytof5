@@ -11,6 +11,9 @@ sim:
 sim4:
 	./sim4.sh
 
+sim5:
+	./sim5.sh
+
 postProcess:
 	./genResults.py results/
 	#for d in `ls results/`; do echo $$d; done

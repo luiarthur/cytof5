@@ -28,6 +28,21 @@ fix_b1="true"
 # simulation number, just for book keeping. Ignore this.
 simNumber=0
 
+# Testing
+if [[ $@ == **--test** ]]
+then
+  echo "Testing with small numbers..."
+  STAGGER_TIME=0
+
+  # Experiment settings
+  MCMC_ITER=100
+  BURN=100
+  K_MCMC=10
+  L_MCMC=5
+  betaPriorScales="0.01"
+  betaTunerInit="0.01"
+fi
+
 
 for seed in $SEED; do
   for nFac in $N_factor; do
