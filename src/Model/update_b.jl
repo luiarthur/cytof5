@@ -45,9 +45,14 @@ function update_b1(i::Int, s::State, c::Constants, d::Data, tuners::Tuners)
 
 end
 
-function update_b(s::State, c::Constants, d::Data, tuners::Tuners)
+function update_b0(s::State, c::Constants, d::Data, tuners::Tuners)
   for i in 1:d.I
     update_b0(i, s, c, d, tuners)
+  end
+end
+
+function update_b1(s::State, c::Constants, d::Data, tuners::Tuners)
+  for i in 1:d.I
     update_b1(i, s, c, d, tuners)
   end
 end

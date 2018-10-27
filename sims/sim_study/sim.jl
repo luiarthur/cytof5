@@ -63,6 +63,12 @@ function parse_cmd()
     "--b1TunerInit"
       arg_type = Float64
       default = 0.1
+    "--fix_b0"
+      arg_type = Bool
+      default = false
+    "--fix_b1"
+      arg_type = Bool
+      default = false
     "--SEED"
       arg_type = Int
       default = 0
@@ -103,6 +109,13 @@ b1PriorScale = PARSED_ARGS["b1PriorScale"]
 b0TunerInit = PARSED_ARGS["b0TunerInit"]
 b1TunerInit = PARSED_ARGS["b1TunerInit"]
 RESULTS_DIR = PARSED_ARGS["RESULTS_DIR"]
+fix_b0 = PARSED_ARGS["fix_b0"]
+fix_b1 = PARSED_ARGS["fix_b1"]
+fix = Vector{Symbol}()
+
+if fix_b0 append!(fix, :b0) end
+if fix_b1 append!(fix, :b1) end
+
 
 Random.seed!(SEED);
 # END OF ARG PARSING
@@ -139,9 +152,9 @@ logger("Fitting Model ...");
                                      :alpha, :v,
                                      :eta],
                                     [:y_imputed]],
+                          fix=fix,
                           thins=[1, 100],
                           nmcmc=MCMC_ITER, nburn=BURN,
-                          #nmcmc=2, nburn=2,
                           printFreq=50,
                           b0_tune_init=b0TunerInit,
                           b1_tune_init=b1TunerInit,

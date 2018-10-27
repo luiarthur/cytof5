@@ -1,4 +1,5 @@
 SIM4_BUCKET = "s3://cytof-vary-kmcmc-n1000/"
+SIM5_BUCKET = "s3://cytof-vary-kmcmc-n10000/"
 .PHONY: sim
 
 dirsize3:
@@ -85,4 +86,11 @@ retrieve4:
 	aws s3 sync $(SIM4_BUCKET) results/sim4/ --exclude "*.nfs*"
 send4:
 	aws s3 sync results/sim4/ $(SIM4_BUCKET) --exclude "*.nfs*"
+
+
+# Simulation 5 AWS to and fro
+retrieve5:
+	aws s3 sync $(SIM5_BUCKET) results/sim5/ --exclude "*.nfs*"
+send5:
+	aws s3 sync results/sim5/ $(SIM4_BUCKET) --exclude "*.nfs*"
 
