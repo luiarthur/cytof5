@@ -24,6 +24,7 @@ betaTunerInit="0.1"
 RESULTS_DIR="results/sim5/"
 SEED="98 64"
 fix_b1="true"
+printFreq=50
 
 # simulation number, just for book keeping. Ignore this.
 simNumber=0
@@ -35,12 +36,14 @@ then
   STAGGER_TIME=0
 
   # Experiment settings
-  MCMC_ITER=100
-  BURN=100
+  MCMC_ITER=10
+  BURN=10
   K_MCMC=10
   L_MCMC=5
   betaPriorScales="0.01"
   betaTunerInit="0.01"
+  SEED="98"
+  printFreq=2
 fi
 
 
@@ -52,7 +55,7 @@ for seed in $SEED; do
         simNumber=$((simNumber + 1)) 
 
         # Experiment name
-        exp_name="I${I}_J${J}_N_factor${nFac}_K${K}_L${L}_K_MCMC${k_mcmc}_L_MCMC${L_MCMC}_betaPriorScale${bs}_betaTunerInit${betaTunerInit}_fixb1_SEED${seed}"
+        exp_name="I${I}_J${J}_N_factor${nFac}_K${K}_L${L}_K_MCMC${k_mcmc}_L_MCMC${L_MCMC}_betaPriorScale${bs}_betaTunerInit${betaTunerInit}_fix_b1_SEED${seed}"
 
         # Output directory
         outdir="$RESULTS_DIR/$exp_name/"
@@ -64,7 +67,7 @@ for seed in $SEED; do
           --b1PriorScale=${bs} --SEED=${seed} --RESULTS_DIR=$RESULTS_DIR \
           --EXP_NAME=$exp_name --MCMC_ITER=${MCMC_ITER} --BURN=${BURN} \
           --b0TunerInit=${betaTunerInit} --b1TunerInit=${betaTunerInit} \
-          --fix_b1=${fix_b1}"
+          --fix_b1=${fix_b1} --printFreq=${printFreq}"
 
         # Sync results to S3
         syncToS3="aws s3 sync $outdir $AWS_BUCKET/$exp_name --exclude '*.nfs*'"

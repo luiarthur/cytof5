@@ -74,6 +74,9 @@ function parse_cmd()
       default = 0
     "--EXP_NAME"
       arg_type = String
+    "--printFreq"
+      arg_type = Int
+      default = 50
   end
 
   PARSED_ARGS = parse_args(s)
@@ -109,12 +112,13 @@ b1PriorScale = PARSED_ARGS["b1PriorScale"]
 b0TunerInit = PARSED_ARGS["b0TunerInit"]
 b1TunerInit = PARSED_ARGS["b1TunerInit"]
 RESULTS_DIR = PARSED_ARGS["RESULTS_DIR"]
+printFreq = PARSED_ARGS["printFreq"]
 fix_b0 = PARSED_ARGS["fix_b0"]
 fix_b1 = PARSED_ARGS["fix_b1"]
 fix = Vector{Symbol}()
 
-if fix_b0 append!(fix, :b0) end
-if fix_b1 append!(fix, :b1) end
+if fix_b0 fix=[fix; :b0] end
+if fix_b1 fix=[fix; :b1] end
 
 
 Random.seed!(SEED);
@@ -155,7 +159,7 @@ logger("Fitting Model ...");
                           fix=fix,
                           thins=[1, 100],
                           nmcmc=MCMC_ITER, nburn=BURN,
-                          printFreq=50,
+                          printFreq=printFreq,
                           b0_tune_init=b0TunerInit,
                           b1_tune_init=b1TunerInit,
                           computeLPML=true, computeDIC=true,
