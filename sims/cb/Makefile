@@ -20,13 +20,14 @@ retrieve:
 
 #########################
 postProcess2:
-	echo "TO DO!"
+	julia genResults.jl results/cb_preprocessed/
+	aws s3 sync results/cb_preprocessed $(AWS_BUCKET_CB_PREPROCESSED) --exclude '*.nfs*'
 
 send2:
 	aws s3 sync results/cb_preprocessed $(AWS_BUCKET_CB_PREPROCESSED) --exclude '*.nfs*'
 
 retrieve2:
-	echo "TO DO!"
+	aws s3 sync $(AWS_BUCKET_CB_PREPROCESSED) results/cb_preprocessed
 
 test:
 	./run --test

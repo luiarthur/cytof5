@@ -99,7 +99,7 @@ logger(size.(cbData))
 
 # Save Reduced Data
 mkpath("$(OUTDIR)/reduced_data/")
-@save "$(OUTDIR)/reduced_data/reduced_cb.jld2" cbData
+@save "$(OUTDIR)/reduced_data/reduced_cb.jld2" deepcopy(cbData)
 
 # Create Data Object
 dat = Cytof5.Model.Data(cbData)
@@ -114,21 +114,21 @@ logger("Generating initial state ...");
 @time init = Cytof5.Model.genInitialState(c, dat)
 
 logger("Fitting Model ...");
-@time out, lastState, ll = Cytof5.Model.cytof5_fit(init, c, dat,
-                                                   monitors=[[:Z, :lam, :W,
-                                                              :b0, :b1, :v,
-                                                              :sig2, :mus,
-                                                              :alpha, :v,
-                                                              :eta],
-                                                             [:y_imputed]],
-                                                   thins=[1, 100],
-                                                   nmcmc=MCMC_ITER, nburn=BURN,
-                                                   computeLPML=true, computeDIC=true,
-                                                   b0_tune_init=b0TunerInit,
-                                                   b1_tune_init=b1TunerInit,
-                                                   printFreq=10, flushOutput=true)
+@time out, lastState, ll, metrics =
+  Cytof5.Model.cytof5_fit(init, c, dat, monitors=[[:Z, :lam, :W,
+                                                   :b0, :b1, :v,
+                                                   :sig2, :mus,
+                                                   :alpha, :v,
+                                                   :eta],
+                                                   [:y_imputed]],
+                           thins=[1, 100],
+                           nmcmc=MCMC_ITER, nburn=BURN,
+                           computeLPML=true, computeDIC=true,
+                           b0_tune_init=b0TunerInit,
+                           b1_tune_init=b1TunerInit,
+                           printFreq=10, flushOutput=true)
 
 logger("Saving Data ...");
-@save "$(OUTDIR)/output.jld2" out ll lastState c
+@save "$(OUTDIR)/output.jld2" out ll lastState c metrics
 
 logger("MCMC Completed.");
