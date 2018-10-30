@@ -158,7 +158,7 @@ function post_process(path_to_output)
 
   for i in 1:I
     util.plotPng("$IMGDIR/y_dat$(i).png")
-    util.yZ_inspect(out[1], i=i, cbData, zlim=[-4,4], using_zero_index=false) 
+    util.yZ_inspect(out[1], i=i, cbData, zlim=[-4,4], using_zero_index=false, na="black") 
     util.devOff()
   end
 end

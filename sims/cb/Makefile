@@ -31,3 +31,6 @@ retrieve2:
 
 test:
 	./run --test
+
+litecp2:
+	rsync -av --exclude '*.jld*' results/cb_preprocessed .sandbox/
