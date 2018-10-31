@@ -31,7 +31,9 @@ if __name__ == '__main__':
         results_dir = sys.argv[1]
 
         def parse_sim(n:int, scale:float, init:float, seed:int):
-            sim_dirs = subprocess.run('echo {}/*N_factor{}_*Scale{}*Init{}_SEED{}'.format(results_dir, n, scale, init, seed), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout
+            sim_dirs = subprocess.run('echo {}/*N_factor{}_*Scale{}*Init{}_*SEED{}*'.format(
+                results_dir, n, scale, init, seed), shell=True,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout
             sim_dirs = [ d.decode('utf-8').split('/')[-1] for d in sim_dirs.split() ]
             for d in sim_dirs:
                 print(d)

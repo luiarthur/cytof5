@@ -62,6 +62,11 @@ litecp4:
 	mkdir -p .sandbox/results/sim4
 	rsync -av --exclude '*.jld*' --exclude '*.nfs*' results/sim4/ .sandbox/results/sim4
 
+litecp5:
+	mkdir -p .sandbox/results/sim5
+	rsync -av --exclude '*.jld*' --exclude '*.nfs*' results/sim5/ .sandbox/results/sim5
+
+
 sandboxClean:
 	rm -rf .sandbox/*
 
