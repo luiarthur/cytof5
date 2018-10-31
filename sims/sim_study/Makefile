@@ -31,8 +31,16 @@ postProcess4:
 	./genResults.jl results/sim4/
 	aws s3 sync results/sim4/ $(SIM4_BUCKET) --exclude "*.nfs*"
 
+postProcess5:
+	./genResults.jl results/sim5/
+	aws s3 sync results/sim5/ $(SIM5_BUCKET) --exclude "*.nfs*"
+
+
 parseMetrics4:
 	./parseMetrics4.py results/sim4/
+
+parseMetrics5:
+	./parseMetrics4.py results/sim5/
 
 zip:
 	zip -r .sandbox/results.zip results -x \*.jld2
@@ -95,5 +103,5 @@ send4:
 retrieve5:
 	aws s3 sync $(SIM5_BUCKET) results/sim5/ --exclude "*.nfs*"
 send5:
-	aws s3 sync results/sim5/ $(SIM4_BUCKET) --exclude "*.nfs*"
+	aws s3 sync results/sim5/ $(SIM5_BUCKET) --exclude "*.nfs*"
 
