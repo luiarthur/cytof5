@@ -24,6 +24,9 @@
     - LPML can be found in paper by Dey, Gelfand
     - Should the computation be using `m_inj` as well? Specifically,
       `likelihood= prod(Normal(observed y_inj | params)) * prod(Bern(m_inj | p_inj))`
+
+
+# TODO Eventually...
 - [ ] Write a simple Julia linter in Python3
     - [ ] catch usage of undefined variables within scope
         - [ ] e.g. catch errors like this:
