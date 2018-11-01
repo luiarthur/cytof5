@@ -27,7 +27,7 @@
 
 
 # TODO Eventually...
-- [ ] Write a simple Julia linter in Python3
+- [ ] Write a simple Julia linter in Python3 or Julia v1.0
     - [ ] catch usage of undefined variables within scope
         - [ ] e.g. catch errors like this:
         ``` julia
@@ -46,6 +46,7 @@
         f("xyz") # incorrect argument!
         ```
     - [ ] check existence of fields in a class object
+        - helpful functions: `fieldnames`
         - e.g.
         ```julia
         struct Bob
@@ -63,4 +64,5 @@
         b.z # There is no field z!
         ```
     - [ ] Look into imported libraries
+        - helpful functions: `names`
 
