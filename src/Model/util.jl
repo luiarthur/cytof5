@@ -13,3 +13,11 @@ end
 #= Test
 padZeroCols(randn(3,5), 10)
 =#
+
+macro ifTrue(doThis, expr)
+  return quote
+    if $(esc(doThis))
+      $(esc(expr))
+    end
+  end
+end

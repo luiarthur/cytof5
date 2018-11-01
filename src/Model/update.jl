@@ -14,21 +14,26 @@ include("compute_loglike.jl") # TODO
 
 function update_state(s::State, c::Constants, d::Data, tuners::Tuners,
                       ll::Vector{Float64}, fix::Vector{Symbol})
+  # Note: `@ifTrue` is defined in "util.jl"
+
+  # Return true if sym not is not fixed
+  isRandom(sym::Symbol)::Bool = !(sym in fix)
+
   # Gibbs.
-  if !(:Z in fix) update_Z(s, c, d) end
-  if !(:mus in fix) update_mus(s, c, d) end
-  if !(:alpha in fix) update_alpha(s, c, d) end
-    if !(:v in fix) update_v(s, c, d) end
-  if !(:W in fix) update_W(s, c, d) end
-  if !(:eta in fix) update_eta(s, c, d) end
-  if !(:lam in fix) update_lam(s, c, d) end
-  if !(:gam in fix) update_gam(s, c, d) end
-  if !(:sig2 in fix) update_sig2(s, c, d) end
+  @ifTrue isRandom(:Z)          update_Z(s, c, d)
+  @ifTrue isRandom(:mus)        update_mus(s, c, d)
+  @ifTrue isRandom(:alpha)      update_alpha(s, c, d)
+  @ifTrue isRandom(:v)          update_v(s, c, d)
+  @ifTrue isRandom(:W)          update_W(s, c, d)
+  @ifTrue isRandom(:eta)        update_eta(s, c, d)
+  @ifTrue isRandom(:lam)        update_lam(s, c, d)
+  @ifTrue isRandom(:gam)        update_gam(s, c, d) 
+  @ifTrue isRandom(:sig2)       update_sig2(s, c, d) 
 
   # Metropolis.
-  if !(:y_imputed in fix) update_y_imputed(s, c, d, tuners) end
-  if !(:b0 in fix) update_b0(s, c, d, tuners) end
-  if !(:b1 in fix) update_b1(s, c, d, tuners) end
+  @ifTrue isRandom(:y_imputed)  update_y_imputed(s, c, d, tuners) 
+  @ifTrue isRandom(:b0)         update_b0(s, c, d, tuners) 
+  @ifTrue isRandom(:b1)         update_b1(s, c, d, tuners) 
 
   # Compute loglikelihood.
   append!(ll, compute_loglike(s, c, d))
