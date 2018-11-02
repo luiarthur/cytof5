@@ -50,6 +50,12 @@ function parse_cmd()
     "--b1TunerInit"
       arg_type = Float64
       default = 0.1
+    "--fix_b0"
+      arg_type = Bool
+      default = false
+    "--fix_b1"
+      arg_type = Bool
+      default = false
 
     "--RESULTS_DIR"
       arg_type = String
@@ -83,6 +89,13 @@ SEED = PARSED_ARGS["SEED"]
 RESULTS_DIR = PARSED_ARGS["RESULTS_DIR"]
 EXP_NAME = PARSED_ARGS["EXP_NAME"]
 cbDataPath = PARSED_ARGS["DATA_PATH"]
+fix_b0 = PARSED_ARGS["fix_b0"]
+fix_b1 = PARSED_ARGS["fix_b1"]
+fix = Vector{Symbol}()
+
+if fix_b0 fix=[fix; :b0] end
+if fix_b1 fix=[fix; :b1] end
+
 
 Random.seed!(SEED);
 # End of ArgParse
@@ -126,6 +139,7 @@ logger("Fitting Model ...");
                            computeLPML=true, computeDIC=true,
                            b0_tune_init=b0TunerInit,
                            b1_tune_init=b1TunerInit,
+                           fix=fix,                           
                            printFreq=10, flushOutput=true)
 
 logger("Saving Data ...");

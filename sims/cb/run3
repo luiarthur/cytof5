@@ -1,0 +1,78 @@
+#!/bin/bash
+
+# Results directory
+RESULTS_DIR=$1
+# AWS Bucket to store results
+AWS_BUCKET=$2
+
+# Maximum number of cores to use
+MAX_CORES=6
+
+# STAGGER_TIME in seconds. To avoid mass dumping to disk simultaneously. 
+STAGGER_TIME=100
+
+# Experiment settings
+MCMC_ITER=1000
+BURN=20000
+K_MCMC=20
+L_MCMC=5
+betaPriorScales="0.01 0.1 1.0"
+betaTunerInit="0.01 0.1"
+DATA_PATH="data/cytof_cb_with_nan.jld2"
+SEED=0
+fix_b1="true"
+
+if [[ $@ == **--test** ]]
+then
+  echo "Testing with small numbers..."
+  # STAGGER_TIME in seconds. To avoid mass dumping to disk simultaneously. 
+  STAGGER_TIME=0
+
+  # Experiment settings
+  MCMC_ITER=100
+  BURN=100
+  K_MCMC=10
+  L_MCMC=5
+  betaPriorScales="0.01"
+  betaTunerInit="0.01"
+fi
+
+# simulation number, just for book keeping. Ignore this.
+simNumber=0
+
+
+for scale in $betaPriorScales; do
+  for bti in $betaTunerInit; do
+    # Simulation number
+    simNumber=$((simNumber + 1)) 
+
+    # Experiment name
+    exp_name="K_MCMC${K_MCMC}_L_MCMC${L_MCMC}_scale${scale}_tuner${bti}_SEED${SEED}_fix_b1${fix_b1}"
+
+    # Output directory
+    outdir="$RESULTS_DIR/$exp_name/"
+    mkdir -p $outdir
+
+    # Julia Command to run
+    jlCmd="julia cb.jl --K_MCMC=${K_MCMC} --L_MCMC=${L_MCMC} \
+      --b0PriorSd=${scale} --b1PriorScale=${scale} --SEED=${SEED} \
+      --RESULTS_DIR=$RESULTS_DIR --EXP_NAME=$exp_name \
+      --MCMC_ITER=$MCMC_ITER --BURN=$BURN --b0TunerInit=${bti} --b1TunerInit=${bti} \
+      --DATA_PATH=${DATA_PATH} --fix_b1=${fix_b1}"
+
+    # Sync results to S3
+    syncToS3="aws s3 sync $outdir $AWS_BUCKET/$exp_name --exclude '*.nfs*'"
+
+    # Remove output files to save space on cluster
+    rmOutput="rm -rf ${outdir}"
+
+    cmd="$jlCmd > ${outdir}/log.txt && $syncToS3 && $rmOutput"
+
+    sem -j $MAX_CORES $cmd
+    echo $cmd
+
+    echo "Results for simulation $simNumber -> $outdir"
+
+    sleep $STAGGER_TIME
+  done
+done
