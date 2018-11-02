@@ -1,4 +1,4 @@
-# My Simple Linter
+# My Ideal Simple Linter
 - [ ] Write a simple Julia linter in Python3 or Julia v1.0
     - [ ] catch usage of undefined variables within scope
         - [ ] e.g. catch errors like this:
