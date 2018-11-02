@@ -19,7 +19,7 @@
     - [x] Refer to AMCMC paper
         - [ ] change M
         - [ ] change `delta(n) = min(.01, 1/sqrt(n))` to something else
-- [ ] Use `Plots.jl` with `pyplot` back-end
+- [ ] Use `PyPlot.jl` for plots
 - [ ] Check the repulsive implementations
 - [ ] Use smaller field-types in State
     - [ ] `Float64` => `Float32` for y?
