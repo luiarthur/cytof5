@@ -117,5 +117,4 @@ simtest:
 		--EXP_NAME=bla --MCMC_ITER=1000 --BURN=10000 \
 		--b0TunerInit=0.1 --b1TunerInit=0.1 \
 		--fix_b1=true --printFreq=50
-
-
+	./genResults.jl results/test/
