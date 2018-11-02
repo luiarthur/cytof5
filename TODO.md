@@ -25,6 +25,8 @@
     - [ ] `Float64` => `Float32` for y?
     - [ ] `Int` => `Int8` for indicators like gamma and Z
 - [ ] investigate why `loglike` and `DIC / LPML` is `-infty` sometimes
+
+# DONE
 - [x] FlowSOM detective work:
     - [x] Simulate data until FlowSOM breaks
     - [x] Then, do MCMC
