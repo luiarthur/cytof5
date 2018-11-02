@@ -142,7 +142,9 @@ dat = Cytof5.Model.genData(I, J, N, K, L, Z,
 y_dat = Cytof5.Model.Data(dat[:y])
 
 logger("Generating priors ...");
-@time c = Cytof5.Model.defaultConstants(y_dat, K_MCMC, L_MCMC, b0PriorSd=b0PriorSd, b1PriorScale=b1PriorScale)
+@time c = Cytof5.Model.defaultConstants(y_dat, K_MCMC, L_MCMC,
+                                        b0PriorSd=b0PriorSd,
+                                        b1PriorScale=b1PriorScale)
 
 logger("Generating initial state ...");
 @time init = Cytof5.Model.genInitialState(c, y_dat)
