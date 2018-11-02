@@ -1,6 +1,6 @@
 SIM4_BUCKET = "s3://cytof-vary-kmcmc-n1000/"
 SIM5_BUCKET = "s3://cytof-vary-kmcmc-n10000/"
-.PHONY: sim
+.PHONY: sim simtest
 
 dirsize3:
 	aws s3 ls --summarize --human-readable --recursive s3://cytof-sim-beta-tuner-init-results/
@@ -109,4 +109,13 @@ retrieve5:
 	aws s3 sync $(SIM5_BUCKET) results/sim5/ --exclude "*.nfs*"
 send5:
 	aws s3 sync results/sim5/ $(SIM5_BUCKET) --exclude "*.nfs*"
+
+simtest:
+	julia sim.jl --I=3 --J=32 --N_factor=100 --K=8 \
+		--L=4 --K_MCMC=10 --L_MCMC=5 --b0PriorSd=0.3 \
+		--b1PriorScale=0.3 --RESULTS_DIR=results/test/ \
+		--EXP_NAME=bla --MCMC_ITER=1000 --BURN=10000 \
+		--b0TunerInit=0.1 --b1TunerInit=0.1 \
+		--fix_b1=true --printFreq=50
+
 
