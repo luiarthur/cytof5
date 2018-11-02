@@ -14,9 +14,9 @@ end
 padZeroCols(randn(3,5), 10)
 =#
 
-macro ifTrue(doThis, expr)
+macro doIf(condition, expr)
   return quote
-    if $(esc(doThis))
+    if $(esc(condition))
       $(esc(expr))
     end
   end
