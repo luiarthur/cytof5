@@ -3,7 +3,7 @@ AWS_BUCKET_CB_PREPROCESSED = "s3://cytof-cb-results/cb-preprocessed"
 RESULTS_DIR_CB_RUN3 = "results/cb_preprocessed_fixed_b1/"
 AWS_BUCKET_CB_RUN3 = "s3://cytof-cb-results/cb-preprocessed-fixed-b1"
 
-.PHONY: run test postProcess postProcess2 clean retrieve send2 retrieve2 retrieve
+.PHONY: run test postProcess postProcess2 clean retrieve send2 retrieve2 retrieve run3 test3 postProcess3 litecp3
 
 run:
 	 ./run
