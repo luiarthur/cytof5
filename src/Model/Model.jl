@@ -30,7 +30,8 @@ function cytof5_fit(init::State, c::Constants, d::Data;
                     thins::Vector{Int}=[1],
                     printFreq::Int=0, flushOutput::Bool=false,
                     computeDIC::Bool=false, computeLPML::Bool=false,
-                    b0_tune_init::Float64=0.1, b1_tune_init::Float64=0.1)
+                    b0_tune_init::Float64=0.1, b1_tune_init::Float64=0.1,
+                    use_repulsive::Bool=false)
 
   @assert printFreq >= -1
   if printFreq == 0
@@ -54,7 +55,8 @@ function cytof5_fit(init::State, c::Constants, d::Data;
   end
   tuners = Tuners([MCMC.TuningParam(b0_tune_init) for i in 1:d.I], # b0i, 1...I
                   [MCMC.TuningParam(b1_tune_init) for i in 1:d.I], # b1i, 1...I
-                  y_tuner) # yinj, for inj s.t. yinj is missing
+                  y_tuner, # yinj, for inj s.t. yinj is missing
+                  MCMC.TuningParam(MCMC.sigmoid(c.probFlip_Z, a=0.0, b=1.0)))
 
   # Loglike
   loglike = Vector{Float64}()
@@ -118,7 +120,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
 
 
   function update(s::State, iter::Int, out)
-    update_state(s, c, d, tuners, loglike, fix)
+    update_state(s, c, d, tuners, loglike, fix, use_repulsive)
 
     if computeLPML && iter > nburn
       # Inverse likelihood for each data point

@@ -1,5 +1,6 @@
 include("dmixture.jl")
 include("update_Z.jl")
+include("update_Z_repulsive.jl")
 include("update_mus.jl")
 include("update_alpha.jl")
 include("update_v.jl")
@@ -13,14 +14,18 @@ include("update_b.jl")
 include("compute_loglike.jl") # TODO
 
 function update_state(s::State, c::Constants, d::Data, tuners::Tuners,
-                      ll::Vector{Float64}, fix::Vector{Symbol})
+                      ll::Vector{Float64}, fix::Vector{Symbol}, use_repulsive::Bool)
   # Note: `@ifTrue` is defined in "util.jl"
 
   # Return true if sym not is not fixed
   isRandom(sym::Symbol)::Bool = !(sym in fix)
 
   # Gibbs.
-  @ifTrue isRandom(:Z)          update_Z(s, c, d)
+  if use_repulsive
+    @ifTrue isRandom(:Z)          update_Z_repulsive(s, c, d, tuners)
+  else
+    @ifTrue isRandom(:Z)          update_Z(s, c, d)
+  end
   @ifTrue isRandom(:mus)        update_mus(s, c, d)
   @ifTrue isRandom(:alpha)      update_alpha(s, c, d)
   @ifTrue isRandom(:v)          update_v(s, c, d)

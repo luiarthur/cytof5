@@ -15,6 +15,9 @@ mutable struct Constants
   #b1_prior::Vector{Uniform} # b1 ~ Unif(a, b) (positive)
   K::Int
   L::Int
+  # For repulsive Z
+  probFlip_Z::Float64
+  similarity_Z::Function
 end
 
 """
@@ -39,7 +42,8 @@ b0PriorSd: bigger -> more uncertainty.
 b1PriorScale: bigger -> more uncertainty. prior scale is the empirical mean / scale. So prior mean is empirical mean.
 """
 function defaultConstants(data::Data, K::Int, L::Int; pBounds=(.99, .01), yQuantiles=(.01, .10),
-                          b0PriorSd::Number=1.0, b1PriorScale::Number=1/10)
+                          b0PriorSd::Number=1.0, b1PriorScale::Number=1/10,
+                          probFlip_Z::Float64=1.0 / (data.J * K))
   alpha_prior = Gamma(3.0, 0.5)
   mus_prior = Dict{Int, Truncated{Normal{Float64}, Continuous}}()
   vec_y = vcat(vec.(data.y)...)
@@ -60,7 +64,8 @@ function defaultConstants(data::Data, K::Int, L::Int; pBounds=(.99, .01), yQuant
   #b0_prior = Uniform(1.0, 3.0)
   #b1_prior = Uniform(0.0, 20.0)
 
-  Constants(alpha_prior, mus_prior, W_prior, eta_prior, sig2_prior, b0_prior, b1_prior, K, L)
+  return Constants(alpha_prior, mus_prior, W_prior, eta_prior, sig2_prior,
+                   b0_prior, b1_prior, K, L, probFlip_Z, similarity_default)
 end
 
 # TODO: Test

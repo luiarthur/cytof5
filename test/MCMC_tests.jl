@@ -14,9 +14,9 @@ end
 @testset "Compile MCMC.TuningParam." begin
   tval_init = 1.23
   t = MCMC.TuningParam(tval_init)
-  MCMC.update(t, true)
-  MCMC.update(t, false)
-  MCMC.update(t, true)
+  MCMC.update_tuning_param_default(t, true)
+  MCMC.update_tuning_param_default(t, false)
+  MCMC.update_tuning_param_default(t, true)
   @test t.value == tval_init
   #@test MCMC.acceptanceRate(t) == 2/3
 end

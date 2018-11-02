@@ -38,23 +38,7 @@ Another useful website:
 """
 function metropolisAdaptive(curr::Float64, logFullCond::Function,
                             tuner::TuningParam;
-                            delta::Function=n::Int->min(n^(-0.5), 0.01),
-                            targetAcc::Float64=0.44)
-  iter = tuner.currentIter
-  batch_size = tuner.batch_size
-
-  if iter % batch_size == 0
-    n = Int(floor(iter / batch_size))
-    factor = exp(delta(n))
-    if acceptanceRate(tuner) > targetAcc
-      tuner.value *= factor
-    else
-      tuner.value /= factor
-    end
-
-    tuner.acceptanceCount = 0
-  end
-
+                            update::Function=update_tuning_param_default)
   draw, accept = metropolisBase(curr, logFullCond, tuner.value)
   update(tuner, accept)
   return draw
@@ -89,8 +73,7 @@ end
 
 function metLogitAdaptive(curr::Float64, ll::Function, lp::Function,
                           tuner::TuningParam; a::Float64=0, b::Float64=1, 
-                          delta::Function=n::Int64->min(n^(-0.5), 0.01),
-                          targetAcc::Float64=0.44)
+                          update::Function=update_tuning_param_default)
 
   function lfc_logitX(logit_x::Float64)
     x = sigmoid(logit_x, a=a, b=b)
@@ -99,24 +82,21 @@ function metLogitAdaptive(curr::Float64, ll::Function, lp::Function,
     return ll(x) + lp_logitX
   end
 
-  logit_x = metropolisAdaptive(logit(curr,a=a,b=b), lfc_logitX, tuner,
-                               delta=delta, targetAcc=targetAcc)
+  logit_x = metropolisAdaptive(logit(curr,a=a,b=b), lfc_logitX, tuner, update=update)
 
   return sigmoid(logit_x, a=a, b=b)
 end
 
 function metLogAdaptive(curr::Float64, ll::Function, lp::Function,
                         tuner::TuningParam;
-                        delta::Function=n::Int64->min(n^(-0.5), 0.01),
-                        targetAcc::Float64=0.44)
+                        update::Function=update_tuning_param_default)
 
   function lfc_logX(log_x::Float64)
     x = exp(log_x)
     return ll(x) + logpdfLogX(log_x, lp)
   end
 
-  log_x = metropolisAdaptive(log(curr), lfc_logX, tuner,
-                             delta=delta, targetAcc=targetAcc)
+  log_x = metropolisAdaptive(log(curr), lfc_logX, tuner, update=update)
 
   return exp(log_x)
 end

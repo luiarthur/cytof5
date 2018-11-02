@@ -1,6 +1,6 @@
 Random.seed!(10)
 printDebug = false
-using RCall
+using RCall, Distributions
 using JLD2, FileIO
 
 @testset "Compile Model.State." begin
@@ -103,8 +103,13 @@ end
                                                      computeLPML=true,
                                                      computeDIC=true)
 
+  Zpost = [o[:Z] for o in out[1]]
+  R"pdf('result/Z_post_mean.pdf')"
+  R"image"(1 .- mean(Zpost))
+  R"dev.off()"
 
   @save "result/out.jld2" out dat ll lastState
+
   #=
   using JLD2, FileIO, RCall
 
@@ -146,6 +151,7 @@ end
   R"my.image($(lastState.y_imputed[1]), col=blueToRed(11), addL=T, zlim=c(-5,5))"
   R"dev.off()"
   =#
+
 
   @test true
 end
