@@ -41,7 +41,7 @@ end
 b0PriorSd: bigger -> more uncertainty.
 b1PriorScale: bigger -> more uncertainty. prior scale is the empirical mean / scale. So prior mean is empirical mean.
 """
-function defaultConstants(data::Data, K::Int, L::Int; pBounds=(.99, .01), yQuantiles=(.01, .10),
+function defaultConstants(data::Data, K::Int, L::Int; pBounds=(.9, .01), yQuantiles=(.01, .10),
                           b0PriorSd::Number=1.0, b1PriorScale::Number=1/10,
                           probFlip_Z::Float64=1.0 / (data.J * K))
   alpha_prior = Gamma(3.0, 0.5)
