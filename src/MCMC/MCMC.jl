@@ -101,8 +101,27 @@ function metLogAdaptive(curr::Float64, ll::Function, lp::Function,
   return exp(log_x)
 end
 
-function normalize(x::Vector{T}) where T
-  return isprobvec(x) ? x : x / sum(x)
+function normalize(x::Vector{T})::Vector{T} where T
+  if isprobvec(x)
+    return x
+  elseif length(x) == 1
+    @assert x[1] > 0
+    return [1.0]
+  else
+    out = x / sum(x)
+    out[1] = 1.0 - sum(x[2:end])
+    return out
+  end
+end
+
+
+"""
+weighted sampling: takes (unnormalized) log probs and returns index
+"""
+function wsample_logprob(logProbs::Vector{T}) where {T <: Number}
+  log_p_max = maximum(logProbs)
+  p = exp.(logProbs .- log_p_max)
+  return Distributions.wsample(p)
 end
 
 end # MCMC
