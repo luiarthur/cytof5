@@ -118,3 +118,4 @@ simtest:
 		--b0TunerInit=0.1 --b1TunerInit=0.1 \
 		--fix_b1=true --printFreq=50
 	./genResults.jl results/test/
+	rm -f result/test/bla/*.jld2
