@@ -94,12 +94,16 @@ function cytof5_fit(init::State, c::Constants, d::Data;
     end
 
     function loglikeDIC(param::DICparam)::Float64
+      # TODO: make MIN_LL_INJ=-1E8 an option to be specified
       ll = 0.0
 
       for i in 1:d.I
         for j in 1:d.J
           for n in 1:d.N[i]
-            ll += logpdf(Bernoulli(param.p[i][n, j]), d.m[i][n, j])
+            ll_inj = logpdf(Bernoulli(param.p[i][n, j]), d.m[i][n, j])
+            @leftTrunc! -1E8 ll_inj # For numerical stability. Ensure ll > -Inf.
+            ll += ll_inj
+
             if d.m[i][n, j] == 0 # observed
               ll += logpdf(Normal(param.mu[i][n, j], param.sig[i]), d.y[i][n, j])
             end

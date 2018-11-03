@@ -21,3 +21,11 @@ macro doIf(condition, expr)
     end
   end
 end
+
+macro leftTrunc!(minVal, x)
+  return quote
+    if $(esc(x)) < $(esc(minVal))
+      $(esc(x)) = $(esc(minVal))
+    end
+  end
+end
