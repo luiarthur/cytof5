@@ -60,7 +60,7 @@ test3:
 	./run3 $(RESULTS_DIR_CB_RUN3) $(AWS_BUCKET_CB_RUN3) --test
 
 litecp3:
-	rsync -av --exclude '*.jld*' $(RESULTS_DIR_CB_RUN3) .sandbox/
+	rsync -av --exclude '*.jld*' $(RESULTS_DIR_CB_RUN3) .sandbox/cb_preprocessed_fixed_b1
 
 metrics: metrics.py
 	python3 metrics.py $(RESULTS_DIR_CB_RUN3)
