@@ -1,18 +1,4 @@
 # TODO
-- [ ] Draft a paper
-    - [ ] pick one of the simulation study results (sim 64 or 98) to include
-    - [ ] Intro (blank for now)
-    - [ ] probability model (with new changes)
-        - [ ] rewrite section on prior for Z using traditional IBP construction
-              (instead of probit since we are not using correlation between
-              markers)
-    - [ ] sim study (LPML / DIC for several K)
-    - [ ] CB study  (LPML / DIC for several K)
-    - [ ] compare to FlowSOM?
-    - [ ] preprocessing by removing markers?
-    - [ ] Conclusions (blank for now)
-    - Eventually:
-        - [ ] sim study using other simulation data
 - [x] strong prior for b0, b1
     - [x] different tuning parameter for b1?
     - [x] different prior for b1?
