@@ -12,6 +12,7 @@ include("Data.jl")
 include("Constants.jl")
 include("Tuners.jl")
 include("update.jl")
+include("repFAM.jl")
 
 mutable struct DICparam
   p::Vector{Matrix{Float64}}
