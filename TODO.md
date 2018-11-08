@@ -11,6 +11,7 @@
     - [ ] `Float64` => `Float32` for y?
     - [ ] `Int` => `Int8` for indicators like gamma and Z
 - [ ] investigate why `loglike` and `DIC / LPML` is `-infty` sometimes
+- [ ] use macro to generate named constructor for any `struct`
 
 # DONE
 - [x] FlowSOM detective work:
