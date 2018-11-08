@@ -70,6 +70,13 @@ function gen_similarity_fn(; repeats=(1,3), thresh_probs=(.01, .8))
 end
 
 
+"""
+Generate a function of threshold, which returns similarity of one if distance
+between two vectors < threshold, and zero otherwise.
+"""
+function sim_fn_abs(threshold::Int)::Function
+  return (z1::Vector{Int}, z2::Vector{Int}) -> sum(abs.(z1 - z2)) <= threshold ? 1.0 : 0.0
+end
 
 #= Test
 using RCall, Distributions
@@ -86,6 +93,7 @@ using RCall, Distributions
 
 J = 32
 sim_fn = gen_similarity_fn()
+sim_fn = sim_fn_abs(2)
 z1 = [rand() > .5 ? 1 : 0 for i in 1:J] 
 z2 = z1 .+ 0
 

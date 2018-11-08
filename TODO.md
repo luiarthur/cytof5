@@ -14,6 +14,8 @@
               be "quite different" from each other. (Perhaps, having a distance
               of at least 3.)
         - [ ] change the prior and see how the posterior Z est changes.
+        - [ ] the true W matrix should place most weight on column 1, but vary
+              this setting to see what happens
 - [ ] Use smaller field-types in State
     - [ ] `Float64` => `Float32` for y?
     - [ ] `Int` => `Int8` for indicators like gamma and Z
