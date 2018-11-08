@@ -3,7 +3,12 @@ AWS_BUCKET_CB_PREPROCESSED = "s3://cytof-cb-results/cb-preprocessed"
 RESULTS_DIR_CB_RUN3 = "results/cb_preprocessed_fixed_b1/"
 AWS_BUCKET_CB_RUN3 = "s3://cytof-cb-results/cb-preprocessed-fixed-b1"
 
-.PHONY: run test postProcess postProcess2 clean retrieve send2 retrieve2 retrieve run3 test3 postProcess3 litecp3 metrics
+RESULTS_DIR_CB_RUN4 = "results/cb_preprocessed_fixed_b1_smallTau/"
+AWS_BUCKET_CB_RUN4 = "s3://cytof-cb-results/cb-preprocessed-fixed-b1-smalltau"
+
+.PHONY: run test postProcess postProcess2 clean retrieve 
+.PHONY: send2 retrieve2 retrieve run3 test3 postProcess3 litecp3 metrics
+.PHONY: send4 retrieve4 run4 test3 postProcess4 litecp4 metrics4
 
 run:
 	 ./run
@@ -64,3 +69,26 @@ litecp3:
 
 metrics: metrics.py
 	python3 metrics.py $(RESULTS_DIR_CB_RUN3)
+
+# Run4 ################################################################################
+run4:
+	./run3 $(RESULTS_DIR_CB_RUN4) $(AWS_BUCKET_CB_RUN4)
+
+postProcess4:
+	julia genResults.jl $(RESULTS_DIR_CB_RUN4)
+	aws s3 sync $(RESULTS_DIR_CB_RUN4) $(AWS_BUCKET_CB_RUN4) --exclude '*.nfs*'
+
+send4:
+	aws s3 sync $(RESULTS_DIR_CB_RUN4) $(AWS_BUCKET_CB_RUN4) --exclude '*.nfs*'
+
+retrieve4:
+	aws s3 sync $(AWS_BUCKET_CB_RUN4) $(RESULTS_DIR_CB_RUN4)
+
+test4:
+	./run3 $(RESULTS_DIR_CB_RUN4) $(AWS_BUCKET_CB_RUN4) --test
+
+litecp4:
+	rsync -av --exclude '*.jld*' $(RESULTS_DIR_CB_RUN4) .sandbox/cb_preprocessed_fixed_b1_smallTau
+
+metrics4: metrics.py
+	python3 metrics.py $(RESULTS_DIR_CB_RUN4)
