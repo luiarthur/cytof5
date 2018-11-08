@@ -39,6 +39,21 @@ then
   isTest="_isTest"
 fi
 
+if [[ $@ == **--repFAM** ]]
+then
+  echo "Testing with small numbers..."
+  # STAGGER_TIME in seconds. To avoid mass dumping to disk simultaneously. 
+  STAGGER_TIME=0
+
+  # Experiment settings
+  MCMC_ITER=1000
+  BURN=20000
+  K_MCMC=10
+  L_MCMC=5
+  isTest="_repFAMTest"
+fi
+
+
 # simulation number, just for book keeping. Ignore this.
 simNumber=0
 

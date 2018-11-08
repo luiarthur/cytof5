@@ -62,6 +62,9 @@ function parse_cmd()
     "--fix_b1"
       arg_type = Bool
       default = false
+    "--USE_REPULSIVE"
+      arg_type = Bool
+      default = false
 
     "--RESULTS_DIR"
       arg_type = String
@@ -96,6 +99,8 @@ b1TunerInit = PARSED_ARGS["b1TunerInit"]
 SEED = PARSED_ARGS["SEED"]
 RESULTS_DIR = PARSED_ARGS["RESULTS_DIR"]
 EXP_NAME = PARSED_ARGS["EXP_NAME"]
+USE_REPULSIVE = PARSED_ARGS["USE_REPULSIVE"]
+cbDataPath = PARSED_ARGS["DATA_PATH"]
 cbDataPath = PARSED_ARGS["DATA_PATH"]
 fix_b0 = PARSED_ARGS["fix_b0"]
 fix_b1 = PARSED_ARGS["fix_b1"]
@@ -149,6 +154,7 @@ logger("Fitting Model ...");
                            b0_tune_init=b0TunerInit,
                            b1_tune_init=b1TunerInit,
                            fix=fix,                           
+                           use_repulsive=USE_REPULSIVE,
                            printFreq=10, flushOutput=true)
 
 logger("Saving Data ...");

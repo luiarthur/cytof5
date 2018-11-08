@@ -74,6 +74,9 @@ metrics: metrics.py
 run4:
 	./run3 $(RESULTS_DIR_CB_RUN4) $(AWS_BUCKET_CB_RUN4)
 
+repFamTest:
+	./run3 $(RESULTS_DIR_CB_RUN4) $(AWS_BUCKET_CB_RUN4) --repFAM
+
 postProcess4:
 	julia genResults.jl $(RESULTS_DIR_CB_RUN4)
 	aws s3 sync $(RESULTS_DIR_CB_RUN4) $(AWS_BUCKET_CB_RUN4) --exclude '*.nfs*'
@@ -92,3 +95,5 @@ litecp4:
 
 metrics4: metrics.py
 	python3 metrics.py $(RESULTS_DIR_CB_RUN4)
+
+
