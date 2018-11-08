@@ -35,6 +35,7 @@ then
   MCMC_ITER=50
   BURN=100
   K_MCMC=10
+  L_MCMC=3
   isTest="_isTest"
 fi
 
@@ -48,7 +49,7 @@ for k_mcmc in $K_MCMC; do
     simNumber=$((simNumber + 1)) 
 
     # Experiment name
-    exp_name="K_MCMC${k_mcmc}_L_MCMC${l_mcmc}_tau0${TAU0}_tau1${TAU1}_scale${betaPriorScale}_tuner${betaTunerInit}_SEED${SEED}_fix_b1$isTest"
+    exp_name="K_MCMC${k_mcmc}_L_MCMC${l_mcmc}_tau0_${TAU0}_tau1_${TAU1}_scale${betaPriorScale}_tuner${betaTunerInit}_SEED${SEED}_fix_b1$isTest"
 
     # Output directory
     outdir="$RESULTS_DIR/$exp_name/"

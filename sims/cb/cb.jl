@@ -129,7 +129,7 @@ dat = Cytof5.Model.Data(cbData)
 # MAIN
 logger("Generating priors ...");
 @time c = Cytof5.Model.defaultConstants(dat, K_MCMC, L_MCMC,
-                                        tau0=TAU0, tau1=tau1,
+                                        tau0=TAU0, tau1=TAU1,
                                         b0PriorSd=b0PriorSd, b1PriorScale=b1PriorScale)
 
 logger("Generating initial state ...");
