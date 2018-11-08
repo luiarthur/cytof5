@@ -1,5 +1,6 @@
 function compute_like(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)
-  like = pdf(Bernoulli(prob_miss(s.y_imputed[i][n, j], s.b0[i], s.b1[i])), d.m[i][n, j])
+  p = prob_miss(s.y_imputed[i][n, j], s.b0[i], s.b1[i])
+  like = pdf(Bernoulli(p), d.m[i][n, j])
   # For numerical stability. Ensure like > 0.
   # TODO: make EPS=1E-8 an option to be specified
   @leftTrunc! 1E-8 like

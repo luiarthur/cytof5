@@ -50,11 +50,17 @@ function defaultConstants(data::Data, K::Int, L::Int; pBounds=(.9, .01), yQuanti
   vec_y = vcat(vec.(data.y)...)
   y_neg = filter(y_inj -> !isnan(y_inj) && y_inj < 0, vec_y)
   y_pos = filter(y_inj -> !isnan(y_inj) && y_inj > 0, vec_y)
-  mus_prior[0] = TruncatedNormal(mean(y_neg), tau0 == 0.0 ? std(y_neg) : tau0, -10,  0)
-  mus_prior[1] = TruncatedNormal(mean(y_pos), tau1 == 0.0 ? std(y_pos) : tau1,   0, 10)
-  W_prior = Dirichlet(K, 1.0/K)
-  eta_prior = Dirichlet(L, 1.0 / L)
-  sig2_prior = InverseGamma(3.0, 2.0)
+  if tau0 <= 0
+    tau0 = std(y_neg)
+  end
+  if tau1 <= 0
+    tau1 = std(y_pos)
+  end
+  mus_prior[0] = TruncatedNormal(mean(y_neg), tau0, -10,  0)
+  mus_prior[1] = TruncatedNormal(mean(y_pos), tau1,   0, 10)
+  W_prior = Dirichlet(K, 1 / K)
+  eta_prior = Dirichlet(L, 1 / L)
+  sig2_prior = InverseGamma(3.0, 2 / 3)
 
   # TODO: use empirical bayes to find these priors
   #b0_prior = [ Normal(-9.2, 1.0) for i in 1:data.I ]
@@ -97,11 +103,13 @@ function genInitialState(c::Constants, d::Data)
   I = d.I
   N = d.N
 
-  yVecObserved = [ filter(yinj -> !isnan(yinj), vec(d.y[i])) for i in 1:I ]
+  vec_y = vcat(vec.(d.y)...)
+  y_neg = filter(y_inj -> !isnan(y_inj) && y_inj < 0, vec_y)
 
   y_imputed = begin
     local out = [zeros(Float64, N[i], J) for i in 1:I]
-    y_lower, y_upper = quantile.(c.mus_prior[0], [0, .1])
+    # y_lower, y_upper = quantile.(c.mus_prior[0], [0, .1])
+    y_lower, y_upper = quantile(y_neg, [0, .1])
     for i in 1:I
       for n in 1:N[i]
         for j in 1:J
@@ -111,6 +119,7 @@ function genInitialState(c::Constants, d::Data)
           else
             out[i][n, j] = d.y[i][n, j]
           end
+          @assert !isnan(out[i][n, j])
         end
       end
     end
