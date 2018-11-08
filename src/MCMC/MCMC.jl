@@ -7,6 +7,7 @@ include("gibbs.jl")
 include("TuningParam.jl")
 include("Conjugate.jl")
 include("Fitness.jl")
+include("Util.jl")
 
 function metropolisBase(curr::Float64, logFullCond::Function, stepSD::Float64)
   cand = curr + randn() * stepSD

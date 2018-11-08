@@ -11,7 +11,6 @@
     - [ ] `Float64` => `Float32` for y?
     - [ ] `Int` => `Int8` for indicators like gamma and Z
 - [ ] investigate why `loglike` and `DIC / LPML` is `-infty` sometimes
-- [ ] use macro to generate named constructor for any `struct`
 
 # DONE
 - [x] FlowSOM detective work:
@@ -32,3 +31,4 @@
     - LPML can be found in paper by Dey, Gelfand
     - Should the computation be using `m_inj` as well? Specifically,
       `likelihood= prod(Normal(observed y_inj | params)) * prod(Bern(m_inj | p_inj))`
+- [x] use macro to generate named constructor for any `struct`

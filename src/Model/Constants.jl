@@ -4,14 +4,14 @@ function arrMatTo3dArr(x)
   return [x[i,j][k] for i in 1:size(x,1), j in 1:size(x,2), k in 1:K]
 end
 
-mutable struct Constants
+@ann mutable struct Constants
   alpha_prior::Gamma # alpha ~ Gamma(shape, scale)
   mus_prior::Dict{Int, Truncated{Normal{Float64}, Continuous}} # mu*[z,l] ~ TN(mean,sd)
   W_prior::Dirichlet # W_i ~ Dir_K(d)
   eta_prior::Dirichlet # eta_zij ~ Dir_L(a)
   sig2_prior::InverseGamma # sig2_i ~ IG(shape, scale)
-  b0_prior::Vector{Normal} # b0 ~ Normal(mean, sd)
-  b1_prior::Vector{Gamma} # b1 ~ Gamma(shape, scale) (positive)
+  b0_prior::Vector{Normal{Float64}} # b0 ~ Normal(mean, sd)
+  b1_prior::Vector{Gamma{Float64}} # b1 ~ Gamma(shape, scale) (positive)
   #b1_prior::Vector{Uniform} # b1 ~ Unif(a, b) (positive)
   K::Int
   L::Int
@@ -71,8 +71,10 @@ function defaultConstants(data::Data, K::Int, L::Int; pBounds=(.9, .01), yQuanti
   #b0_prior = Uniform(1.0, 3.0)
   #b1_prior = Uniform(0.0, 20.0)
 
-  return Constants(alpha_prior, mus_prior, W_prior, eta_prior, sig2_prior,
-                   b0_prior, b1_prior, K, L, probFlip_Z, similarity_default)
+  return Constants(alpha_prior=alpha_prior, mus_prior=mus_prior, W_prior=W_prior,
+                   eta_prior=eta_prior, sig2_prior=sig2_prior,
+                   b0_prior=b0_prior, b1_prior=b1_prior, K=K, L=L,
+                   probFlip_Z=probFlip_Z, similarity_Z=similarity_default)
 end
 
 # TODO: Test
@@ -144,18 +146,7 @@ function genInitialState(c::Constants, d::Data)
   end
   gam = [[rand(Categorical(eta[Z[j, lam[i][n]]][i, j, :])) for n in 1:N[i], j in 1:J] for i in 1:I]
 
-  #@assert typeof(Z) <: Matrix{Int}
-  #@assert typeof(mus) <: Dict{Tuple{Int,Int}, Float64}
-  #@assert typeof(alpha) == Float64
-  #@assert typeof(v) == Vector{Float64}
-  #@assert typeof(W) == Matrix{Float64}
-  #@assert typeof(sig2) == Vector{Float64}
-  #@assert typeof(eta) == Dict{Int, Cube{Float64}}
-  #@assert typeof(lam) == Vector{Vector{Int}}
-  #@assert typeof(b0) == Vector{Float64}
-  #@assert typeof(b1) == Vector{Float64}
-  #@assert typeof(gam) == Vector{Matrix{Int}}
-  #@assert typeof(y_imputed) == Vector{Matrix{Float64}}
-
-  return State(Z, mus, alpha, v, W, sig2, eta, lam, gam, y_imputed, b0, b1)
+  return State(Z=Z, mus=mus, alpha=alpha, v=v, W=W, sig2=sig2, 
+               eta=eta, lam=lam, gam=gam, y_imputed=y_imputed,
+               b0=b0, b1=b1)
 end

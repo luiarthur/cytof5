@@ -6,6 +6,8 @@ import LinearAlgebra
 import Random # shuffle
 
 include("../MCMC/MCMC.jl")
+import .MCMC.Util.@ann
+
 include("util.jl")
 include("State.jl")
 include("Data.jl")
@@ -14,7 +16,7 @@ include("Tuners.jl")
 include("update.jl")
 include("repFAM.jl")
 
-mutable struct DICparam
+@ann mutable struct DICparam
   p::Vector{Matrix{Float64}}
   mu::Vector{Matrix{Float64}}
   sig::Vector{Float64}
@@ -54,10 +56,10 @@ function cytof5_fit(init::State, c::Constants, d::Data;
     end
     dict
   end
-  tuners = Tuners([MCMC.TuningParam(b0_tune_init) for i in 1:d.I], # b0i, 1...I
-                  [MCMC.TuningParam(b1_tune_init) for i in 1:d.I], # b1i, 1...I
-                  y_tuner, # yinj, for inj s.t. yinj is missing
-                  MCMC.TuningParam(MCMC.sigmoid(c.probFlip_Z, a=0.0, b=1.0)))
+  tuners = Tuners(b0=[MCMC.TuningParam(b0_tune_init) for i in 1:d.I], # b0i, 1...I
+                  b1=[MCMC.TuningParam(b1_tune_init) for i in 1:d.I], # b1i, 1...I
+                  y_imputed=y_tuner, # yinj, for inj s.t. yinj is missing
+                  Z=MCMC.TuningParam(MCMC.sigmoid(c.probFlip_Z, a=0.0, b=1.0)))
 
   # Loglike
   loglike = Vector{Float64}()
@@ -78,7 +80,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
 
   # DIC
   if computeDIC
-    local tmp = DICparam(deepcopy(d.y), deepcopy(d.y), zeros(Float64, d.I))
+    local tmp = DICparam(p=deepcopy(d.y), mu=deepcopy(d.y), sig=zeros(Float64, d.I))
     dicStream = MCMC.DICstream{DICparam}(tmp)
 
     function updateParams(d::MCMC.DICstream{DICparam}, param::DICparam)
