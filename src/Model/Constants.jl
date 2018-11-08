@@ -4,7 +4,7 @@ function arrMatTo3dArr(x)
   return [x[i,j][k] for i in 1:size(x,1), j in 1:size(x,2), k in 1:K]
 end
 
-@ann mutable struct Constants
+@namedargs mutable struct Constants
   alpha_prior::Gamma # alpha ~ Gamma(shape, scale)
   mus_prior::Dict{Int, Truncated{Normal{Float64}, Continuous}} # mu*[z,l] ~ TN(mean,sd)
   W_prior::Dirichlet # W_i ~ Dir_K(d)

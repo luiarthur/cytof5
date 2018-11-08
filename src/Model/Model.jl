@@ -6,7 +6,7 @@ import LinearAlgebra
 import Random # shuffle
 
 include("../MCMC/MCMC.jl")
-import .MCMC.Util.@ann
+import .MCMC.Util.@namedargs
 
 include("util.jl")
 include("State.jl")
@@ -16,7 +16,7 @@ include("Tuners.jl")
 include("update.jl")
 include("repFAM.jl")
 
-@ann mutable struct DICparam
+@namedargs mutable struct DICparam
   p::Vector{Matrix{Float64}}
   mu::Vector{Matrix{Float64}}
   sig::Vector{Float64}

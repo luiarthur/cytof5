@@ -1,6 +1,6 @@
 const Cube = Array{T, 3} where T
 
-@ann mutable struct State
+@namedargs mutable struct State
   Z::Matrix{Int} # Dim: J x K. Z[j,k] ∈ {0, 1}
   mus::Dict{Int, Vector{Float64}}
   alpha::Float64

@@ -3,7 +3,7 @@ module Util
 """
 create annotations for any struct
 """
-macro ann(StructDec)
+macro namedargs(StructDec)
   sstruct = string(StructDec)
   typename = sstruct[findfirst(r"(?<=struct).*(?=\n)", sstruct)]
   typename = strip(typename)
@@ -41,20 +41,20 @@ end
 end # module Util
 
 #= Test. TODO: Put in runtests.jl
-import .Util.@ann
+import .Util.@namedargs
 
-@ann struct Bab{T <: Number}
+@namedargs struct Bab{T <: Number}
   x::Int
   y::T
 end
 
-@ann struct Bob
+@namedargs struct Bob
   x::Int
   y::String
 end
 beb = Bob(x=1, y="sos")
 
-@ann struct Beb{S <: Number, T <: Int}
+@namedargs struct Beb{S <: Number, T <: Int}
   x::S
   y::T
 end
@@ -75,14 +75,14 @@ end
 @time [Beb(1.0, 2) for i in 1:10000];
 
 
-@ann mutable struct Bib{S <: Number, T <: Int}
+@namedargs mutable struct Bib{S <: Number, T <: Int}
   x::S
   y::T
 end
 bib = Bib(x=1, y=2.0)
 bib.x += 1 # this should work
 
-@ann struct Bub{T <: Number}
+@namedargs struct Bub{T <: Number}
   x::Int
   y::T
 end;

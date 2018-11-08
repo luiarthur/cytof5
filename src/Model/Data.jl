@@ -8,7 +8,7 @@ function ncol(m::Matrix)
   return size(m, 2)
 end
 
-@ann struct Data
+@namedargs struct Data
   #y::VecMissMat{Float64}
   y::Vector{Matrix{Float64}}
   I::Int
