@@ -4,7 +4,7 @@ solve for the parameters in the similarity function in the rep-FAM model
 function solve_rep_param(; d=[1.0, 10.0], p=[.01, .5])
   alpha = log(log(1-p[1]) / log(1-p[2])) / log(abs(d[1] / d[2]))
   phi = - abs(d[1]) ^ alpha / log(1-p[1])
-  return (alpha, phi)
+  return (alpha=alpha, phi=phi)
 end
 
 #= Test
@@ -43,10 +43,57 @@ function tolerable_num_diffs(bit_vec_length::Int; thresh_prob::Float64=.01, nsim
   return minimum(findall(sims .> thresh_prob))
 end
 
+
+"""
+default parameters psi=(alpha, phi) for repFAM similarity function
+"""
+function default_psi(bit_vec_length::Int; thresh_probs=(.01, .5), nsims::Int=100)
+  tol_num_diff_bits = tolerable_num_diffs(bit_vec_length, thresh_prob=thresh_probs[1], nsims=nsims)
+  return solve_rep_param(d=[tol_num_diff_bits, tol_num_diff_bits+1], p=thresh_probs)
+end
+
+
+"""
+return default similarity function for repFAM
+"""
+function gen_similarity_fn(bit_vec_length::Int, thresh_probs=(.01, .5), nsims::Int=100)
+  psi = default_psi(bit_vec_length, thresh_probs=thresh_probs, nsims=nsims)
+  return (z1::Vector{Int}, z2::Vector{Int}) -> exp(-sum(abs.(z1 - z2)) ^ psi.alpha / psi.phi)
+end
+
+"""
+return default similarity function for repFAM, given probability of repeats
+"""
+function gen_similarity_fn(; repeats=(1,3), thresh_probs=(.01, .8))
+  psi = solve_rep_param(d=repeats, p=thresh_probs)
+  return (z1::Vector{Int}, z2::Vector{Int}) -> exp(-sum(abs.(z1 - z2)) ^ psi.alpha / psi.phi)
+end
+
+
+
 #= Test
+using RCall, Distributions
+include("repFAM.jl")
 @time x = simulate_prob_differing_bits(25, nsims=1000)
 R"plot(1:length($x), $x, xlab='k = number of diffs', ylab='probability of at most k differences', type='o')"
 R"abline(h=.01)"
 
 tolerable_num_diffs(25, thresh_prob=.01, nsims=1000)
+=#
+
+#=
+using RCall, Distributions
+
+J = 32
+sim_fn = gen_similarity_fn()
+z1 = [rand() > .5 ? 1 : 0 for i in 1:J] 
+z2 = z1 .+ 0
+
+p = []
+for j in 1:J
+  z2[j] = z2[j] == 1 ? 0 : 1
+  append!(p, sim_fn(z1, z2))
+end
+
+R"plot(1:$J, $(1 .- p), type='o', xlab='differences', ylab='prior prob')"
 =#

@@ -7,6 +7,13 @@
         - [ ] change `delta(n) = min(.01, 1/sqrt(n))` to something else
 - [ ] Use `PyPlot.jl` for plots
 - [ ] Check the repulsive implementations
+    - [ ] for sim study
+        - [ ] start with true Z having K (=4?) columns, where column `k`is
+              different from column 1 by exactly `k-1` markers, for 
+              `k=2,...,K`. In addition, the other columns `k=2,...,K` should
+              be "quite different" from each other. (Perhaps, having a distance
+              of at least 3.)
+        - [ ] change the prior and see how the posterior Z est changes.
 - [ ] Use smaller field-types in State
     - [ ] `Float64` => `Float32` for y?
     - [ ] `Int` => `Int8` for indicators like gamma and Z

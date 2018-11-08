@@ -41,10 +41,13 @@ end
 b0PriorSd: bigger -> more uncertainty.
 b1PriorScale: bigger -> more uncertainty. prior scale is the empirical mean / scale. So prior mean is empirical mean.
 """
-function defaultConstants(data::Data, K::Int, L::Int; pBounds=(.9, .01), yQuantiles=(.01, .10),
+function defaultConstants(data::Data, K::Int, L::Int;
+                          pBounds=(.9, .01), yQuantiles=(.01, .10),
                           b0PriorSd::Number=1.0, b1PriorScale::Number=1/10,
                           tau0::Float64=0.0, tau1::Float64=0.0,
-                          probFlip_Z::Float64=1.0 / (data.J * K))
+                          probFlip_Z::Float64=1.0 / (data.J * K),
+                          similarity_Z::Function=gen_similarity_fn(repeats=(1, 3),
+                                                                   thresh_probs=(.001, .8)))
   alpha_prior = Gamma(3.0, 0.5)
   mus_prior = Dict{Int, Truncated{Normal{Float64}, Continuous}}()
   vec_y = vcat(vec.(data.y)...)
@@ -74,7 +77,7 @@ function defaultConstants(data::Data, K::Int, L::Int; pBounds=(.9, .01), yQuanti
   return Constants(alpha_prior=alpha_prior, mus_prior=mus_prior, W_prior=W_prior,
                    eta_prior=eta_prior, sig2_prior=sig2_prior,
                    b0_prior=b0_prior, b1_prior=b1_prior, K=K, L=L,
-                   probFlip_Z=probFlip_Z, similarity_Z=similarity_default)
+                   probFlip_Z=probFlip_Z, similarity_Z=similarity_Z)
 end
 
 # TODO: Test
