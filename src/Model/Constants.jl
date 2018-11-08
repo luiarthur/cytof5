@@ -43,14 +43,15 @@ b1PriorScale: bigger -> more uncertainty. prior scale is the empirical mean / sc
 """
 function defaultConstants(data::Data, K::Int, L::Int; pBounds=(.9, .01), yQuantiles=(.01, .10),
                           b0PriorSd::Number=1.0, b1PriorScale::Number=1/10,
+                          tau0::Float64=0.0, tau1::Float64=0.0,
                           probFlip_Z::Float64=1.0 / (data.J * K))
   alpha_prior = Gamma(3.0, 0.5)
   mus_prior = Dict{Int, Truncated{Normal{Float64}, Continuous}}()
   vec_y = vcat(vec.(data.y)...)
   y_neg = filter(y_inj -> !isnan(y_inj) && y_inj < 0, vec_y)
   y_pos = filter(y_inj -> !isnan(y_inj) && y_inj > 0, vec_y)
-  mus_prior[0] = TruncatedNormal(mean(y_neg), std(y_neg), -10, 0)
-  mus_prior[1] = TruncatedNormal(mean(y_pos), std(y_pos), 0, 10)
+  mus_prior[0] = TruncatedNormal(mean(y_neg), tau0 == 0.0 ? std(y_neg) : tau0, -10,  0)
+  mus_prior[1] = TruncatedNormal(mean(y_pos), tau1 == 0.0 ? std(y_pos) : tau1,   0, 10)
   W_prior = Dirichlet(K, 1.0/K)
   eta_prior = Dirichlet(L, 1.0 / L)
   sig2_prior = InverseGamma(3.0, 2.0)

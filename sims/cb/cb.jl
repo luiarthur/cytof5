@@ -41,6 +41,12 @@ function parse_cmd()
     "--b1PriorScale"
       arg_type = Float64
       default = 1.0
+    "--tau0"
+      arg_type = Float64
+      default = 0.0
+    "--tau1"
+      arg_type = Float64
+      default = 0.0
     "--SEED"
       arg_type = Int
       default = 0
@@ -83,6 +89,8 @@ K_MCMC = PARSED_ARGS["K_MCMC"]
 L_MCMC = PARSED_ARGS["L_MCMC"]
 b0PriorSd = PARSED_ARGS["b0PriorSd"]
 b1PriorScale = PARSED_ARGS["b1PriorScale"]
+TAU0= PARSED_ARGS["tau0"]
+TAU1= PARSED_ARGS["tau1"]
 b0TunerInit = PARSED_ARGS["b0TunerInit"]
 b1TunerInit = PARSED_ARGS["b1TunerInit"]
 SEED = PARSED_ARGS["SEED"]
@@ -121,6 +129,7 @@ dat = Cytof5.Model.Data(cbData)
 # MAIN
 logger("Generating priors ...");
 @time c = Cytof5.Model.defaultConstants(dat, K_MCMC, L_MCMC,
+                                        tau0=TAU0, tau1=tau1,
                                         b0PriorSd=b0PriorSd, b1PriorScale=b1PriorScale)
 
 logger("Generating initial state ...");
