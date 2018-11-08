@@ -14,7 +14,7 @@ STAGGER_TIME=100
 # Experiment settings
 MCMC_ITER=1000
 BURN=20000
-K_MCMC="`seq 2 10`"
+K_MCMC="`seq -w 2 10`"
 L_MCMC="2 3 4"
 betaPriorScale="0.1"
 betaTunerInit="0.1"

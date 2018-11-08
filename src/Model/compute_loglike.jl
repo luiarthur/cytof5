@@ -3,7 +3,11 @@ function compute_like(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)
   like = pdf(Bernoulli(p), d.m[i][n, j])
   # For numerical stability. Ensure like > 0.
   # TODO: make EPS=1E-8 an option to be specified
-  @leftTrunc! 1E-8 like
+  # @leftTrunc! 1E-8 like
+  if iszero(like)
+    @warn "compute_like($i, $n, $j, s, c, d) = 0.0 | setting like=1E-6"
+    like = 1E-6
+  end
 
   # multiply to likelihood for y_observed (non-missing)
   if d.m[i][n, j] == 0
@@ -19,8 +23,12 @@ end
 function compute_loglike(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)
   ll = logpdf(Bernoulli(prob_miss(s.y_imputed[i][n, j], s.b0[i], s.b1[i])), d.m[i][n, j])
   # For numerical stability. Ensure ll > -Inf.
-  # TODO: make MIN_ll=-1E8 an option to be specified
-  @leftTrunc! -1E8 ll
+  # TODO: make MIN_ll=log(1E-6) an option to be specified
+  # @leftTrunc! log(1E-6) ll
+  if isinf(ll)
+    @warn "compute_loglike($i, $n, $j, s, c, d) = -inf | setting ll=log(1E-6)"
+    ll = log(1E-6)
+  end
 
   # Add to likelihood for y_observed (non-missing)
   if d.m[i][n, j] == 0

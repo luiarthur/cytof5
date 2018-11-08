@@ -32,8 +32,8 @@ if __name__ == '__main__':
 
         sim_dirs = os.listdir(results_dir)
         sim_dirs = list(filter(lambda d: 'K_MCMC' in d, sim_dirs))
-        print("Removing K_MCMC = 14")
-        sim_dirs = list(filter(lambda d: "K_MCMC14" not in d, sim_dirs))
+        # print("Removing K_MCMC = 14")
+        # sim_dirs = list(filter(lambda d: "K_MCMC14" not in d, sim_dirs))
         DIC = []
         pD = []
         Dmean = []
