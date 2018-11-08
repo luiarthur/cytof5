@@ -125,11 +125,9 @@ logger(size.(cbData))
 
 # Save Reduced Data
 mkpath("$(OUTDIR)/reduced_data/")
-@save "$(OUTDIR)/reduced_data/reduced_cb.jld2" deepcopy(cbData)
 
 # Create Data Object
 dat = Cytof5.Model.Data(cbData)
-
 
 # MAIN
 logger("Generating priors ...");
@@ -159,5 +157,6 @@ logger("Fitting Model ...");
 
 logger("Saving Data ...");
 @save "$(OUTDIR)/output.jld2" out ll lastState c metrics
+@save "$(OUTDIR)/reduced_data/reduced_cb.jld2" deepcopy(cbData)
 
 logger("MCMC Completed.");
