@@ -96,4 +96,12 @@ litecp4:
 metrics4: metrics.py
 	python3 metrics.py $(RESULTS_DIR_CB_RUN4)
 
+# Preprocess ###
+genpreprocessGraphs:
+	julia gen_preprocessed_data.jl
 
+sendPreprocessedGraphs:
+	aws s3 sync results/misc/img/ s3://cytof-cb-results/misc/img/
+
+getPreprocessedGraphs:
+	aws s3 sync s3://cytof-cb-results/misc/img/ results/misc/img/
