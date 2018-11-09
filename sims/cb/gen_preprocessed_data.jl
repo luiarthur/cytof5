@@ -78,7 +78,7 @@ for i in 1:I
   util.plot(table(num_missing[i]) ./ N[i], typ="h", lwd=2,
             xlim=[0, J_new],
             ylab="Proportion of cells missing number of markers",
-            xlab="number of missing markers expression levels")
+            xlab="number of missing marker expression levels")
   util.devOff()
 end
 
