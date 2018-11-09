@@ -11,6 +11,7 @@ include("PreProcess.jl")
 include("../sim_study/util.jl")
 cbDataPath = "data/cytof_cb_with_nan.jld2"
 cbReducedDataPath = "data/reduced_cb.jld2"
+table = R"table"
 
 cbData = loadSingleObj(cbDataPath)
 # Reduce Data by removing highly non-expressive / expressive columns
@@ -26,10 +27,10 @@ I = length(cbData)
 J_new = size(cbData[1], 2)
 
 mar_tmp = [2, 5.1, 2, 2.1]
-imgDest = "results/misc/img/"
-mkpath(imgDest)
+imgDir = "results/misc/img/"
+mkpath(imgDir)
 
-util.plotPdf("$(imgDest)/reducedDataHist.pdf");
+util.plotPdf("$(imgDir)/reducedDataHist.pdf");
 R"par(mfrow=c(4, 2), mar=$mar_tmp, cex.main=.8)";
 for i in 1:I
   for j in 1:J_new
@@ -60,3 +61,24 @@ for i in 1:I
 end
 R"par(mfrow=c(1, 1), oma=rcommon::oma.default(), mar=rcommon::mar.default(), cex.main=1)"
 util.devOff()
+
+# Count number of missing values per cell per sample
+N = size.(cbData, 1)
+num_missing = [[sum(isnan.(cbData[i][n, :])) for n in 1:N[i]] for i in 1:I]
+for i in 1:I
+  open("$(imgDir)/missing_values_per_cell_sample$(i).txt", "w") do f
+    for n in 1:N[i]
+      write(f, "$(num_missing[i][n])\n")
+    end
+  end
+end
+
+for i in 1:I
+  util.plotPdf("$(imgDir)/missing_values_per_cell_sample$(i).pdf")
+  util.plot(table(num_missing[i]) ./ N[i], typ="h", lwd=2,
+            xlim=[0, J_new],
+            ylab="Proportion of cells missing number of markers",
+            xlab="number of missing markers expression levels")
+  util.devOff()
+end
+
