@@ -161,4 +161,34 @@ function post_process(path_to_output)
     util.yZ_inspect(out[1], i=i, cbData, zlim=[-4,4], using_zero_index=false, na="black") 
     util.devOff()
   end
+
+  # Posterior Predictive QQ. TODO: Test.
+  function get_mu(o, i, j)
+    z_ij = o.Z[j, o.lam[i]]
+    gam_ij = lastState.gam[i][:, j]
+    idx_observed = findall(x -> !isnan(x), cbData[i][:, j])
+
+    return [o.mus[z_ij[n]][gam_ij[n]] for n in idx_observed]
+  end
+
+  function gen_post_pred(i, j)
+    gam_ij = lastState.gam[i][:, j]
+    y_pp = [rand.(Normal.(get_mu(o, i, j), sqrt(o.sig2[i]))) for o in out[1]]
+
+    return hcat(y_pp...)
+  end
+
+  util.plotPdf("$(IMGDIR)/qq.pdf")
+  R"par(mfrow=c(4, 2))"
+  for i in 1:I
+    for j in 1:J
+      # QQ of observed expression levels
+      idx_observed = findall(x -> !isnan(x), cbData[i][:, j])
+      y_pp = gen_post_pred(i, j)
+      y_obs = cbData[i][idx_obs, j]
+      util.myQQ(y_obs, y_pp)
+    end
+  end
+  R"par(mfrow=c(1, 1))"
+  util.devOff()
 end

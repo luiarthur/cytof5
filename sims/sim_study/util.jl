@@ -28,6 +28,7 @@ abline = R"abline";
 addErrbar = R"rcommon::add.errbar";
 hist = R"hist";
 colorBtwn = R"color.btwn";
+myQQ = R"my.qqplot";
 
 
 function getPosterior(sym::Symbol, monitor)
