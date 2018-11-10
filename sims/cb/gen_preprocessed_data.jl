@@ -75,7 +75,7 @@ end
 
 for i in 1:I
   util.plotPdf("$(imgDir)/missing_values_per_cell_sample$(i).pdf")
-  util.plot(table(num_missing[i]) ./ N[i], typ="h", lwd=2,
+  util.plot(R"table($(num_missing[i])) / $(N[i])", 
             xlim=[0, J_new],
             ylab="Proportion of cells missing number of markers",
             xlab="number of missing marker expression levels")
