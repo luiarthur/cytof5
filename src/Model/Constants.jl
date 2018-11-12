@@ -47,7 +47,7 @@ function defaultConstants(data::Data, K::Int, L::Int;
                           tau0::Float64=0.0, tau1::Float64=0.0,
                           probFlip_Z::Float64=1.0 / (data.J * K),
                           similarity_Z::Function=sim_fn_abs(2))
-alpha_prior = Gamma(3.0, 0.5)
+  alpha_prior = Gamma(3.0, 0.5)
   mus_prior = Dict{Int, Truncated{Normal{Float64}, Continuous}}()
   vec_y = vcat(vec.(data.y)...)
   y_neg = filter(y_inj -> !isnan(y_inj) && y_inj < 0, vec_y)
