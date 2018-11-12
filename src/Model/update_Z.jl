@@ -1,28 +1,26 @@
-function update_Zjk(s::State, c::Constants, d::Data, j::Int, k::Int)
-  ll0 = 0
-  ll1 = 0
+function update_Z(s::State, c::Constants, d::Data)
+  ll0 = zeros(d.J, c.K)
+  ll1 = zeros(d.J, c.K)
 
   for i in 1:d.I
     for n in 1:d.N[i]
-      if s.lam[i][n] == k
-        ll0 += log(dmixture(0, i, n, j, s, c, d))
-        ll1 += log(dmixture(1, i, n, j, s, c, d))
+      k = s.lam[i][n]
+      for j in 1:d.J
+        ll0[j, k] += log(dmixture(0, i, n, j, s, c, d))
+        ll1[j, k] += log(dmixture(1, i, n, j, s, c, d))
       end
     end
   end
 
-  lp0 = log(1 - s.v[k])
-  lp1 = log(s.v[k])
-  p = 1 / (1 + exp((lp0 + ll0) - (lp1 + ll1)))
+  for k in 1:c.K
+    lp0 = log(1 - s.v[k])
+    lp1 = log(s.v[k])
 
-  s.Z[j, k] = rand(Bernoulli(p))
-end
-
-function update_Z(s::State, c::Constants, d::Data)
-  for j in 1:d.J
-    for k in 1:c.K
-      update_Zjk(s, c, d, j, k)
+    for j in 1:d.J
+      lfc0 = lp0 + ll0[j, k]
+      lfc1 = lp1 + ll1[j, k]
+      p = 1.0 / (1.0 + exp(lfc0 - lfc1))
+      s.Z[j, k] = rand(Bernoulli(p))
     end
   end
 end
-
