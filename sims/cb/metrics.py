@@ -29,65 +29,84 @@ if __name__ == '__main__':
         sys.exit(1)
     else:
         results_dir = sys.argv[1]
+        if len(sys.argv) > 2:
+            excludes = sys.argv[2]
+        else:
+            excludes = ""
+        print("excludes: {}".format(excludes))
 
         sim_dirs = os.listdir(results_dir)
         sim_dirs = list(filter(lambda d: 'K_MCMC' in d, sim_dirs))
+        sim_dirs = list(filter(lambda d: not re.search(excludes, d), sim_dirs))
         # print("Removing K_MCMC = 14")
         # sim_dirs = list(filter(lambda d: "K_MCMC14" not in d, sim_dirs))
-        DIC = []
-        pD = []
-        Dmean = []
-        LPML = []
 
-        K = np.array([int(re.findall(r'(?<=K_MCMC)\d+', d)[0])
+        L = np.array([int(re.findall(r'(?<=L_MCMC)\d+', d)[0])
                       for d in sim_dirs])
-        order = np.argsort(K)
+        L = set(L)
+        print('L: {}'.format(L))
 
-        # DIC
-        for d in sim_dirs:
-            c = readFile('{}/{}/log.txt'.format(results_dir, d))
-            DIC.append(parse(c, 'DIC'))
-            pD.append(parse(c, 'pD'))
-            Dmean.append(parse(c, 'Dmean'))
-            LPML.append(parse(c, 'LPML'))
+        for l in L:
+            DIC = []
+            pD = []
+            Dmean = []
+            LPML = []
+            
+            sim_dirs_l = filter(lambda d: 'L_MCMC{}'.format(l) in d, sim_dirs)
+            sim_dirs_l = sorted(sim_dirs_l)
+            # print(len(list(sim_dirs_l)))
+            # for d in sim_dirs_l:
+            #     print(d)
 
-        # Plot
-        METRICS_DIR = '{}/metrics/'.format(results_dir)
-        os.makedirs(METRICS_DIR, exist_ok=True)
+            K = np.array([int(re.findall(r'(?<=K_MCMC)\d+', d)[0])
+                          for d in sim_dirs_l])
+            order = np.argsort(K)
 
-        LPML = np.array(LPML)
-        plt.figure()
-        plt.plot(K[order], LPML[order], linestyle='--', marker='o')
-        plt.ylabel('LPML')
-        plt.xlabel('K')
-        plt.xticks(K)
-        plt.savefig('{}/lpml.pdf'.format(METRICS_DIR), bbox_inches='tight')
-        plt.close()
+            # DIC
+            for d in sim_dirs_l:
+                c = readFile('{}/{}/log.txt'.format(results_dir, d))
+                DIC.append(parse(c, 'DIC'))
+                pD.append(parse(c, 'pD'))
+                Dmean.append(parse(c, 'Dmean'))
+                LPML.append(parse(c, 'LPML'))
 
-        DIC = np.array(DIC)
-        plt.figure()
-        plt.plot(K[order], DIC[order], linestyle='--', marker='o')
-        plt.ylabel('DIC')
-        plt.xlabel('K')
-        plt.xticks(K)
-        plt.savefig('{}/dic.pdf'.format(METRICS_DIR), bbox_inches='tight')
-        plt.close()
+            # Plot
+            METRICS_DIR = '{}/metrics/L_MCMC{}/'.format(results_dir, l)
+            os.makedirs(METRICS_DIR, exist_ok=True)
 
-        pD = np.array(pD)
-        plt.figure()
-        plt.plot(K[order], pD[order], linestyle='--', marker='o')
-        plt.ylabel('pD')
-        plt.xlabel('K')
-        plt.xticks(K)
-        plt.savefig('{}/pD.pdf'.format(METRICS_DIR), bbox_inches='tight')
-        plt.close()
+            LPML = np.array(LPML)
+            plt.figure()
+            plt.plot(K[order], LPML[order], linestyle='--', marker='o')
+            plt.ylabel('LPML')
+            plt.xlabel('K')
+            plt.xticks(K)
+            plt.savefig('{}/lpml.pdf'.format(METRICS_DIR), bbox_inches='tight')
+            plt.close()
 
-        Dmean = np.array(Dmean)
-        plt.figure()
-        plt.plot(K[order], Dmean[order], linestyle='--', marker='o')
-        plt.ylabel('Dmean')
-        plt.xlabel('K')
-        plt.xticks(K)
-        plt.savefig('{}/Dmean.pdf'.format(METRICS_DIR), bbox_inches='tight')
-        plt.close()
+            DIC = np.array(DIC)
+            plt.figure()
+            plt.plot(K[order], DIC[order], linestyle='--', marker='o')
+            plt.ylabel('DIC')
+            plt.xlabel('K')
+            plt.xticks(K)
+            plt.savefig('{}/dic.pdf'.format(METRICS_DIR), bbox_inches='tight')
+            plt.close()
+
+            pD = np.array(pD)
+            plt.figure()
+            plt.plot(K[order], pD[order], linestyle='--', marker='o')
+            plt.ylabel('pD')
+            plt.xlabel('K')
+            plt.xticks(K)
+            plt.savefig('{}/pD.pdf'.format(METRICS_DIR), bbox_inches='tight')
+            plt.close()
+
+            Dmean = np.array(Dmean)
+            plt.figure()
+            plt.plot(K[order], Dmean[order], linestyle='--', marker='o')
+            plt.ylabel('Dmean')
+            plt.xlabel('K')
+            plt.xticks(K)
+            plt.savefig('{}/Dmean.pdf'.format(METRICS_DIR), bbox_inches='tight')
+            plt.close()
 

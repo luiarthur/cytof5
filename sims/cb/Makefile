@@ -94,7 +94,7 @@ litecp4:
 	rsync -av --exclude '*.jld*' $(RESULTS_DIR_CB_RUN4) .sandbox/cb_preprocessed_fixed_b1_smallTau
 
 metrics4: metrics.py
-	python3 metrics.py $(RESULTS_DIR_CB_RUN4)
+	python3 metrics.py $(RESULTS_DIR_CB_RUN4) '\w+repFAMTest'
 
 # Preprocess ###
 genpreprocessGraphs:
