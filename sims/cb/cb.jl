@@ -1,8 +1,19 @@
 println("Loading packages...") 
-using Cytof5, Random
+using Cytof5
+using Random, Distributions
 using JLD2, FileIO
 using ArgParse
+import Base.show
 include("PreProcess.jl")
+
+function show(io::IO, x::InverseGamma)
+  print(io, "InverseGamma(shape=$(shape(x)), scale=$(scale(x)))")
+end
+
+function show(io::IO, x::Gamma)
+  print(io, "Gamma(shape=$(shape(x)), rate=$(rate(x)))")
+end
+
 
 function logger(x; newline=true)
   if newline
@@ -130,12 +141,16 @@ mkpath("$(OUTDIR)/reduced_data/")
 dat = Cytof5.Model.Data(cbData)
 
 # MAIN
-logger("Generating priors ...");
+logger("\nGenerating priors ...");
 @time c = Cytof5.Model.defaultConstants(dat, K_MCMC, L_MCMC,
                                         tau0=TAU0, tau1=TAU1,
                                         b0PriorSd=b0PriorSd, b1PriorScale=b1PriorScale)
+logger("\nPriors:")
+for fname in fieldnames(typeof(c))
+  logger("$fname => $(getfield(c, fname))")
+end
 
-logger("Generating initial state ...");
+logger("\nGenerating initial state ...");
 @time init = Cytof5.Model.genInitialState(c, dat)
 
 logger("Fitting Model ...");
