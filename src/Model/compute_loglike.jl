@@ -5,7 +5,7 @@ function compute_like(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)
   # TODO: make EPS=1E-8 an option to be specified
   # @leftTrunc! 1E-8 like
   if iszero(like)
-    @warn "compute_like($i, $n, $j, s, c, d) = 0.0 | setting like=1E-6"
+    println("WARNING: compute_like($i, $n, $j, s, c, d) = 0.0 | setting like=1E-6")
     like = 1E-6
   end
 
@@ -26,7 +26,7 @@ function compute_loglike(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data
   # TODO: make MIN_ll=log(1E-6) an option to be specified
   # @leftTrunc! log(1E-6) ll
   if isinf(ll)
-    @warn "compute_loglike($i, $n, $j, s, c, d) = -inf | setting ll=log(1E-6)"
+    println("WARNING: compute_loglike($i, $n, $j, s, c, d) = -inf | setting ll=log(1E-6)")
     ll = log(1E-6)
   end
 
