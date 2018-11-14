@@ -46,7 +46,7 @@ function defaultConstants(data::Data, K::Int, L::Int;
                           b0PriorSd::Number=1.0, b1PriorScale::Number=1/10,
                           tau0::Float64=0.0, tau1::Float64=0.0,
                           probFlip_Z::Float64=1.0 / (data.J * K),
-                          similarity_Z::Function=sim_fn_abs(2))
+                          similarity_Z::Function=sim_fn_abs(0))
   alpha_prior = Gamma(3.0, 0.5)
   mus_prior = Dict{Int, Truncated{Normal{Float64}, Continuous}}()
   vec_y = vcat(vec.(data.y)...)
