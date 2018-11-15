@@ -27,9 +27,9 @@ function update_state(s::State, c::Constants, d::Data, tuners::Tuners,
     update_Z(s, c, d)
   end
   @doIf isRandom(:v)          update_v(s, c, d)
+  @doIf isRandom(:alpha)      update_alpha(s, c, d)
   @doIf isRandom(:W)          update_W(s, c, d)
   @doIf isRandom(:lam)        update_lam(s, c, d)
-  @doIf isRandom(:alpha)      update_alpha(s, c, d)
 
   @doIf isRandom(:gam)        update_gam(s, c, d) 
   @doIf isRandom(:eta)        update_eta(s, c, d)
