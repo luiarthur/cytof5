@@ -18,7 +18,7 @@ end
   J = 8
   K = 5
   N = [3, 1, 2] .* 10
-  L = 4
+  L = Dict{Int, Int}(0 => 5, 1 => 3)
 
   import Cytof5.Model
   import Cytof5.Model.Cube
@@ -58,7 +58,7 @@ end
   J = 8
   N = [3, 1, 2] * 100
   K = 4
-  L = 5
+  L = Dict{Int, Int}(0 => 5, 1 => 3)
   @time dat = Cytof5.Model.genData(I, J, N, K, L)
 
   plot_dat = R"cytof3::plot_dat"
@@ -83,7 +83,7 @@ end
   J = 8
   N = [3, 1, 2] * 100 # Super fast even for 10000 obs. 
   K = 4
-  L = 4
+  L = Dict{Int, Int}(0 => 5, 1 => 3)
   @time dat = Cytof5.Model.genData(I, J, N, K, L, sortLambda=true)
   y_dat = Cytof5.Model.Data(dat[:y])
 
