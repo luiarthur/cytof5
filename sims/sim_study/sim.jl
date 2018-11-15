@@ -39,13 +39,19 @@ function parse_cmd()
     "--K"
       arg_type = Int
       required = true
-    "--L"
-      arg_type = Int
-      required = true
     "--K_MCMC"
       arg_type = Int
       required = true
-    "--L_MCMC"
+    "--L0"
+      arg_type = Int
+      required = true
+    "--L1"
+      arg_type = Int
+      required = true
+    "--L0_MCMC"
+      arg_type = Int
+      required = true
+    "--L1_MCMC"
       arg_type = Int
       required = true
     "--RESULTS_DIR"
@@ -102,9 +108,15 @@ J = PARSED_ARGS["J"]
 N_factor = PARSED_ARGS["N_factor"]
 N = N_factor * [3, 1, 2]
 K = PARSED_ARGS["K"]
-L = PARSED_ARGS["L"]
 K_MCMC = PARSED_ARGS["K_MCMC"]
-L_MCMC = PARSED_ARGS["L_MCMC"]
+
+L0 = PARSED_ARGS["L0"]
+L1 = PARSED_ARGS["L1"]
+L = Dict(0 => L0, 1 => L1)
+L0_MCMC = PARSED_ARGS["L0_MCMC"]
+L1_MCMC = PARSED_ARGS["L1_MCMC"]
+L_MCMC = Dict(0 => L0_MCMC, 1 => L1_MCMC)
+
 EXP_NAME = PARSED_ARGS["EXP_NAME"]
 SEED = PARSED_ARGS["SEED"]
 b0PriorSd = PARSED_ARGS["b0PriorSd"]
@@ -133,10 +145,10 @@ Z = Cytof5.Model.genZ(J, K, 0.6)
 dat = Cytof5.Model.genData(I, J, N, K, L, Z,
                            Dict(:b0=>-9.2, :b1=>2.3), # missMechParams
                            [0.2, 0.1, 0.3], # sig2
-                           Dict(0=>-(0 .+ rand(L) * 5), #mus
-                                1=>  0 .+ rand(L) * 5),
+                           Dict(0=>-rand(L[0]) * 5,  # mus0
+                                1=> rand(L[1]) * 5), # mus1
                            rand(K)*10, # a_W
-                           Dict([ z => rand(L)*10 for z in 0:1 ]), # a_eta
+                           Dict(z => rand(L[z])*10 for z in 0:1), # a_eta
                            sortLambda=false, propMissingScale=0.7)
 
 y_dat = Cytof5.Model.Data(dat[:y])

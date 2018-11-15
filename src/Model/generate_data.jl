@@ -59,21 +59,21 @@ end
 Z = Int.(randn(3,5) .> 0)
 =#
 
-function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Int;
+function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Dict{Int, Int};
                  useSimpleZ::Bool=true, prob1::Float64=.6,
                  sortLambda::Bool=false, propMissingScale::Float64=0.7)
   Z = useSimpleZ ? genSimpleZ(J, K) : genZ(J, K, prob1)
   genData(I, J, N, K, L, Z,
           Dict(:b0=>-9.2, :b1=>2.3), # missMechParams
           fill(0.1, I), # sig2
-          Dict(0=>collect(range(-5, length=L, stop=-1)), #mus
-               1=>collect(range(1, length=L, stop=5))),
+          Dict(0=>collect(range(-5, length=L[0], stop=-1)), #mus
+               1=>collect(range(1, length=L[1], stop=5))),
           [float(i) for i in 1:K], # a_W
-          Dict([ z => [float(l) for l in 1:L] for z in 0:1 ]), # a_eta
+          Dict([ z => [float(l) for l in 1:L[z]] for z in 0:1 ]), # a_eta
           sortLambda=sortLambda, propMissingScale=propMissingScale)
 end
 
-function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Int,
+function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Dict{Int, Int},
                  Z::Matrix{Int}, missMechParams::Dict{Symbol,Float64},
                  sig2::Vector{Float64}, mus::Dict{Int, Vector{Float64}}, 
                  a_W::Vector{Float64}, a_eta::Dict{Int, Vector{Float64}};
@@ -92,15 +92,15 @@ function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Int,
 
   # Check mus dimensions
   @assert all(mus[0] .< 0) && all(mus[1] .> 0)
-  @assert length(mus[0]) == L && length(mus[1]) == L
+  @assert length(mus[0]) == L[0] && length(mus[1]) == L[1]
 
   # Check a_W dimensions
   @assert length(a_W) == K
   @assert all(a_W .> 0)
 
   # Check a_eta dimensions
-  @assert length(a_eta[0]) == L
-  @assert length(a_eta[1]) == L
+  @assert length(a_eta[0]) == L[0]
+  @assert length(a_eta[1]) == L[1]
   @assert all(a_eta[0] .> 0)
   @assert all(a_eta[1] .> 0)
 
@@ -117,7 +117,7 @@ function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Int,
   end
 
   # Simulate eta
-  eta = Dict([ z => zeros(Float64, I, J, L) for z in 0:1 ])
+  eta = Dict([ z => zeros(Float64, I, J, L[z]) for z in 0:1 ])
   for i in 1:I
     for j in 1:J
       eta[0][i, j, :] = rand(Dirichlet(Random.shuffle(a_eta[0])))

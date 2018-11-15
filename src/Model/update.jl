@@ -31,7 +31,7 @@ function update_state(s::State, c::Constants, d::Data, tuners::Tuners,
   @doIf isRandom(:W)          update_W(s, c, d)
   @doIf isRandom(:lam)        update_lam(s, c, d)
 
-  @doIf isRandom(:gam)        update_gam(s, c, d) 
+  @doIf isRandom(:gam)        update_gam(s, c, d) # must be done between updating Z and mus
   @doIf isRandom(:eta)        update_eta(s, c, d)
 
   @doIf isRandom(:mus)        update_mus(s, c, d)

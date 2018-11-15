@@ -1,6 +1,6 @@
 function update_mus(s::State, c::Constants, d::Data)
-  sumYOverSig2 = Dict([z => zeros(c.L) for z in 0:1])
-  cardinality = Dict([z => zeros(Int, d.I, c.L) for z in 0:1])
+  sumYOverSig2 = Dict(z => zeros(c.L[z]) for z in 0:1)
+  cardinality = Dict(z => zeros(Int, d.I, c.L[z]) for z in 0:1)
   for i in 1:d.I
     for j in 1:d.J
       for n in 1:d.N[i]
@@ -13,7 +13,7 @@ function update_mus(s::State, c::Constants, d::Data)
   end
 
   for z in 0:1
-    for l in 1:c.L
+    for l in 1:c.L[z]
       # Note that priorMu and priorSig are NOT the prior mean and std. They are PARAMETERS in 
       # the truncated normal!
       (priorM, priorS, newLower, newUpper) = params(priorMu(z, l, s, c))

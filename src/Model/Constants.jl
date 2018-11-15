@@ -8,13 +8,13 @@ end
   alpha_prior::Gamma # alpha ~ Gamma(shape, scale)
   mus_prior::Dict{Int, Truncated{Normal{Float64}, Continuous}} # mu*[z,l] ~ TN(mean,sd)
   W_prior::Dirichlet # W_i ~ Dir_K(d)
-  eta_prior::Dirichlet # eta_zij ~ Dir_L(a)
+  eta_prior::Dict{Int, Dirichlet{Float64}} # eta_zij ~ Dir_Lz(a)
   sig2_prior::InverseGamma # sig2_i ~ IG(shape, scale)
   b0_prior::Vector{Normal{Float64}} # b0 ~ Normal(mean, sd)
   b1_prior::Vector{Gamma{Float64}} # b1 ~ Gamma(shape, scale) (positive)
   #b1_prior::Vector{Uniform} # b1 ~ Unif(a, b) (positive)
   K::Int
-  L::Int
+  L::Dict{Int, Int}
   # For repulsive Z
   probFlip_Z::Float64
   similarity_Z::Function
@@ -41,7 +41,7 @@ end
 b0PriorSd: bigger -> more uncertainty.
 b1PriorScale: bigger -> more uncertainty. prior scale is the empirical mean / scale. So prior mean is empirical mean.
 """
-function defaultConstants(data::Data, K::Int, L::Int;
+function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
                           pBounds=(.9, .01), yQuantiles=(.01, .10),
                           b0PriorSd::Number=1.0, b1PriorScale::Number=1/10,
                           tau0::Float64=0.0, tau1::Float64=0.0,
@@ -61,7 +61,7 @@ function defaultConstants(data::Data, K::Int, L::Int;
   mus_prior[0] = TruncatedNormal(mean(y_neg), tau0, -10,  0)
   mus_prior[1] = TruncatedNormal(mean(y_pos), tau1,   0, 10)
   W_prior = Dirichlet(K, 1 / K)
-  eta_prior = Dirichlet(L, 1 / L)
+  eta_prior = Dict(z => Dirichlet(L[z], 1 / L[z]) for z in 0:1)
   sig2_prior = InverseGamma(3.0, 2 / 3)
 
   # TODO: use empirical bayes to find these priors
@@ -79,13 +79,12 @@ function defaultConstants(data::Data, K::Int, L::Int;
                    probFlip_Z=probFlip_Z, similarity_Z=similarity_Z)
 end
 
-# TODO: Test
 function priorMu(z::Int, l::Int, s::State, c::Constants)
   L = c.L
 
   if l == 1
     lower, upper = minimum(c.mus_prior[z]), s.mus[z][l+1]
-  elseif l == L
+  elseif l == L[z]
     lower, upper = s.mus[z][l-1], maximum(c.mus_prior[z])
   else
     lower, upper = s.mus[z][l-1], s.mus[z][l+1]
@@ -134,7 +133,7 @@ function genInitialState(c::Constants, d::Data)
   alpha = rand(c.alpha_prior)
   v = rand(Beta(alpha / c.K, 1), K)
   Z = [ rand(Bernoulli(v[k])) for j in 1:J, k in 1:K ]
-  mus = Dict([z => sort(rand(c.mus_prior[z], L)) for z in 0:1])
+  mus = Dict([z => sort(rand(c.mus_prior[z], L[z])) for z in 0:1])
   sig2 = [rand(c.sig2_prior) for i in 1:I]
   b0 = [ rand(c.b0_prior[i]) for i in 1:I ]
   b1 = [ rand(c.b1_prior[i]) for i in 1:I ]
@@ -142,11 +141,20 @@ function genInitialState(c::Constants, d::Data)
   lam = [ rand(Categorical(W[i,:]), N[i]) for i in 1:I ]
   eta = begin
     function gen(z)
-      arrMatTo3dArr([ rand(c.eta_prior) for i in 1:I, j in 1:J ])
+      arrMatTo3dArr([ rand(c.eta_prior[z]) for i in 1:I, j in 1:J ])
     end
     Dict([z => gen(z) for z in 0:1])
   end
-  gam = [[rand(Categorical(eta[Z[j, lam[i][n]]][i, j, :])) for n in 1:N[i], j in 1:J] for i in 1:I]
+  gam = [zeros(Int64, N[i], J) for i in 1:I]
+  for i in 1:I
+    for j in 1:J
+      for n in 1:N[i]
+        z_lin = Z[j, lam[i][n]]
+        gam[i][n, j] = rand(Categorical(eta[z_lin][i, j, :]))
+      end
+    end
+  end
+  # gam = [[rand(Categorical(eta[Z[j, lam[i][n]]][i, j, :])) for n in 1:N[i], j in 1:J] for i in 1:I]
 
   return State(Z=Z, mus=mus, alpha=alpha, v=v, W=W, sig2=sig2, 
                eta=eta, lam=lam, gam=gam, y_imputed=y_imputed,

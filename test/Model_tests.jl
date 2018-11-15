@@ -18,7 +18,7 @@ end
   J = 8
   K = 5
   N = [3, 1, 2] .* 10
-  L = 4
+  L = Dict{Int, Int}(0 => 5, 1 => 3)
 
   import Cytof5.Model
   import Cytof5.Model.Cube
@@ -58,7 +58,7 @@ end
   J = 8
   N = [3, 1, 2] * 100
   K = 4
-  L = 5
+  L = Dict{Int, Int}(0 => 5, 1 => 3)
   @time dat = Cytof5.Model.genData(I, J, N, K, L)
 
   plot_dat = R"cytof3::plot_dat"
@@ -83,7 +83,8 @@ end
   J = 8
   N = [3, 1, 2] * 100 # Super fast even for 10000 obs. 
   K = 4
-  L = 4
+  # L = Dict{Int, Int}(0 => 5, 1 => 3)
+  L = Dict{Int, Int}(0 => 4, 1 => 4)
   @time dat = Cytof5.Model.genData(I, J, N, K, L, sortLambda=true)
   y_dat = Cytof5.Model.Data(dat[:y])
 
@@ -100,17 +101,6 @@ end
   end
 
   @time init = Cytof5.Model.genInitialState(c, y_dat)
-
-  #init.Z = Cytof5.Model.padZeroCols(dat[:Z], K_MCMC)
-  #init.mus = dat[:mus]
-  #init.W = dat[:W]
-  #init.eta = dat[:eta]
-  #init.lam = dat[:lam]
-  #init.gam = dat[:gam]
-  #init.sig2 = dat[:sig2]
-  #init.y_imputed = dat[:y_complete]
-  #init.b0 = dat[:b0]
-  #init.b1 = dat[:b1]
 
   printstyled("Test Model Fitting...\n", color=:yellow)
   @time out, lastState, ll = Cytof5.Model.cytof5_fit(init, c, y_dat,
