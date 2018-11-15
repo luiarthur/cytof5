@@ -156,6 +156,15 @@ function cytof5_fit(init::State, c::Constants, d::Data;
     end
   end
 
+  if isinf(compute_loglike(init, c, d, normalize=true))
+    println("Error: Initial state yields likelihood of zero.")
+    println("Please check initial values.")
+    println("STOPPING MCMC!")
+    return
+  else
+    println("")
+  end
+
   out, lastState = MCMC.gibbs(init, update, monitors=monitors,
                               thins=thins, nmcmc=nmcmc, nburn=nburn,
                               printFreq=printFreq,
