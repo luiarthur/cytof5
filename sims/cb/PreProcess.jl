@@ -26,14 +26,25 @@ function isBadColumnForAllSamples(j::Int, y::Vector{Matrix{T}};
 end
 
 """
+subsample data if 0 < `subsample` < 1
 returns goodColumns, new_J
 """
 function preprocess!(y::Vector{Matrix{T}}; maxNanOrNegProp::Float64=.9,
-                     maxPosProp::Float64=.9) where {T}
+                     maxPosProp::Float64=.9, subsample::Float64=0.0) where {T}
   Js = size.(y, 2)
   J = Js[1]
   I = length(y)
   @assert all(J .== Js)
+  @assert 0 <= subsample <= 1
+
+  if 0 < subsample < 1
+    for i in 1:I
+      Ni = size(y[i], 1)
+      new_Ni = Int(round(Ni * subsample))
+      random_indices = rand(1:Ni, new_Ni)
+      y[i] = y[i][random_indices, :]
+    end
+  end
 
   goodColumns = [!isBadColumnForAllSamples(j, y, maxNanOrNegProp=maxNanOrNegProp,
                                            maxPosProp=maxPosProp) for j in 1:J]

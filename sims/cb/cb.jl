@@ -10,6 +10,7 @@ function loadSingleObj(objPath)
   return data[collect(keys(data))[1]]
 end
 
+#{{{1
 # ARG PARSING
 function parse_cmd()
   s = ArgParseSettings()
@@ -24,7 +25,10 @@ function parse_cmd()
     "--K_MCMC"
       arg_type = Int
       required = true
-    "--L_MCMC"
+    "--L0_MCMC"
+      arg_type = Int
+      required = true
+    "--L1_MCMC"
       arg_type = Int
       required = true
     "--b0PriorSd"
@@ -42,6 +46,9 @@ function parse_cmd()
     "--SEED"
       arg_type = Int
       default = 0
+    "--subsample"
+      arg_type = Float64
+      default = 0.0
     "--b0TunerInit"
       arg_type = Float64
       default = 0.1
@@ -71,6 +78,7 @@ function parse_cmd()
 
   return parse_args(s)
 end
+#}}}1
 
 println("Parsing command args ...") 
 PARSED_ARGS = parse_cmd()
@@ -81,7 +89,7 @@ end
 MCMC_ITER = PARSED_ARGS["MCMC_ITER"]
 BURN = PARSED_ARGS["BURN"]
 K_MCMC = PARSED_ARGS["K_MCMC"]
-L_MCMC = PARSED_ARGS["L_MCMC"]
+L_MCMC = Dict(0 => PARSED_ARGS["L0_MCMC"], 1 => PARSED_ARGS["L1_MCMC"])
 b0PriorSd = PARSED_ARGS["b0PriorSd"]
 b1PriorScale = PARSED_ARGS["b1PriorScale"]
 TAU0= PARSED_ARGS["tau0"]
@@ -97,10 +105,10 @@ cbDataPath = PARSED_ARGS["DATA_PATH"]
 fix_b0 = PARSED_ARGS["fix_b0"]
 fix_b1 = PARSED_ARGS["fix_b1"]
 fix = Vector{Symbol}()
+subsample = PARSED_ARGS["subsample"]
 
 if fix_b0 fix=[fix; :b0] end
 if fix_b1 fix=[fix; :b1] end
-
 
 Random.seed!(SEED);
 # End of ArgParse
@@ -112,7 +120,9 @@ mkpath(OUTDIR)
 # Read CB Data
 cbData = loadSingleObj(cbDataPath)
 # Reduce Data by removing highly non-expressive / expressive columns
-goodColumns, J = PreProcess.preprocess!(cbData, maxNanOrNegProp=.9, maxPosProp=.9)
+goodColumns, J = PreProcess.preprocess!(cbData, maxNanOrNegProp=.9, maxPosProp=.9,
+                                        subsample=subsample)
+# Possibly reduce data size
 Cytof5.Model.logger(size.(cbData))
 
 # Save Reduced Data

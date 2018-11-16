@@ -15,7 +15,8 @@ STAGGER_TIME=100
 MCMC_ITER=1000
 BURN=20000
 K_MCMC="`seq -w 2 10`"
-L_MCMC="2 3 4"
+L0_MCMC="5"
+L1_MCMC="3"
 betaPriorScale="0.1"
 betaTunerInit="0.1"
 TAU0="0.1"
@@ -35,7 +36,7 @@ then
   MCMC_ITER=50
   BURN=100
   K_MCMC=10
-  L_MCMC=3
+  subsample="0.01"
   isTest="_isTest"
 fi
 
@@ -49,7 +50,6 @@ then
   MCMC_ITER=1000
   BURN=20000
   K_MCMC=10
-  L_MCMC=5
   isTest="_repFAMTest"
   otherFlags="--USE_REPULSIVE=true"
 fi
@@ -60,40 +60,40 @@ simNumber=0
 
 
 for k_mcmc in $K_MCMC; do
-  for l_mcmc in $L_MCMC; do
-    # Simulation number
-    simNumber=$((simNumber + 1)) 
+  # Simulation number
+  simNumber=$((simNumber + 1)) 
 
-    # Experiment name
-    exp_name="K_MCMC${k_mcmc}_L_MCMC${l_mcmc}_tau0_${TAU0}_tau1_${TAU1}_scale${betaPriorScale}_tuner${betaTunerInit}_SEED${SEED}_fix_b1$isTest"
+  # Experiment name
+  exp_name="K_MCMC${k_mcmc}_L0_MCMC${L0_MCMC}_L1_MCMC${L1_MCMC}_tau0_${TAU0}_tau1_${TAU1}_scale${betaPriorScale}_tuner${betaTunerInit}_SEED${SEED}_fix_b1_SUBSAMPLE${subsample}_$isTest"
 
-    # Output directory
-    outdir="$RESULTS_DIR/$exp_name/"
-    mkdir -p $outdir
+  # Output directory
+  outdir="$RESULTS_DIR/$exp_name/"
+  mkdir -p $outdir
 
-    # Julia Command to run
-    jlCmd="julia cb.jl --K_MCMC=${k_mcmc} --L_MCMC=${l_mcmc} \
-      --b0PriorSd=${betaPriorScale} --b1PriorScale=${betaPriorScale} \
-      --b0TunerInit=${betaTunerInit} --b1TunerInit=${betaTunerInit} --fix_b1=${fix_b1} \
-      --tau0=$TAU0 --tau1=$TAU1 \
-      --RESULTS_DIR=$RESULTS_DIR --EXP_NAME=$exp_name \
-      --MCMC_ITER=$MCMC_ITER --BURN=$BURN --SEED=${SEED} \
-      --DATA_PATH=${DATA_PATH} \
-      ${otherFlags}"
+  # Julia Command to run
+  jlCmd="julia cb.jl --K_MCMC=${k_mcmc} \
+    --L0_MCMC=${L0_MCMC} --L1_MCMC=${L1_MCMC} \
+    --b0PriorSd=${betaPriorScale} --b1PriorScale=${betaPriorScale} \
+    --b0TunerInit=${betaTunerInit} --b1TunerInit=${betaTunerInit} --fix_b1=${fix_b1} \
+    --subsample=$subsample \
+    --tau0=$TAU0 --tau1=$TAU1 \
+    --RESULTS_DIR=$RESULTS_DIR --EXP_NAME=$exp_name \
+    --MCMC_ITER=$MCMC_ITER --BURN=$BURN --SEED=${SEED} \
+    --DATA_PATH=${DATA_PATH} \
+    ${otherFlags}"
 
-    # Sync results to S3
-    syncToS3="aws s3 sync $outdir $AWS_BUCKET/$exp_name --exclude '*.nfs*'"
+  # Sync results to S3
+  syncToS3="aws s3 sync $outdir $AWS_BUCKET/$exp_name --exclude '*.nfs*'"
 
-    # Remove output files to save space on cluster
-    rmOutput="rm -rf ${outdir}"
+  # Remove output files to save space on cluster
+  rmOutput="rm -rf ${outdir}"
 
-    cmd="$jlCmd > ${outdir}/log.txt && $syncToS3 && $rmOutput"
+  cmd="$jlCmd > ${outdir}/log.txt && $syncToS3 && $rmOutput"
 
-    sem -j $MAX_CORES $cmd
-    echo $cmd
+  sem -j $MAX_CORES $cmd
+  echo $cmd
 
-    echo "Results for simulation $simNumber -> $outdir"
+  echo "Results for simulation $simNumber -> $outdir"
 
-    sleep $STAGGER_TIME
-  done
+  sleep $STAGGER_TIME
 done

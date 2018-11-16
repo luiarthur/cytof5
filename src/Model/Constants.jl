@@ -162,7 +162,7 @@ end
 
 function printConstants(c::Constants, preprintln::Bool=true)
   if preprintln
-    println("Priors:")
+    println("Constants:")
   end
 
   for fname in fieldnames(typeof(c))
