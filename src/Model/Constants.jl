@@ -135,8 +135,8 @@ function genInitialState(c::Constants, d::Data)
   Z = [ rand(Bernoulli(v[k])) for j in 1:J, k in 1:K ]
   mus = Dict([z => sort(rand(c.mus_prior[z], L[z])) for z in 0:1])
   sig2 = [rand(c.sig2_prior) for i in 1:I]
-  b0 = [ rand(c.b0_prior[i]) for i in 1:I ]
-  b1 = [ rand(c.b1_prior[i]) for i in 1:I ]
+  b0 = mean.(c.b0_prior)
+  b1 = mean.(c.b1_prior)
   W = Matrix{Float64}(hcat([ rand(c.W_prior) for i in 1:I ]...)')
   lam = [ rand(Categorical(W[i,:]), N[i]) for i in 1:I ]
   eta = begin
@@ -154,9 +154,33 @@ function genInitialState(c::Constants, d::Data)
       end
     end
   end
-  # gam = [[rand(Categorical(eta[Z[j, lam[i][n]]][i, j, :])) for n in 1:N[i], j in 1:J] for i in 1:I]
 
   return State(Z=Z, mus=mus, alpha=alpha, v=v, W=W, sig2=sig2, 
                eta=eta, lam=lam, gam=gam, y_imputed=y_imputed,
                b0=b0, b1=b1)
+end
+
+function printConstants(c::Constants, preprintln::Bool=true)
+  if preprintln
+    println("Priors:")
+  end
+
+  for fname in fieldnames(typeof(c))
+    x = getfield(c, fname)
+    T = typeof(x)
+    if T <: Number
+      println("$fname: $x")
+    elseif T <: Vector
+      N = length(x)
+      for i in 1:N
+        println("$(fname)[$i]: $(x[i])")
+      end
+    elseif T <: Dict
+      for (k, v) in x
+        println("$(fname)[$k]: $v")
+      end
+    else
+      println("$fname: $x")
+    end
+  end
 end

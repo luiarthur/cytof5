@@ -27,14 +27,20 @@ printFreq: defaults to 0 => prints every 10%. turn off printing by setting to -1
 """
 function cytof5_fit(init::State, c::Constants, d::Data;
                     nmcmc::Int=1000, nburn::Int=1000, 
-                    monitors=[[:Z, :lam, :W, :b0, :b1, :v, :sig2, :mus,
-                               :alpha, :v, :eta]],
-                    fix::Vector{Symbol}=Vector{Symbol}(),
+                    monitors=[[:Z, :lam, :W, :v, :sig2, :mus, :alpha, :v, :eta]],
+                    fix::Vector{Symbol}=[:b0, :b1],
                     thins::Vector{Int}=[1],
                     printFreq::Int=0, flushOutput::Bool=false,
                     computeDIC::Bool=false, computeLPML::Bool=false,
                     b0_tune_init::Float64=0.1, b1_tune_init::Float64=0.1,
-                    use_repulsive::Bool=false)
+                    use_repulsive::Bool=false, verbose::Int=1)
+
+  if verbose >= 1
+    println("fixing: $(join(fix, ","))")
+
+    beta_is_fixed = (:b0 in fix) && (:b1 in fix)
+    @assert beta_is_fixed
+  end
 
   @assert printFreq >= -1
   if printFreq == 0
@@ -97,17 +103,16 @@ function cytof5_fit(init::State, c::Constants, d::Data;
     end
 
     function loglikeDIC(param::DICparam)::Float64
-      # TODO: make MIN_LL_INJ=-1E8 an option to be specified
       ll = 0.0
 
       for i in 1:d.I
         for j in 1:d.J
           for n in 1:d.N[i]
-            ll_inj = logpdf(Bernoulli(param.p[i][n, j]), d.m[i][n, j])
-            @leftTrunc! -1E8 ll_inj # For numerical stability. Ensure ll > -Inf.
-            ll += ll_inj
+            y_inj_is_missing = (d.m[i][n, j] == 1)
 
-            if d.m[i][n, j] == 0 # observed
+            if y_inj_is_missing
+              ll += logpdf(Bernoulli(param.p[i][n, j]), d.m[i][n, j])
+            else
               ll += logpdf(Normal(param.mu[i][n, j], param.sig[i]), d.y[i][n, j])
             end
           end

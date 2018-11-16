@@ -3,26 +3,7 @@ using Cytof5
 using Random, Distributions
 using JLD2, FileIO
 using ArgParse
-import Base.show
 include("PreProcess.jl")
-
-function show(io::IO, x::InverseGamma)
-  print(io, "InverseGamma(shape=$(shape(x)), scale=$(scale(x)))")
-end
-
-function show(io::IO, x::Gamma)
-  print(io, "Gamma(shape=$(shape(x)), rate=$(rate(x)))")
-end
-
-
-function logger(x; newline=true)
-  if newline
-    println(x)
-  else
-    print(x)
-  end
-  flush(stdout)
-end
 
 function loadSingleObj(objPath)
   data = load(objPath)
@@ -69,10 +50,10 @@ function parse_cmd()
       default = 0.1
     "--fix_b0"
       arg_type = Bool
-      default = false
+      default = true
     "--fix_b1"
       arg_type = Bool
-      default = false
+      default = true
     "--USE_REPULSIVE"
       arg_type = Bool
       default = false
@@ -94,7 +75,7 @@ end
 println("Parsing command args ...") 
 PARSED_ARGS = parse_cmd()
 for (k,v) in PARSED_ARGS
-  logger("$k => $v")
+  Cytof5.Model.logger("$k => $v")
 end
 
 MCMC_ITER = PARSED_ARGS["MCMC_ITER"]
@@ -132,7 +113,7 @@ mkpath(OUTDIR)
 cbData = loadSingleObj(cbDataPath)
 # Reduce Data by removing highly non-expressive / expressive columns
 goodColumns, J = PreProcess.preprocess!(cbData, maxNanOrNegProp=.9, maxPosProp=.9)
-logger(size.(cbData))
+Cytof5.Model.logger(size.(cbData))
 
 # Save Reduced Data
 mkpath("$(OUTDIR)/reduced_data/")
@@ -141,19 +122,16 @@ mkpath("$(OUTDIR)/reduced_data/")
 dat = Cytof5.Model.Data(cbData)
 
 # MAIN
-logger("\nGenerating priors ...");
+Cytof5.Model.logger("\nGenerating priors ...");
 @time c = Cytof5.Model.defaultConstants(dat, K_MCMC, L_MCMC,
                                         tau0=TAU0, tau1=TAU1,
                                         b0PriorSd=b0PriorSd, b1PriorScale=b1PriorScale)
-logger("\nPriors:")
-for fname in fieldnames(typeof(c))
-  logger("$fname => $(getfield(c, fname))")
-end
+Cytof5.Model.printConstants(c)
 
-logger("\nGenerating initial state ...");
+Cytof5.Model.logger("\nGenerating initial state ...");
 @time init = Cytof5.Model.genInitialState(c, dat)
 
-logger("Fitting Model ...");
+Cytof5.Model.logger("Fitting Model ...");
 @time out, lastState, ll, metrics =
   Cytof5.Model.cytof5_fit(init, c, dat, monitors=[[:Z, :lam, :W,
                                                    :b0, :b1, :v,
@@ -170,8 +148,8 @@ logger("Fitting Model ...");
                            use_repulsive=USE_REPULSIVE,
                            printFreq=10, flushOutput=true)
 
-logger("Saving Data ...");
+Cytof5.Model.logger("Saving Data ...");
 @save "$(OUTDIR)/output.jld2" out ll lastState c metrics
 @save "$(OUTDIR)/reduced_data/reduced_cb.jld2" deepcopy(cbData)
 
-logger("MCMC Completed.");
+Cytof5.Model.logger("MCMC Completed.");

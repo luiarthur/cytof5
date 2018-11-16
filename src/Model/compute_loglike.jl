@@ -1,12 +1,26 @@
+#=
+WARNING: These implementations are only true if b0, b1 is held fixed.
+=#
+
+
 function compute_like(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)
   p = prob_miss(s.y_imputed[i][n, j], s.b0[i], s.b1[i])
-  like = pdf(Bernoulli(p), d.m[i][n, j])
+  like = 1.0
+  y_inj_is_missing = (d.m[i][n, j] == 1)
 
-  # multiply to likelihood for y_observed (non-missing)
-  if d.m[i][n, j] == 0
+  if y_inj_is_missing
+    # Don't compute this if it's observed because missing mechanism is fixed
+    # because this will be a constant 
+    like *= pdf(Bernoulli(p), d.m[i][n, j])
+  else
+    # multiply to likelihood for y_observed (non-missing)
     z = s.Z[j, s.lam[i][n]]
     l = s.gam[i][n, j]
     like *= pdf(Normal(s.mus[z][l], sqrt(s.sig2[i])), d.y[i][n, j])
+  end
+
+  if iszero(like)
+    println("WARNING: like = 0 for (i: $i, n: $n, j: $j).")
   end
 
   return like
@@ -14,13 +28,23 @@ end
 
 
 function compute_loglike(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)
-  ll = logpdf(Bernoulli(prob_miss(s.y_imputed[i][n, j], s.b0[i], s.b1[i])), d.m[i][n, j])
+  p = prob_miss(s.y_imputed[i][n, j], s.b0[i], s.b1[i])
+  ll = 0.0
+  y_inj_is_missing = (d.m[i][n, j] == 1)
 
-  # Add to likelihood for y_observed (non-missing)
-  if d.m[i][n, j] == 0
+  if y_inj_is_missing
+    # Don't compute this if it's observed because missing mechanism is fixed
+    # because this will be a constant 
+    ll += logpdf(Bernoulli(p), d.m[i][n, j])
+  else
+    # Add to log-likelihood for y_observed (non-missing)
     z = s.Z[j, s.lam[i][n]]
     l = s.gam[i][n, j]
     ll += logpdf(Normal(s.mus[z][l], sqrt(s.sig2[i])), d.y[i][n, j])
+  end
+
+  if isinf(ll)
+    println("WARNING: loglike = -Inf for (i: $i, n: $n, j: $j).")
   end
 
   return ll
@@ -46,3 +70,4 @@ function compute_loglike(s::State, c::Constants, d::Data; normalize::Bool=true)
 
   return ll
 end
+

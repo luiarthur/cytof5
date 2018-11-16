@@ -2,16 +2,6 @@ Random.seed!(10)
 printDebug = false
 using RCall, Distributions
 using JLD2, FileIO
-import Base.show
-
-function show(io::IO, x::InverseGamma)
-  print(io, "InverseGamma(shape=$(shape(x)), scale=$(scale(x)))")
-end
-
-function show(io::IO, x::Gamma)
-  print(io, "Gamma(shape=$(shape(x)), rate=$(rate(x)))")
-end
-
 
 @testset "Compile Model.State." begin
   I = 3
@@ -95,10 +85,8 @@ end
   K_MCMC = K #10
   L_MCMC = L #5
   @time c = Cytof5.Model.defaultConstants(y_dat, K_MCMC, L_MCMC)
-  println("\nPriors:")
-  for fname in fieldnames(typeof(c))
-    println("$fname => $(getfield(c, fname))")
-  end
+  Cytof5.Model.printConstants(c)
+
 
   @time init = Cytof5.Model.genInitialState(c, y_dat)
 

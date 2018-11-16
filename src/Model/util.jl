@@ -1,3 +1,5 @@
+import Base.show
+
 function padZeroCols(x::Matrix, desiredSize::Int)
   @assert size(x, 2) <= desiredSize
 
@@ -22,10 +24,26 @@ macro doIf(condition, expr)
   end
 end
 
-macro leftTrunc!(minVal, x)
-  return quote
-    if $(esc(x)) < $(esc(minVal))
-      $(esc(x)) = $(esc(minVal))
-    end
-  end
+# Pretty printing of InverseGamma
+function show(io::IO, x::Distributions.InverseGamma)
+  print(io, "InverseGamma(shape=$(shape(x)), scale=$(scale(x)))")
 end
+
+# Pretty printing of Gamma
+function show(io::IO, x::Distributions.Gamma)
+  print(io, "Gamma(shape=$(shape(x)), rate=$(rate(x)))")
+end
+
+
+"""
+log info with println and flush
+"""
+function logger(x; newline=true)
+  if newline
+    println(x)
+  else
+    print(x)
+  end
+  flush(stdout)
+end
+

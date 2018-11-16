@@ -1,10 +1,14 @@
 # TODO
-- [x] strong prior for b0, b1
-    - [x] different tuning parameter for b1?
-    - [x] different prior for b1?
-    - [x] Refer to AMCMC paper
-        - [ ] change M
-        - [ ] change `delta(n) = min(.01, 1/sqrt(n))` to something else
+- [ ] `mclust` package in R to set initial values
+- [ ] quadratic missing mechanism
+- [ ] keep `tau^2` empirically determined, and not artificially small
+- [ ] visually check to see if mu* are reasonably initialized according to
+      `psi` and `tau^2`
+- [ ] FOR NOW, KEEP instead of throw away cells with `y < -6`
+- [ ] FOR NOW, DO NOT remove markers with `> 10` missing markers
+- [ ] plot missing mechanism
+
+# Not Urgent
 - [ ] Use `PyPlot.jl` for plots
 - [ ] Check the repulsive implementations
     - [ ] for sim study
@@ -19,7 +23,6 @@
 - [ ] Use smaller field-types in State
     - [ ] `Float64` => `Float32` for y?
     - [ ] `Int` => `Int8` for indicators like gamma and Z
-- [ ] investigate why `loglike` and `DIC / LPML` is `-infty` sometimes
 
 # DONE
 - [x] FlowSOM detective work:
@@ -41,3 +44,16 @@
     - Should the computation be using `m_inj` as well? Specifically,
       `likelihood= prod(Normal(observed y_inj | params)) * prod(Bern(m_inj | p_inj))`
 - [x] use macro to generate named constructor for any `struct`
+- [x] fixing b0, b1
+  - [x] strong prior for b0, b1
+      - [x] different tuning parameter for b1?
+      - [x] different prior for b1?
+      - [x] Refer to AMCMC paper
+          - [ ] change M
+          - [ ] change `delta(n) = min(.01, 1/sqrt(n))` to something else
+- [x] investigate why `loglike` and `DIC / LPML` is `-infty` sometimes
+    - [x] reason was that observed y were too negative to be observed according to the
+          missing mechanism. In response, we are fixing the missing mechanism and
+          treating the missing mechanism parts as constants in likelihood.
+- [x] change the update order
+- [x] For log-like, LPML, DIC, don't compute `p(miss=1 | y_obs)`

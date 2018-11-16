@@ -4,17 +4,10 @@ println("Loading packages...")
   using Random
   using JLD2, FileIO
   using ArgParse
+  import Cytof5.Model.logger
 end
 println("Done loading packages.")
 
-function logger(x; newline=true)
-  if newline
-    println(x)
-  else
-    print(x)
-  end
-  flush(stdout)
-end
 
 # ARG PARSING
 function parse_cmd()
@@ -157,6 +150,7 @@ logger("Generating priors ...");
 @time c = Cytof5.Model.defaultConstants(y_dat, K_MCMC, L_MCMC,
                                         b0PriorSd=b0PriorSd,
                                         b1PriorScale=b1PriorScale)
+Cytof5.Model.printConstants(c)
 
 logger("Generating initial state ...");
 @time init = Cytof5.Model.genInitialState(c, y_dat)
