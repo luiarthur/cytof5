@@ -1,17 +1,27 @@
-function prob_miss(y, b0, b1)
-  return MCMC.sigmoid(b0 - b1 * y)
+# TODO: Test
+function prob_miss(y::Float64, b0::Float64, b1::Float64, b2::Float64)
+  n = length(beta)
+  return MCMC.sigmoid(b0 + b1 * y + b2 * y^2)
 end
 
-function solveB(yBounds::Tuple, pBounds::Tuple)
-  pLower, pUpper = pBounds
-  yLower, yUpper = yBounds
-  @assert pLower > pUpper # probability of missing at smaller y values should be higher
-  @assert yLower < yUpper
+function solveB(yBounds::Vector{Float64}, pBounds::Vector{Float64})
+  n = 3
 
-  b1 = (MCMC.logit(pLower) - MCMC.logit(pUpper)) / (yUpper - yLower)
-  b0 = MCMC.logit(pLower) + b1 * yLower
+  @assert length(yBounds) == n
+  @assert length(pBounds) == n
 
-  return (b0, b1)
+  pLower, pCenter, pUpper = pBounds
+  yLower, yCenter, yUpper = yBounds
+
+  @assert pLower < pCenter > pUpper # Quadratic missing mechanism
+  @assert yLower < yCenter < yUpper
+
+  Y = [fill(1.0, n) (yBounds) (yBounds .^ 2)]
+  beta = Y \ MCMC.logit.(pBounds)
+
+  @assert all(abs.(MCMC.sigmoid.(Y * beta) - pBounds) .< 1E-10)
+
+  return beta
 end
 
 
