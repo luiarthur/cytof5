@@ -1,19 +1,37 @@
 const Cube = Array{T, 3} where T
 
-@namedargs mutable struct State
-  Z::Matrix{Int} # Dim: J x K. Z[j,k] ∈ {0, 1}
-  mus::Dict{Int, Vector{Float64}}
-  alpha::Float64
-  v::Vector{Float64}
-  W::Matrix{Float64}
-  sig2::Vector{Float64}
-  eta::Dict{Int, Cube{Float64}}
-  lam::Vector{Vector{Int}} # Array of Array. lam[1:I] ∈ {1,...,K}
-  gam::Vector{Matrix{Int}}
-  y_imputed::Vector{Matrix{Float64}}
+@namedargs mutable struct State{F <: AbstractFloat}
+  Z::Matrix{Bool} # Dim: J x K. Z[j,k] ∈ {0, 1}. true => 1, false => 0
+  mus::Dict{Bool, Vector{F}}
+  alpha::F
+  v::Vector{F}
+  W::Matrix{F}
+  sig2::Vector{F}
+  eta::Dict{Bool, Cube{F}}
+  lam::Vector{Vector{Int8}} # Array of Array. lam[1:I] ∈ {1,...,K}
+  gam::Vector{Matrix{Int8}}
+  y_imputed::Vector{Matrix{F}}
 end
 
 #= Note:
 genInitialState(c::Constants, d::Data)
 is in Constants.jl.
 =#
+
+function compress(state::State)
+  println("WARNING: The `compress` function has not been fully tested and will result in errors!")
+  if typeof(state) == State{Float32}
+    return state
+  else
+    return State(Z=Matrix{Bool}(state.Z),
+                 mus=Dict{Bool, Vector{Float32}}(state.mus),
+                 alpha=Float32(state.alpha),
+                 v=Float32.(state.v),
+                 W=Float32.(state.W),
+                 sig2=Float32.(state.sig2),
+                 eta=Dict{Bool, Cube{Float32}}(state.eta),
+                 lam=Vector{Vector{Int8}}(state.lam),
+                 gam=Vector{Matrix{Int8}}(state.gam),
+                 y_imputed=Vector{Matrix{Float32}}(state.y_imputed))
+  end
+end

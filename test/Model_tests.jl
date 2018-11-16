@@ -13,18 +13,16 @@ using JLD2, FileIO
   import Cytof5.Model
   import Cytof5.Model.Cube
 
-  Z=Matrix{Int8}(undef, J, K)
-  mus=Dict{Int8, Vector{Float16}}()
-  alpha=1.0
-  v=fill(1.0, K)
-  W=rand(I,K)
-  sig2=Vector{Float16}(undef, I)
-  eta=Dict{Int8, Cube{Float16}}()
-  lam=[fill(1, N[i]) for i in 1:I]
-  gam=[ones(Int, N[i], J) for i in 1:I]
-  y_imputed=[randn(N[i], J) for i in 1:I]
-
-  Model.State(Z, mus, alpha, v, W, sig2, eta, lam, gam, y_imputed)
+  Model.State(Z=Matrix{Bool}(undef, J, K),
+              mus=Dict{Bool, Vector{Float16}}(),
+              alpha=Float16(1.0),
+              v=ones(Float16, K),
+              W=rand(Float16, I, K),
+              sig2=Vector{Float16}(undef, I),
+              eta=Dict{Bool, Cube{Float16}}(),
+              lam=[ones(Int8, N[i]) for i in 1:I],
+              gam=[ones(Int8, N[i], J) for i in 1:I],
+              y_imputed=[randn(Float16, N[i], J) for i in 1:I])
   @test true
 
   # Debug Data constructor
@@ -104,6 +102,7 @@ end
                                                      computeLPML=true,
                                                      computeDIC=true)
 
+  println("typeof output: $(typeof(out[1])))")
   Zpost = [o[:Z] for o in out[1]]
   R"pdf('result/Z_post_mean.pdf')"
   R"image"(1 .- mean(Zpost))

@@ -118,18 +118,18 @@ function genInitialState(c::Constants, d::Data)
 
   alpha = rand(c.alpha_prior)
   v = rand(Beta(alpha / c.K, 1), K)
-  Z = [ rand(Bernoulli(v[k])) for j in 1:J, k in 1:K ]
-  mus = Dict([z => sort(rand(c.mus_prior[z], L[z])) for z in 0:1])
+  Z = [ Bool(rand(Bernoulli(v[k]))) for j in 1:J, k in 1:K ]
+  mus = Dict([Bool(z) => sort(rand(c.mus_prior[z], L[z])) for z in 0:1])
   sig2 = [rand(c.sig2_prior) for i in 1:I]
   W = Matrix{Float64}(hcat([ rand(c.W_prior) for i in 1:I ]...)')
-  lam = [ rand(Categorical(W[i,:]), N[i]) for i in 1:I ]
+  lam = [ Int8.(rand(Categorical(W[i,:]), N[i])) for i in 1:I ]
   eta = begin
     function gen(z)
       arrMatTo3dArr([ rand(c.eta_prior[z]) for i in 1:I, j in 1:J ])
     end
-    Dict([z => gen(z) for z in 0:1])
+    Dict([Bool(z) => gen(z) for z in 0:1])
   end
-  gam = [zeros(Int64, N[i], J) for i in 1:I]
+  gam = [zeros(Int8, N[i], J) for i in 1:I]
   for i in 1:I
     for j in 1:J
       for n in 1:N[i]

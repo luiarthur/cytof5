@@ -1,5 +1,5 @@
 # TODO: Test
-function prob_miss(y::Float64, beta::Vector{Float64})
+function prob_miss(y::AbstractFloat, beta::Vector{Float64})
   n = length(beta)
   x = sum((y .^ (0:n-1)) .* beta)
   return MCMC.sigmoid(x)

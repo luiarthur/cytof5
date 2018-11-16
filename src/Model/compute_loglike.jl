@@ -1,4 +1,4 @@
-function compute_like(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)
+function compute_like(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)::Float64
   p = prob_miss(s.y_imputed[i][n, j], c.beta[:, i])
   like = 1.0
   y_inj_is_missing = (d.m[i][n, j] == 1)
@@ -22,7 +22,7 @@ function compute_like(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)
 end
 
 
-function compute_loglike(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)
+function compute_loglike(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)::Float64
   p = prob_miss(s.y_imputed[i][n, j], c.beta[:, i])
   ll = 0.0
   y_inj_is_missing = (d.m[i][n, j] == 1)
@@ -46,7 +46,7 @@ function compute_loglike(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data
 end
 
 
-function compute_loglike(s::State, c::Constants, d::Data; normalize::Bool=true)
+function compute_loglike(s::State, c::Constants, d::Data; normalize::Bool=true)::Float64
   ll = 0.0
 
   sumN = sum(d.N)
