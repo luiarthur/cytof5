@@ -58,3 +58,14 @@
           missing mechanism. In response, we are fixing the missing mechanism and
           treating the missing mechanism parts as constants in likelihood.
 
+
+# Notes:
+- when working on git branches for solo projects, this one liner can push all branches
+  to the remote
+  ```bash
+  git push --all -u
+
+  # this will fetch branch from remote
+  git fetch
+  git checkout <mybranch>
+  ```
