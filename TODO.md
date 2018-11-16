@@ -1,12 +1,14 @@
 # TODO
-- [ ] `mclust` package in R to set initial values
 - [ ] quadratic missing mechanism
-- [ ] keep `tau^2` empirically determined, and not artificially small
+- [ ] `mclust` package in R to set initial values
 - [ ] visually check to see if mu* are reasonably initialized according to
       `psi` and `tau^2`
 - [ ] FOR NOW, KEEP instead of throw away cells with `y < -6`
 - [ ] FOR NOW, DO NOT remove markers with `> 10` missing markers
 - [ ] plot missing mechanism
+- [x] change the update order
+- [x] For log-like, LPML, DIC, don't compute `p(miss=1 | y_obs)`
+- [x] keep `tau^2` empirically determined, and not artificially small
 
 # Not Urgent
 - [ ] Use `PyPlot.jl` for plots
@@ -55,5 +57,4 @@
     - [x] reason was that observed y were too negative to be observed according to the
           missing mechanism. In response, we are fixing the missing mechanism and
           treating the missing mechanism parts as constants in likelihood.
-- [x] change the update order
-- [x] For log-like, LPML, DIC, don't compute `p(miss=1 | y_obs)`
+
