@@ -34,7 +34,7 @@ end
 Genearte default values for constants
 """
 function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
-                          pBounds=[.05, .8, .05], yQuantiles=[0, .1, .25],
+                          pBounds=[.01, .8, .05], yQuantiles=[0.01, .1, .25],
                           tau0::Float64=0.0, tau1::Float64=0.0,
                           probFlip_Z::Float64=1.0 / (data.J * K),
                           similarity_Z::Function=sim_fn_abs(0))

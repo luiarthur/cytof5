@@ -64,31 +64,12 @@ function estimate_ZWi_index(monitor, i)
   return argmin(mse)
 end
 
-function postProbMiss(b0, b1, i::Int;
-                      y::Vector{Float64}=collect(-10:.1:10),
-                      credibility::Float64=.95)
+function plotProbMiss(beta, i; xlim=[-10, 5],
+                      ygrid=range(xlim[1], stop=xlim[2], length=300))
 
-  N, I = size(b0)
-  @assert size(b0) == size(b1)
-  
-  len_y = length(y)
-  alpha = 1 - credibility
-  p_lower = alpha / 2
-  p_upper = 1 - alpha / 2
-
-  pmiss = hcat([Cytof5.Model.prob_miss.(yi, b0[:,i], b1[:,i]) for yi in y]...)
-  pmiss_mean = vec(mean(pmiss, dims=1))
-  pmiss_lower = [ quantile(pmiss[:, col], p_lower) for col in 1:len_y ]
-  pmiss_upper = [ quantile(pmiss[:, col], p_upper) for col in 1:len_y ]
-
-  return (pmiss_mean, pmiss_lower, pmiss_upper, y)
-end
-
-function plotPostProbMiss(pmiss_mean, pmiss_lower, pmiss_upper, y_seq, i; kw...)
-  plot(y_seq, pmiss_mean, xlab="y", ylab="prob miss", lwd=2, col="steelblue",
-       typ="l", fg="grey"; kw...)
-  colorBtwn(y_seq, pmiss_lower, pmiss_upper, from=minimum(y_seq), to=maximum(y_seq),
-             rgba("blue", .3))
+  p = [Cytof5.Model.prob_miss(yy, beta[:, i]) for yy in ygrid]
+  plot(ygrid, p, main="i: $i", typ="l", xlab="y", ylab="prob of missing",
+       xlim=xlim)
 end
 
 end # util

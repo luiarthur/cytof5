@@ -124,9 +124,7 @@ simtest:
 simtestlocal:
 	julia sim.jl --I=3 --J=32 --N_factor=100 --K=8 --K_MCMC=10 \
 		--L0=4 --L1=4 --L0_MCMC=5 --L1_MCMC=5 \
-	  --b0PriorSd=0.3 --b1PriorScale=0.3 \
 		--RESULTS_DIR=results/test/ \
 		--EXP_NAME=bla --MCMC_ITER=1000 --BURN=10000 \
-		--b0TunerInit=0.1 --b1TunerInit=0.1 \
-		--fix_b1=true --printFreq=50
+		--printFreq=50
 	./genResults.jl results/test/

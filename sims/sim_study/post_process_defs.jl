@@ -71,33 +71,6 @@ function post_process(PATH_TO_OUTPUT) # path/to/output.jld2
   lamPost = util.getPosterior(:lam, out[1])
   unique(lamPost)
 
-  # Get b0
-  b0Post = hcat(util.getPosterior(:b0, out[1])...)'
-  b0Mean = mean(b0Post, dims=1)
-  b0Sd = std(b0Post, dims=1)
-
-  util.plotPdf("$IMGDIR/b0.pdf")
-  util.plotPosts(b0Post, cnames=["truth=$b0" for b0 in dat[:b0]]);
-  util.devOff()
-
-  # Get b1
-  b1Post = hcat(util.getPosterior(:b1, out[1])...)'
-  b1Mean = mean(b1Post, dims=1)
-  b1Sd = std(b1Post, dims=1)
-  util.plotPdf("$IMGDIR/b1.pdf")
-  util.plotPosts(b1Post, cnames=["truth=$b1" for b1 in dat[:b1]]);
-  util.devOff()
-
-  # Plot Posterior Prob of Missing
-  util.plotPdf("$IMGDIR/probMissPost.pdf")
-  R"par(mfrow=c($(I), 1))"
-  for i in 1:I
-    pmiss_mean, pmiss_lower, pmiss_upper, y_seq = util.postProbMiss(b0Post, b1Post, i)
-    util.plotPostProbMiss(pmiss_mean, pmiss_lower, pmiss_upper, y_seq, i, main=i)
-  end
-  R"par(mfrow=c(1, 1))"
-  util.devOff()
-
   # Get mus
   mus0Post = hcat([m[:mus][0] for m in out[1]]...)'
   mus1Post = hcat([m[:mus][1] for m in out[1]]...)'
@@ -175,9 +148,20 @@ function post_process(PATH_TO_OUTPUT) # path/to/output.jld2
   end
   =#
 
-  open("$IMGDIR/priorBeta.txt", "w") do file
-    b0Prior = join(c.b0_prior, "\n")
-    b1Prior = join(c.b1_prior, "\n")
-    write(file, "b0Prior:\n$b0Prior\nb1Prior:\n$b1Prior\n")
+  # Missing Mechanism
+  open("$IMGDIR/beta.txt", "w") do file
+    for i in 1:I
+      bi = join(c.beta[:, i], ", ")
+      write(file, "for i=$i, beta: $bi")
+    end
   end
+
+  # Plot missing mechanism
+  util.plotPdf("$IMGDIR/prob_miss.pdf")
+  R"par(mfrow=c($(y_dat.I), 1))"
+  for i in 1:y_dat.I
+    util.plotProbMiss(c.beta, i)
+  end
+  R"par(mfrow=c(1,1))"
+  util.devOff()
 end

@@ -50,24 +50,6 @@ function parse_cmd()
     "--RESULTS_DIR"
       arg_type = String
       required = true
-    "--b0PriorSd"
-      arg_type = Float64
-      default = 1.0
-    "--b1PriorScale"
-      arg_type = Float64
-      default = 1.0
-    "--b0TunerInit"
-      arg_type = Float64
-      default = 0.1
-    "--b1TunerInit"
-      arg_type = Float64
-      default = 0.1
-    "--fix_b0"
-      arg_type = Bool
-      default = false
-    "--fix_b1"
-      arg_type = Bool
-      default = false
     "--SEED"
       arg_type = Int
       default = 0
@@ -112,18 +94,8 @@ L_MCMC = Dict(0 => L0_MCMC, 1 => L1_MCMC)
 
 EXP_NAME = PARSED_ARGS["EXP_NAME"]
 SEED = PARSED_ARGS["SEED"]
-b0PriorSd = PARSED_ARGS["b0PriorSd"]
-b1PriorScale = PARSED_ARGS["b1PriorScale"]
-b0TunerInit = PARSED_ARGS["b0TunerInit"]
-b1TunerInit = PARSED_ARGS["b1TunerInit"]
 RESULTS_DIR = PARSED_ARGS["RESULTS_DIR"]
 printFreq = PARSED_ARGS["printFreq"]
-fix_b0 = PARSED_ARGS["fix_b0"]
-fix_b1 = PARSED_ARGS["fix_b1"]
-fix = Vector{Symbol}()
-
-if fix_b0 fix=[fix; :b0] end
-if fix_b1 fix=[fix; :b1] end
 
 
 Random.seed!(SEED);
@@ -147,9 +119,7 @@ dat = Cytof5.Model.genData(J=J, N=N, K=K, L=L, Z=Z,
 y_dat = Cytof5.Model.Data(dat[:y])
 
 logger("Generating priors ...");
-@time c = Cytof5.Model.defaultConstants(y_dat, K_MCMC, L_MCMC,
-                                        b0PriorSd=b0PriorSd,
-                                        b1PriorScale=b1PriorScale)
+@time c = Cytof5.Model.defaultConstants(y_dat, K_MCMC, L_MCMC)
 Cytof5.Model.printConstants(c)
 
 logger("Generating initial state ...");
@@ -159,17 +129,13 @@ logger("Fitting Model ...");
 @time out, lastState, ll, metrics =
   Cytof5.Model.cytof5_fit(init, c, y_dat,
                           monitors=[[:Z, :lam, :W,
-                                     :b0, :b1, :v,
                                      :sig2, :mus,
                                      :alpha, :v,
                                      :eta],
                                     [:y_imputed]],
-                          fix=fix,
-                          thins=[1, 100],
+                          thins=Int[1, MCMC_ITER / 10],
                           nmcmc=MCMC_ITER, nburn=BURN,
                           printFreq=printFreq,
-                          b0_tune_init=b0TunerInit,
-                          b1_tune_init=b1TunerInit,
                           computeLPML=true, computeDIC=true,
                           flushOutput=true)
 
