@@ -135,13 +135,13 @@ mkpath(OUTDIR)
 
 logger("Simulating Data ...");
 Z = Cytof5.Model.genZ(J, K, 0.6)
-dat = Cytof5.Model.genData(I, J, N, K, L, Z,
-                           Dict(:b0=>-9.2, :b1=>2.3), # missMechParams
-                           [0.2, 0.1, 0.3], # sig2
-                           Dict(0=>-rand(L[0]) * 5,  # mus0
-                                1=> rand(L[1]) * 5), # mus1
-                           rand(K)*10, # a_W
-                           Dict(z => rand(L[z])*10 for z in 0:1), # a_eta
+dat = Cytof5.Model.genData(J=J, N=N, K=K, L=L, Z=Z,
+                           beta=[-9.2, -2.3],
+                           sig2=[0.2, 0.1, 0.3],
+                           mus=Dict(0=>-rand(L[0]) * 5,
+                                    1=> rand(L[1]) * 5),
+                           a_W=rand(K)*10,
+                           a_eta=Dict(z => rand(L[z])*10 for z in 0:1),
                            sortLambda=false, propMissingScale=0.7)
 
 y_dat = Cytof5.Model.Data(dat[:y])

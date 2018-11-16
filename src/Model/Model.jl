@@ -28,18 +28,18 @@ printFreq: defaults to 0 => prints every 10%. turn off printing by setting to -1
 function cytof5_fit(init::State, c::Constants, d::Data;
                     nmcmc::Int=1000, nburn::Int=1000, 
                     monitors=[[:Z, :lam, :W, :v, :sig2, :mus, :alpha, :v, :eta]],
-                    fix::Vector{Symbol}=[:b0, :b1],
+                    fix::Vector{Symbol}=Vector{Symbol}(),
                     thins::Vector{Int}=[1],
                     printFreq::Int=0, flushOutput::Bool=false,
                     computeDIC::Bool=false, computeLPML::Bool=false,
-                    b0_tune_init::Float64=0.1, b1_tune_init::Float64=0.1,
                     use_repulsive::Bool=false, verbose::Int=1)
 
   if verbose >= 1
-    println("fixing: $(join(fix, ","))")
-
-    beta_is_fixed = (:b0 in fix) && (:b1 in fix)
-    @assert beta_is_fixed
+    fixed_vars_str = join(fix, ", ")
+    if fixed_vars_str == ""
+      fixed_vars_str = "nothing"
+    end
+    println("fixing: $fixed_vars_str")
   end
 
   @assert printFreq >= -1
@@ -62,9 +62,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
     end
     dict
   end
-  tuners = Tuners(b0=[MCMC.TuningParam(b0_tune_init) for i in 1:d.I], # b0i, 1...I
-                  b1=[MCMC.TuningParam(b1_tune_init) for i in 1:d.I], # b1i, 1...I
-                  y_imputed=y_tuner, # yinj, for inj s.t. yinj is missing
+  tuners = Tuners(y_imputed=y_tuner, # yinj, for inj s.t. yinj is missing
                   Z=MCMC.TuningParam(MCMC.sigmoid(c.probFlip_Z, a=0.0, b=1.0)))
 
   # Loglike
@@ -123,7 +121,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
     end
 
     function convertStateToDicParam(s::State)::DICparam
-      p = [[prob_miss(s.y_imputed[i][n, j], s.b0[i], s.b1[i]) for n in 1:d.N[i], j in 1:d.J] for i in 1:d.I]
+      p = [[prob_miss(s.y_imputed[i][n, j], c.beta[:, i]) for n in 1:d.N[i], j in 1:d.J] for i in 1:d.I]
       mu = [[s.mus[s.Z[j, s.lam[i][n]]][s.gam[i][n, j]] for n in 1:d.N[i], j in 1:d.J] for i in 1:d.I]
       sig = sqrt.(s.sig2)
       return DICparam(p, mu, sig)

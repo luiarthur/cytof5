@@ -10,9 +10,7 @@ end
   W_prior::Dirichlet # W_i ~ Dir_K(d)
   eta_prior::Dict{Int, Dirichlet{Float64}} # eta_zij ~ Dir_Lz(a)
   sig2_prior::InverseGamma # sig2_i ~ IG(shape, scale)
-  b0_prior::Vector{Normal{Float64}} # b0 ~ Normal(mean, sd)
-  b1_prior::Vector{Gamma{Float64}} # b1 ~ Gamma(shape, scale) (positive)
-  #b1_prior::Vector{Uniform} # b1 ~ Unif(a, b) (positive)
+  beta::Matrix{Float64} # beta_dims x I, beta[:, i] refers to the beta's for sample i
   K::Int
   L::Dict{Int, Int}
   # For repulsive Z
@@ -25,25 +23,18 @@ yi: y[i] = N[i] x J matrix
 pBounds = the bounds for probability of missing to compute the missing mechanism.
 yQuantiles = the quantiles to compute the lower and upper bounds for y for the missing mechanism.
 """
-function genBPrior(yi, pBounds, yQuantiles)
-  @assert pBounds[1] > pBounds[2]
-  @assert yQuantiles[1] < yQuantiles[2]
-
+function gen_beta_est(yi, yQuantiles, pBounds)
   yiNeg = yi[ (isnan.(yi) .== false) .& (yi .< 0) ]
-  yLower = quantile(yiNeg, yQuantiles[1])
-  yUpper = quantile(yiNeg, yQuantiles[2])
-  yBounds = (yLower, yUpper)
+  yBounds = quantile(yiNeg, yQuantiles)
 
-  return solveB(yBounds, pBounds)
+  return solveBeta(yBounds, pBounds)
 end
 
 """
-b0PriorSd: bigger -> more uncertainty.
-b1PriorScale: bigger -> more uncertainty. prior scale is the empirical mean / scale. So prior mean is empirical mean.
+Genearte default values for constants
 """
 function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
-                          pBounds=(.9, .01), yQuantiles=(.01, .10),
-                          b0PriorSd::Number=1.0, b1PriorScale::Number=1/10,
+                          pBounds=[.05, .8, .05], yQuantiles=[0, .1, .25],
                           tau0::Float64=0.0, tau1::Float64=0.0,
                           probFlip_Z::Float64=1.0 / (data.J * K),
                           similarity_Z::Function=sim_fn_abs(0))
@@ -65,17 +56,12 @@ function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
   sig2_prior = InverseGamma(3.0, 2 / 3)
 
   # TODO: use empirical bayes to find these priors
-  #b0_prior = [ Normal(-9.2, 1.0) for i in 1:data.I ]
-  #b1_prior = [ Gamma(2.0, 1.0) for i in 1:data.I ]
-  b0_prior = [ Normal(genBPrior(vec(data.y[i]), pBounds, yQuantiles)[1], b0PriorSd) for i in 1:data.I ]
-  b1_prior = [ Gamma(genBPrior(vec(data.y[i]), pBounds, yQuantiles)[2]/b1PriorScale, b1PriorScale) for i in 1:data.I ]
-
-  #b0_prior = Uniform(1.0, 3.0)
-  #b1_prior = Uniform(0.0, 20.0)
+  y_negs = [filter(y_i -> !isnan(y_i) && y_i < 0, vec(data.y[i])) for i in 1:data.I]
+  beta = hcat([gen_beta_est(y_negs[i], yQuantiles, pBounds) for i in 1:data.I]...)
 
   return Constants(alpha_prior=alpha_prior, mus_prior=mus_prior, W_prior=W_prior,
                    eta_prior=eta_prior, sig2_prior=sig2_prior,
-                   b0_prior=b0_prior, b1_prior=b1_prior, K=K, L=L,
+                   beta=beta, K=K, L=L,
                    probFlip_Z=probFlip_Z, similarity_Z=similarity_Z)
 end
 
@@ -135,8 +121,6 @@ function genInitialState(c::Constants, d::Data)
   Z = [ rand(Bernoulli(v[k])) for j in 1:J, k in 1:K ]
   mus = Dict([z => sort(rand(c.mus_prior[z], L[z])) for z in 0:1])
   sig2 = [rand(c.sig2_prior) for i in 1:I]
-  b0 = mean.(c.b0_prior)
-  b1 = mean.(c.b1_prior)
   W = Matrix{Float64}(hcat([ rand(c.W_prior) for i in 1:I ]...)')
   lam = [ rand(Categorical(W[i,:]), N[i]) for i in 1:I ]
   eta = begin
@@ -156,8 +140,7 @@ function genInitialState(c::Constants, d::Data)
   end
 
   return State(Z=Z, mus=mus, alpha=alpha, v=v, W=W, sig2=sig2, 
-               eta=eta, lam=lam, gam=gam, y_imputed=y_imputed,
-               b0=b0, b1=b1)
+               eta=eta, lam=lam, gam=gam, y_imputed=y_imputed)
 end
 
 function printConstants(c::Constants, preprintln::Bool=true)

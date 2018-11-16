@@ -10,7 +10,6 @@ include("update_eta.jl")
 include("update_lam.jl")
 include("update_gam.jl")
 include("update_y_imputed.jl")
-include("update_b.jl")
 include("compute_loglike.jl") # TODO
 
 function update_state(s::State, c::Constants, d::Data, tuners::Tuners,
@@ -39,8 +38,6 @@ function update_state(s::State, c::Constants, d::Data, tuners::Tuners,
 
   # Metropolis.
   @doIf isRandom(:y_imputed)  update_y_imputed(s, c, d, tuners) 
-  @doIf isRandom(:b0)         update_b0(s, c, d, tuners) 
-  @doIf isRandom(:b1)         update_b1(s, c, d, tuners) 
 
   # Compute loglikelihood.
   append!(ll, compute_loglike(s, c, d))

@@ -59,24 +59,27 @@ end
 Z = Int.(randn(3,5) .> 0)
 =#
 
-function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Dict{Int, Int};
+function genData(J::Int, N::Vector{Int}, K::Int, L::Dict{Int, Int};
                  useSimpleZ::Bool=true, prob1::Float64=.6,
                  sortLambda::Bool=false, propMissingScale::Float64=0.7)
+
+  I = length(N)
   Z = useSimpleZ ? genSimpleZ(J, K) : genZ(J, K, prob1)
-  genData(I, J, N, K, L, Z,
-          Dict(:b0=>-9.2, :b1=>2.3), # missMechParams
-          fill(0.1, I), # sig2
-          Dict(0=>collect(range(-5, length=L[0], stop=-1)), #mus
-               1=>collect(range(1, length=L[1], stop=5))),
-          [float(i) for i in 1:K], # a_W
-          Dict([ z => [float(l) for l in 1:L[z]] for z in 0:1 ]), # a_eta
+
+  genData(J=J, N=N, K=K, L=L, Z=Z,
+          beta=[-9.2, -2.3], # linear missing mechanism
+          sig2=fill(0.1, I),
+          mus=Dict(0=>collect(range(-5, length=L[0], stop=-1)),
+                   1=>collect(range(1, length=L[1], stop=5))),
+          a_W=[float(i) for i in 1:K],
+          a_eta=Dict([ z => [float(l) for l in 1:L[z]] for z in 0:1 ]),
           sortLambda=sortLambda, propMissingScale=propMissingScale)
 end
 
-function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Dict{Int, Int},
-                 Z::Matrix{Int}, missMechParams::Dict{Symbol,Float64},
+function genData(; J::Int, N::Vector{Int}, K::Int, L::Dict{Int, Int},
+                 Z::Matrix{Int}, beta::Vector{Float64},
                  sig2::Vector{Float64}, mus::Dict{Int, Vector{Float64}}, 
-                 a_W::Vector{Float64}, a_eta::Dict{Int, Vector{Float64}};
+                 a_W::Vector{Float64}, a_eta::Dict{Int, Vector{Float64}},
                  sortLambda::Bool=false, propMissingScale::Float64=0.7)
 
   # Check Z dimensions
@@ -84,7 +87,8 @@ function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Dict{Int, Int},
 
   # Check N dimensions
   @assert all(N .> 0)
-  @assert length(N) == I
+
+  I = length(N)
 
   # Check sig2 dimensions
   @assert all(sig2 .> 0)
@@ -152,8 +156,6 @@ function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Dict{Int, Int},
     return mus[z][l] 
   end
 
-
-  mmp = missMechParams
   for i in 1:I
     for j in 1:J
       for n in 1:N[i]
@@ -161,20 +163,18 @@ function genData(I::Int, J::Int, N::Vector{Int}, K::Int, L::Dict{Int, Int},
       end
 
       # Set some to be missing
-      p_miss = prob_miss.(y_complete[i][:,j], mmp[:b0], mmp[:b1])
+      p_miss = [prob_miss(y_complete[i][n, j], beta) for n in 1:N[i]]
       prop_missing = rand() * propMissingScale * sum(W[i,:] .* (1 .- Z[j,:]))
       num_missing = Int(round(N[i] * prop_missing))
       idx_missing = Distributions.wsample(1:N[i], p_miss, num_missing, replace=false)
       y[i][:, j] .= y_complete[i][:, j] .+ 0
-      #y[i][idx_missing, j] .= missing
       y[i][idx_missing, j] .= NaN
     end
   end
 
   return Dict(:y=>y, :y_complete=>y_complete, :Z=>Z, :W=>W,
               :eta=>eta, :mus=>mus, :sig2=>sig2, :lam=>lam, :gam=>gam,
-              :b0=>fill(missMechParams[:b0], I),
-              :b1=>fill(missMechParams[:b1], I))
+              :beta=>beta)
 end # genData
 
 #precompile(genData, (String, Int, Vector{Int}, Int, Int, Bool, Float64, Bool, Float64))

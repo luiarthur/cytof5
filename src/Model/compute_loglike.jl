@@ -1,10 +1,5 @@
-#=
-WARNING: These implementations are only true if b0, b1 is held fixed.
-=#
-
-
 function compute_like(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)
-  p = prob_miss(s.y_imputed[i][n, j], s.b0[i], s.b1[i])
+  p = prob_miss(s.y_imputed[i][n, j], c.beta[:, i])
   like = 1.0
   y_inj_is_missing = (d.m[i][n, j] == 1)
 
@@ -28,7 +23,7 @@ end
 
 
 function compute_loglike(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)
-  p = prob_miss(s.y_imputed[i][n, j], s.b0[i], s.b1[i])
+  p = prob_miss(s.y_imputed[i][n, j], c.beta[:, i])
   ll = 0.0
   y_inj_is_missing = (d.m[i][n, j] == 1)
 

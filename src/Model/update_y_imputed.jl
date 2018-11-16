@@ -1,7 +1,7 @@
 function update_y_imputed(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data, tuners::Tuners)
 
   function logFullCond(yinj)
-    p = prob_miss(yinj, s.b0[i], s.b1[i])
+    p = prob_miss(yinj, c.beta[:, i])
     z = s.Z[j, s.lam[i][n]]
     l = s.gam[i][n, j]
     mu = s.mus[z][l]

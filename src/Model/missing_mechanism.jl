@@ -1,27 +1,36 @@
 # TODO: Test
-function prob_miss(y::Float64, b0::Float64, b1::Float64, b2::Float64)
+function prob_miss(y::Float64, beta::Vector{Float64})
   n = length(beta)
-  return MCMC.sigmoid(b0 + b1 * y + b2 * y^2)
+  x = sum((y .^ (0:n-1)) .* beta)
+  return MCMC.sigmoid(x)
 end
 
-function solveB(yBounds::Vector{Float64}, pBounds::Vector{Float64})
-  n = 3
+function assertValidBounds(y::Vector{Float64}, p::Vector{Float64})
+  n = length(y)
+  @assert length(y) == length(p) == n
 
-  @assert length(yBounds) == n
-  @assert length(pBounds) == n
+  @assert 2 <= n <= 3
 
-  pLower, pCenter, pUpper = pBounds
-  yLower, yCenter, yUpper = yBounds
+  if n == 3
+    @assert p[1] < p[2] > p[3] # Quadratic missing mechanism
+    @assert y[1] < y[2] < y[3]
+  elseif n ==2
+    @assert p[1] > p[2] # Linear missing mechanism
+    @assert y[1] < y[2]
+  else
+    println("In assertValidBounds: This should never be printed!")
+    @assert false
+  end
+end
 
-  @assert pLower < pCenter > pUpper # Quadratic missing mechanism
-  @assert yLower < yCenter < yUpper
+function solveBeta(y::Vector{Float64}, p::Vector{Float64})
+  assertValidBounds(y, p)
 
-  Y = [fill(1.0, n) (yBounds) (yBounds .^ 2)]
-  beta = Y \ MCMC.logit.(pBounds)
+  n = length(y)
+  Y = [fill(1.0, n) (y) (y .^ 2)]
+  beta = Y \ MCMC.logit.(p)
 
-  @assert all(abs.(MCMC.sigmoid.(Y * beta) - pBounds) .< 1E-10)
+  @assert all(abs.(MCMC.sigmoid.(Y * beta) - p) .< 1E-10)
 
   return beta
 end
-
-
