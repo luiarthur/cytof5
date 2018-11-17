@@ -50,7 +50,7 @@ end
 """
 solve for inverse gamma parameters
 """
-function solve_ig_params(mu::AbstractFloat, sig2::AbstractFloat)
+function solve_ig_params(; mu::AbstractFloat, sig2::AbstractFloat)
   @assert mu > 0
   @assert sig2 > 0
   a = (mu^2 / sig2) + 2
