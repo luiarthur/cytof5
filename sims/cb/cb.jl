@@ -107,7 +107,8 @@ dat = Cytof5.Model.Data(cbData)
 # MAIN
 Cytof5.Model.logger("\nGenerating priors ...");
 @time c = Cytof5.Model.defaultConstants(dat, K_MCMC, L_MCMC,
-                                        tau0=TAU0, tau1=TAU1)
+                                        tau0=TAU0, tau1=TAU1,
+                                        yQuantiles=[.0, .01, .1], pBounds=[.05, .8, .05])
 Cytof5.Model.printConstants(c)
 
 Cytof5.Model.logger("\nGenerating initial state ...");
