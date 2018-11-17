@@ -85,25 +85,26 @@ function idx_observed_ij(y, i::Int, j::Int)
   return findall(yij -> !isnan(yij), y[i][:, j])
 end
 
-function get_mu_observed(i::Int, j::Int, y, lastState, o) 
+function get_mu_observed(i::Int, j::Int, y, o) 
   z_ij = o[:Z][j, o[:lam][i]]
-  gam_ij = lastState.gam[i][:, j]
+  eta_ij = [o[:eta][zinj][i, j, :] for zinj in z_ij]
+  gam_ij = [Cytof5.MCMC.wsample(einj) for einj in eta_ij]
   idx_observed = idx_observed_ij(y, i, j)
 
-  return [o[:mus][z_ij[n]][gam_ij[n]] for n in idx_observed]
+  result = [o[:mus][z_ij[n]][gam_ij[n]] for n in idx_observed]
+  return result
 end
 
-function gen_post_pred(i, j, y, lastState, out)
-  gam_ij = lastState.gam[i][:, j]
-  y_pp = [rand.(Normal.(get_mu_observed(i, j, y, lastState, o), sqrt(o[:sig2][i])))
+function gen_post_pred(i, j, y, out)
+  y_pp = [rand.(Normal.(get_mu_observed(i, j, y, o), sqrt(o[:sig2][i])))
           for o in out[1]]
   return hcat(y_pp...)
 end
 
-function qq_yobs_postpred(y, i::Int, j::Int, lastState, out)
+function qq_yobs_postpred(y, i::Int, j::Int, out)
 
   y_obs = y[i][idx_observed_ij(y, i, j), j]
-  y_pp = gen_post_pred(i, j, y, lastState, out)
+  y_pp = gen_post_pred(i, j, y, out)
 
   return y_obs, y_pp
 end

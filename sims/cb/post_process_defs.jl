@@ -12,7 +12,8 @@ end
 function post_process(path_to_output)
   jld_filename = split(path_to_output, "/")[end]
   outdir = join(split(path_to_output, "/")[1:end-1], "/")
-  datapath = "data/reduced_cb.jld2"
+  # datapath = "data/reduced_cb.jld2"
+  datapath = "$outdir/reduced_data/reduced_cb.jld2"
   println("datapath: $datapath")
   IMGDIR = "$outdir/img/"
 
@@ -29,6 +30,7 @@ function post_process(path_to_output)
   # Plot loglikelihood
   util.plotPdf("$(IMGDIR)/ll_complete_history.pdf")
   util.plot(ll, ylab="log-likelihood", xlab="MCMC iteration", typ="l");
+  util.abline(v=length(ll) - length(out[1]))
   util.devOff()
 
   util.plotPdf("$(IMGDIR)/ll_postburn.pdf")
@@ -66,39 +68,22 @@ function post_process(path_to_output)
   lamPost = util.getPosterior(:lam, out[1])
   unique(lamPost)
 
-  # Get b0
-  b0Post = hcat(util.getPosterior(:b0, out[1])...)'
-  b0Mean = mean(b0Post, dims=1)
-  b0Sd = std(b0Post, dims=1)
+  # Missing Mechanism
+  open("$IMGDIR/beta.txt", "w") do file
+    for i in 1:I
+      bi = join(c.beta[:, i], ", ")
+      write(file, "for i=$i, beta = $bi \n")
+    end
+  end
 
-  util.plotPdf("$IMGDIR/b0.pdf")
-  util.plotPosts(b0Post);
-  util.devOff()
-
-  # Get b1
-  b1Post = hcat(util.getPosterior(:b1, out[1])...)'
-  b1Mean = mean(b1Post, dims=1)
-  b1Sd = std(b1Post, dims=1)
-  util.plotPdf("$IMGDIR/b1.pdf")
-  util.plotPosts(b1Post);
-  util.devOff()
-
-  # Plot Posterior Prob of Missing
-  util.plotPdf("$IMGDIR/probMissPost.pdf")
-  R"par(mfrow=c($(I), 1))"
+  # Plot missing mechanism
+  util.plotPdf("$IMGDIR/prob_miss.pdf")
+  R"par(mfrow=c($I, 1))"
   for i in 1:I
-    pmiss_mean, pmiss_lower, pmiss_upper, y_seq = util.postProbMiss(b0Post, b1Post, i)
-    util.plotPostProbMiss(pmiss_mean, pmiss_lower, pmiss_upper, y_seq, i, main=i)
+    util.plotProbMiss(c.beta, i)
   end
-  R"par(mfrow=c(1, 1))"
+  R"par(mfrow=c(1,1))"
   util.devOff()
-
-  # Print priors for beta
-  open("$IMGDIR/priorBeta.txt", "w") do file
-    b0Prior = join(c.b0_prior, "\n")
-    b1Prior = join(c.b1_prior, "\n")
-    write(file, "b0Prior:\n$b0Prior\nb1Prior:\n$b1Prior\n")
-  end
 
   # Get mus
   mus0Post = hcat([m[:mus][0] for m in out[1]]...)'
@@ -110,7 +95,7 @@ function post_process(path_to_output)
   #util.plot(1:size(musPost, 2), mean(musPost, dims=1), typ="n", ylab="μ*", xlab="", xaxt="n")
   #util.addErrbar(R"t(apply($musPost, 2, quantile, c(.025, .975)))", 
   #               x=1:size(musPost, 2), ylab="μ*", xlab="", xaxt="n", col="blue", lend=1, lwd=10);
-  util.abline(h=0, v=size(musPost, 2)/2 + .5, col="grey30", lty=1);
+  util.abline(h=0, v=size(mus0Post, 2) + .5, col="grey30", lty=1);
   util.devOff()
 
   # Get sig2
@@ -162,33 +147,21 @@ function post_process(path_to_output)
     util.devOff()
   end
 
-  # Posterior Predictive QQ. TODO: Test.
-  function get_mu(o, i, j)
-    z_ij = o.Z[j, o.lam[i]]
-    gam_ij = lastState.gam[i][:, j]
-    idx_observed = findall(x -> !isnan(x), cbData[i][:, j])
-
-    return [o.mus[z_ij[n]][gam_ij[n]] for n in idx_observed]
-  end
-
-  function gen_post_pred(i, j)
-    gam_ij = lastState.gam[i][:, j]
-    y_pp = [rand.(Normal.(get_mu(o, i, j), sqrt(o.sig2[i]))) for o in out[1]]
-
-    return hcat(y_pp...)
-  end
-
-  util.plotPdf("$(IMGDIR)/qq.pdf")
-  R"par(mfrow=c(4, 2))"
+  # Plot QQ
+  util.plotPdf("$IMGDIR/qq.pdf")
+  R"par(mfrow=c(3, 3), mar=c(5.1, 4, 2, 1))"
+  y_obs_range = util.y_obs_range(cbData)
   for i in 1:I
     for j in 1:J
+      println("i: $i, j: $j")
       # QQ of observed expression levels
-      idx_observed = findall(x -> !isnan(x), cbData[i][:, j])
-      y_pp = gen_post_pred(i, j)
-      y_obs = cbData[i][idx_obs, j]
-      util.myQQ(y_obs, y_pp)
+      y_obs, y_pp = util.qq_yobs_postpred(cbData, i, j, out)
+      util.myQQ(y_obs, y_pp, pch=20, ylab="post pred quantiles", xlab="y
+                (observed) quantiles", main="i: $i, j: $j", xlim=y_obs_range,
+                ylim=y_obs_range)
     end
   end
-  R"par(mfrow=c(1, 1))"
+  R"par(mfrow=c(1, 1), mar=mar.default())"
   util.devOff()
+
 end

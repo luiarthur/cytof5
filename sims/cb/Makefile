@@ -90,6 +90,9 @@ retrieve4:
 test4:
 	./run3 $(RESULTS_DIR_CB_RUN4) $(AWS_BUCKET_CB_RUN4) --test
 
+testlocal:
+	./run3 results/testlocal/ $(AWS_BUCKET_CB_RUN4) --test --testlocal
+
 litecp4:
 	rsync -av --exclude '*.jld*' $(RESULTS_DIR_CB_RUN4) .sandbox/cb_preprocessed_fixed_b1_smallTau
 

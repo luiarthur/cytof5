@@ -15,15 +15,14 @@ STAGGER_TIME=100
 MCMC_ITER=1000
 BURN=20000
 K_MCMC="`seq -w 2 10`"
-L0_MCMC="5"
-L1_MCMC="3"
-betaPriorScale="0.1"
-betaTunerInit="0.1"
+L0_MCMC="10"
+L1_MCMC="5"
 TAU0="0.0"
 TAU1="0.0"
 DATA_PATH="data/cytof_cb_with_nan.jld2"
 SEED=0
 isTest=""
+otherFlags=""
 
 if [[ $@ == **--test** ]]
 then
@@ -38,6 +37,21 @@ then
   subsample="0.01"
   isTest="_isTest"
 fi
+
+if [[ $@ == **--testlocal** ]]
+then
+  echo "Testing with subsample locally..."
+  # STAGGER_TIME in seconds. To avoid mass dumping to disk simultaneously. 
+  STAGGER_TIME=0
+
+  # Experiment settings
+  MCMC_ITER=1000
+  BURN=10000
+  K_MCMC=10
+  subsample="0.01"
+  isTest="_isTest"
+fi
+
 
 if [[ $@ == **--repFAM** ]]
 then
@@ -85,10 +99,16 @@ for k_mcmc in $K_MCMC; do
   # Remove output files to save space on cluster
   rmOutput="rm -rf ${outdir}"
 
-  cmd="$jlCmd > ${outdir}/log.txt && $syncToS3 && $rmOutput"
 
-  sem -j $MAX_CORES $cmd
-  echo $cmd
+  if [[ $@ == **--testlocal** ]]
+  then
+    echo $jlCmd
+    $jlCmd > ${outdir}/log.txt && julia genResults.jl $RESULTS_DIR
+  else
+    cmd="$jlCmd > ${outdir}/log.txt && $syncToS3 && $rmOutput"
+    echo $cmd
+    sem -j $MAX_CORES $cmd
+  fi
 
   echo "Results for simulation $simNumber -> $outdir"
 

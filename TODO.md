@@ -1,5 +1,4 @@
 # TODO
-- [ ] quadratic missing mechanism
 - [ ] `mclust` package in R to set initial values
 - [ ] visually check to see if mu* are reasonably initialized according to
       `psi` and `tau^2`
@@ -9,6 +8,8 @@
 - [x] change the update order
 - [x] For log-like, LPML, DIC, don't compute `p(miss=1 | y_obs)`
 - [x] keep `tau^2` empirically determined, and not artificially small
+- [x] quadratic missing mechanism
+- [x] `qqplots`
 
 # Not Urgent
 - [ ] Use `PyPlot.jl` for plots

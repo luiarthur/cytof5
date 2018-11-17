@@ -81,7 +81,7 @@ function post_process(PATH_TO_OUTPUT) # path/to/output.jld2
   #util.plot(1:size(musPost, 2), mean(musPost, dims=1), typ="n", ylab="μ*", xlab="", xaxt="n")
   #util.addErrbar(R"t(apply($musPost, 2, quantile, c(.025, .975)))", 
   #               x=1:size(musPost, 2), ylab="μ*", xlab="", xaxt="n", col="blue", lend=1, lwd=10);
-  util.abline(h=0, v=size(musPost, 2)/2 + .5, col="grey30", lty=1);
+  util.abline(h=0, v=size(mus0Post, 2) + .5, col="grey30", lty=1);
   util.abline(h=dat[:mus][0], lty=2, col="steelblue");
   util.abline(h=dat[:mus][1], lty=2, col="steelblue");
   util.devOff()
@@ -166,7 +166,6 @@ function post_process(PATH_TO_OUTPUT) # path/to/output.jld2
   util.devOff()
 
   # Plot QQ
-  # include("util.jl")
   util.plotPdf("$IMGDIR/qq.pdf")
   R"par(mfrow=c(3, 3), mar=c(5.1, 4, 2, 1))"
   y_obs_range = util.y_obs_range(y_dat.y)
@@ -174,7 +173,7 @@ function post_process(PATH_TO_OUTPUT) # path/to/output.jld2
     for j in 1:J
       println("i: $i, j: $j")
       # QQ of observed expression levels
-      y_obs, y_pp = util.qq_yobs_postpred(y_dat.y, i, j, lastState, out)
+      y_obs, y_pp = util.qq_yobs_postpred(y_dat.y, i, j, out)
       util.myQQ(y_obs, y_pp, pch=20, ylab="post pred quantiles", xlab="y
                 (observed) quantiles", main="i: $i, j: $j", xlim=y_obs_range,
                 ylim=y_obs_range)
@@ -191,7 +190,7 @@ function post_process(PATH_TO_OUTPUT) # path/to/output.jld2
     for j in 1:J
       println("i: $i, j: $j")
       # QQ of observed expression levels
-      y_obs, y_pp = util.qq_yobs_postpred(dat[:y_complete], i, j, lastState, out)
+      y_obs, y_pp = util.qq_yobs_postpred(dat[:y_complete], i, j, out)
       util.myQQ(y_obs, y_pp, pch=20, ylab="post pred quantiles", xlab="y
                 (observed) quantiles", main="i: $i, j: $j", xlim=y_obs_range,
                 ylim=y_obs_range)
