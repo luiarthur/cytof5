@@ -35,6 +35,7 @@ Genearte default values for constants
 """
 function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
                           pBounds=[.01, .8, .05], yQuantiles=[0.01, .1, .25],
+                          sig2_prior=InverseGamma(3.0, 2 / 3),
                           tau0::Float64=0.0, tau1::Float64=0.0,
                           probFlip_Z::Float64=1.0 / (data.J * K),
                           similarity_Z::Function=sim_fn_abs(0))
@@ -53,7 +54,6 @@ function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
   mus_prior[1] = TruncatedNormal(mean(y_pos), tau1,   0, 10)
   W_prior = Dirichlet(K, 1 / K)
   eta_prior = Dict(z => Dirichlet(L[z], 1 / L[z]) for z in 0:1)
-  sig2_prior = InverseGamma(3.0, 2 / 3)
 
   # TODO: use empirical bayes to find these priors
   y_negs = [filter(y_i -> !isnan(y_i) && y_i < 0, vec(data.y[i])) for i in 1:data.I]
