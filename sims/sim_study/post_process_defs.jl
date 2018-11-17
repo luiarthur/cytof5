@@ -175,7 +175,9 @@ function post_process(PATH_TO_OUTPUT) # path/to/output.jld2
       println("i: $i, j: $j")
       # QQ of observed expression levels
       y_obs, y_pp = util.qq_yobs_postpred(y_dat.y, i, j, lastState, out)
-      util.myQQ(y_obs, y_pp, pch=20, ylab="post pred quantiles", xlab="y (observed) quantiles", main="i: $i, j: $j", xlim=y_obs_range, ylim=y_obs_range)
+      util.myQQ(y_obs, y_pp, pch=20, ylab="post pred quantiles", xlab="y
+                (observed) quantiles", main="i: $i, j: $j", xlim=y_obs_range,
+                ylim=y_obs_range)
     end
   end
   R"par(mfrow=c(1, 1), mar=mar.default())"
@@ -190,7 +192,9 @@ function post_process(PATH_TO_OUTPUT) # path/to/output.jld2
       println("i: $i, j: $j")
       # QQ of observed expression levels
       y_obs, y_pp = util.qq_yobs_postpred(dat[:y_complete], i, j, lastState, out)
-      util.myQQ(y_obs, y_pp, pch=20, ylab="post pred quantiles", xlab="y (observed) quantiles", main="i: $i, j: $j", xlim=y_obs_range, ylim=y_obs_range, pch=pch)
+      util.myQQ(y_obs, y_pp, pch=20, ylab="post pred quantiles", xlab="y
+                (observed) quantiles", main="i: $i, j: $j", xlim=y_obs_range,
+                ylim=y_obs_range)
     end
   end
   R"par(mfrow=c(1, 1), mar=mar.default())"
