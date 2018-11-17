@@ -1,5 +1,5 @@
 function update_W(i::Int, s::State, c::Constants, d::Data)
-  currParam = params(c.W_prior)[1]
+  currParam = c.W_prior.alpha
   counts = zeros(c.K)
   for n in 1:d.N[i]
     k = s.lam[i][n]
