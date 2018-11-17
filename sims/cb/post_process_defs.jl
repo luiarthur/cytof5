@@ -149,13 +149,15 @@ function post_process(path_to_output)
 
   # Plot QQ
   util.plotPdf("$IMGDIR/qq.pdf")
-  R"par(mfrow=c(3, 3), mar=c(5.1, 4, 2, 1))"
+  println("Computing QQ...")
+  qq_yobs_ypp = [util.qq_yobs_postpred(cbData, i, j, out) for i in 1:I, j in 1:J]
   y_obs_range = util.y_obs_range(cbData)
+  println("Plotting QQ...")
+  R"par(mfrow=c(3, 3), mar=c(5.1, 4, 2, 1))"
   for i in 1:I
     for j in 1:J
-      println("i: $i, j: $j")
       # QQ of observed expression levels
-      y_obs, y_pp = util.qq_yobs_postpred(cbData, i, j, out)
+      y_obs, y_pp = qq_yobs_ypp[i, j]
       util.myQQ(y_obs, y_pp, pch=20, ylab="post pred quantiles", xlab="y
                 (observed) quantiles", main="i: $i, j: $j", xlim=y_obs_range,
                 ylim=y_obs_range)
@@ -163,5 +165,22 @@ function post_process(path_to_output)
   end
   R"par(mfrow=c(1, 1), mar=mar.default())"
   util.devOff()
+
+  # Plot postpred hist
+  util.plotPdf("$IMGDIR/postpred_hist.pdf")
+  println("Plotting postpred histograms...")
+  R"par(mfrow=c(3, 3), mar=c(5.1, 4, 2, 1))"
+  for i in 1:I
+    for j in 1:J
+      # QQ of observed expression levels
+      y_obs, y_pp = qq_yobs_ypp[i, j]
+      util.hist(y_obs, prob=true, xlim=y_obs_range, xlab="", ylab="density",
+                main="i: $i, j: $j", col=util.rgba("red", .3))
+      util.hist(y_pp, prob=true, xlab="", ylab="", add=true, col=util.rgba("blue", .3))
+    end
+  end
+  R"par(mfrow=c(1, 1), mar=mar.default())"
+  util.devOff()
+
 
 end
