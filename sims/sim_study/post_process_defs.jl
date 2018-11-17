@@ -152,7 +152,7 @@ function post_process(PATH_TO_OUTPUT) # path/to/output.jld2
   open("$IMGDIR/beta.txt", "w") do file
     for i in 1:I
       bi = join(c.beta[:, i], ", ")
-      write(file, "for i=$i, beta: $bi")
+      write(file, "for i=$i, beta = $bi \n")
     end
   end
 
@@ -163,5 +163,36 @@ function post_process(PATH_TO_OUTPUT) # path/to/output.jld2
     util.plotProbMiss(c.beta, i)
   end
   R"par(mfrow=c(1,1))"
+  util.devOff()
+
+  # Plot QQ
+  # include("util.jl")
+  util.plotPdf("$IMGDIR/qq.pdf")
+  R"par(mfrow=c(3, 3), mar=c(5.1, 4, 2, 1))"
+  y_obs_range = util.y_obs_range(y_dat.y)
+  for i in 1:I
+    for j in 1:J
+      println("i: $i, j: $j")
+      # QQ of observed expression levels
+      y_obs, y_pp = util.qq_yobs_postpred(y_dat.y, i, j, lastState, out)
+      util.myQQ(y_obs, y_pp, pch=20, ylab="post pred quantiles", xlab="y (observed) quantiles", main="i: $i, j: $j", xlim=y_obs_range, ylim=y_obs_range)
+    end
+  end
+  R"par(mfrow=c(1, 1), mar=mar.default())"
+  util.devOff()
+
+  # QQ with observed values
+  util.plotPdf("$IMGDIR/qq_truedat.pdf")
+  R"par(mfrow=c(3, 3), mar=c(5.1, 4, 2, 1))"
+  y_obs_range = util.y_obs_range(dat[:y_complete])
+  for i in 1:I
+    for j in 1:J
+      println("i: $i, j: $j")
+      # QQ of observed expression levels
+      y_obs, y_pp = util.qq_yobs_postpred(dat[:y_complete], i, j, lastState, out)
+      util.myQQ(y_obs, y_pp, pch=20, ylab="post pred quantiles", xlab="y (observed) quantiles", main="i: $i, j: $j", xlim=y_obs_range, ylim=y_obs_range, pch=pch)
+    end
+  end
+  R"par(mfrow=c(1, 1), mar=mar.default())"
   util.devOff()
 end

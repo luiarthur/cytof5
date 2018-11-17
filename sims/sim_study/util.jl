@@ -72,4 +72,40 @@ function plotProbMiss(beta, i; xlim=[-10, 5],
        xlim=xlim)
 end
 
+
+# For Posterior Predictive QQ
+function y_obs_range(y)
+  I = length(y)
+  y_vec = vcat([vec(y[i]) for i in 1:I]...)
+  y_obs = filter(yy -> !isnan(yy), y_vec)
+  return quantile(y_obs, [0, 1])
+end
+
+function idx_observed_ij(y, i::Int, j::Int)
+  return findall(yij -> !isnan(yij), y[i][:, j])
+end
+
+function get_mu_observed(i::Int, j::Int, y, lastState, o) 
+  z_ij = o[:Z][j, o[:lam][i]]
+  gam_ij = lastState.gam[i][:, j]
+  idx_observed = idx_observed_ij(y, i, j)
+
+  return [o[:mus][z_ij[n]][gam_ij[n]] for n in idx_observed]
+end
+
+function gen_post_pred(i, j, y, lastState, out)
+  gam_ij = lastState.gam[i][:, j]
+  y_pp = [rand.(Normal.(get_mu_observed(i, j, y, lastState, o), sqrt(o[:sig2][i])))
+          for o in out[1]]
+  return hcat(y_pp...)
+end
+
+function qq_yobs_postpred(y, i::Int, j::Int, lastState, out)
+
+  y_obs = y[i][idx_observed_ij(y, i, j), j]
+  y_pp = gen_post_pred(i, j, y, lastState, out)
+
+  return y_obs, y_pp
+end
+
 end # util
