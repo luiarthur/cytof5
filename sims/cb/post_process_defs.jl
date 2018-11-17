@@ -175,8 +175,9 @@ function post_process(path_to_output)
       # QQ of observed expression levels
       y_obs, y_pp = qq_yobs_ypp[i, j]
       util.hist(y_obs, prob=true, xlim=y_obs_range, xlab="", ylab="density",
-                main="i: $i, j: $j", col=util.rgba("red", .3))
-      util.hist(y_pp, prob=true, xlab="", ylab="", add=true, col=util.rgba("blue", .3))
+                main="i: $i, j: $j", col=util.rgba("red", .3), border="transparent")
+      util.hist(y_pp, prob=true, xlab="", ylab="", add=true, col=util.rgba("blue", .3),
+                border="transparent")
     end
   end
   R"par(mfrow=c(1, 1), mar=mar.default())"
