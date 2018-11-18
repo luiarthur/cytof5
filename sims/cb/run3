@@ -33,7 +33,7 @@ then
   # Experiment settings
   MCMC_ITER=50
   BURN=100
-  K_MCMC=10
+  K_MCMC=5
   subsample="0.01"
   isTest="_isTest"
 fi
@@ -47,7 +47,7 @@ then
   # Experiment settings
   MCMC_ITER=1000
   BURN=10000
-  K_MCMC=10
+  K_MCMC=20
   subsample="0.01"
   isTest="_isTest"
 fi
