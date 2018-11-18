@@ -110,7 +110,7 @@ sig2_a, sig2_b = Cytof5.Model.solve_ig_params(mu=.2, sig2=.01)
 @time c = Cytof5.Model.defaultConstants(dat, K_MCMC, L_MCMC,
                                         tau0=TAU0, tau1=TAU1,
                                         sig2_prior=InverseGamma(sig2_a, sig2_b),
-                                        sig2_range=[0, 0.3],
+                                        sig2_range=[0, 0.1],
                                         yQuantiles=[.0, .05, .1], pBounds=[.01, .8, .05])
 Cytof5.Model.printConstants(c)
 
