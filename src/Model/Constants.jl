@@ -10,6 +10,7 @@ end
   W_prior::Dirichlet # W_i ~ Dir_K(d)
   eta_prior::Dict{Int, Dirichlet{Float64}} # eta_zij ~ Dir_Lz(a)
   sig2_prior::InverseGamma # sig2_i ~ IG(shape, scale)
+  sig2_range::Vector{Float64} # lower and upper bound for sig2
   beta::Matrix{Float64} # beta_dims x I, beta[:, i] refers to the beta's for sample i
   K::Int
   L::Dict{Int, Int}
@@ -36,9 +37,13 @@ Genearte default values for constants
 function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
                           pBounds=[.01, .8, .05], yQuantiles=[0.01, .1, .25],
                           sig2_prior=InverseGamma(3.0, 2 / 3),
+                          sig2_range=[0.0, Inf],
                           tau0::Float64=0.0, tau1::Float64=0.0,
                           probFlip_Z::Float64=1.0 / (data.J * K),
                           similarity_Z::Function=sim_fn_abs(0))
+  # Assert range of sig2 is positive
+  @assert 0 <= sig2_range[1] < sig2_range[2]
+
   alpha_prior = Gamma(3.0, 0.5)
   mus_prior = Dict{Int, Truncated{Normal{Float64}, Continuous}}()
   vec_y = vcat(vec.(data.y)...)
@@ -60,7 +65,8 @@ function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
   beta = hcat([gen_beta_est(y_negs[i], yQuantiles, pBounds) for i in 1:data.I]...)
 
   return Constants(alpha_prior=alpha_prior, mus_prior=mus_prior, W_prior=W_prior,
-                   eta_prior=eta_prior, sig2_prior=sig2_prior,
+                   eta_prior=eta_prior,
+                   sig2_prior=sig2_prior, sig2_range=sig2_range,
                    beta=beta, K=K, L=L,
                    probFlip_Z=probFlip_Z, similarity_Z=similarity_Z)
 end

@@ -1,5 +1,6 @@
 function update_sig2(i::Int, s::State, c::Constants, d::Data)
-  ss = 0
+  ss = 0.0
+
   for j in 1:d.J
     for n in 1:d.N[i]
       z = s.Z[j, s.lam[i][n]]
@@ -10,7 +11,13 @@ function update_sig2(i::Int, s::State, c::Constants, d::Data)
 
   newShape = shape(c.sig2_prior) + d.J * d.N[i] / 2
   newScale = scale(c.sig2_prior) + ss / 2
-  s.sig2[i] = rand(InverseGamma(newShape, newScale))
+
+  if c.sig2_range == [0, Inf]
+    s.sig2[i] = rand(InverseGamma(newShape, newScale))
+  else
+    lower, upper = c.sig2_range
+    s.sig2[i] = rand_uptrunc_ig(InverseGamma(newShape, newScale), upper)
+  end
 end
 
 function update_sig2(s::State, c::Constants, d::Data)

@@ -50,10 +50,26 @@ end
 """
 solve for inverse gamma parameters
 """
-function solve_ig_params(; mu::AbstractFloat, sig2::AbstractFloat)
+function solve_ig_params(; mu::Float64, sig2::Float64)
   @assert mu > 0
   @assert sig2 > 0
   a = (mu^2 / sig2) + 2
   b = mu * (a - 1)
   return (a, b)
 end
+
+"""
+sample from inverse gamma with an upper truncation point
+"""
+function rand_uptrunc_ig(ig::InverseGamma, upper::Float64)
+  lg_u_max = logcdf(ig, upper) 
+  lg_u = log(rand()) + lg_u_max
+  init = upper / 2.0
+  return invlogcdf(ig, lg_u)
+end
+
+#= Test
+ig = InverseGamma(1002, 1001)
+mean(ig), std(ig)
+@time x = [rand_uptrunc_ig(ig, .3) for i in 1:10000];
+=#
