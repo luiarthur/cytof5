@@ -1,0 +1,21 @@
+# install mclust if necessary
+if ("mclust" %in% installed.packages()) {
+  library(mclust)
+} else {
+  cat("Package `mclust` not found. Installing `mclust`...\n")
+  install.packages("mclust")
+}
+
+precluster <- function(y) {
+  # concatenate the y
+  Y <- do.call(rbind, y)
+
+  # impute missing values
+  yneg <- Y[Y < 0 & !is.na(Y)]
+  yneg <- yneg[yneg < quantile(yneg, .1)]
+  num_missing_Y <- sum(is.na(Y))
+  Y[is.na(Y)] <- sample(yneg, size=num_missing_Y, replace=TRUE)
+  stopifnot(sum(is.na(Y)) == 0)
+
+  return(Y)
+}
