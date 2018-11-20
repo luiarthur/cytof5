@@ -18,3 +18,4 @@ y_subsample = y[idx_subsample, ]
 y_clus = Mclust(y_subsample)
 plot(y_clus, what="uncertainty", dimens=c(5,1))
 plot(y_clus, what="classification", dimens=c(5,1,32))
+plot(y_clus, what="BIC", dimens=c(5,1,32))
