@@ -21,6 +21,7 @@ TAU0="0.0"
 TAU1="0.0"
 DATA_PATH="data/cytof_cb_with_nan.jld2"
 SEED=0
+subsample=0
 isTest=""
 otherFlags=""
 
