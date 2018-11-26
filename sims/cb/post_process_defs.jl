@@ -148,17 +148,15 @@ function post_process(path_to_output)
   end
 
   # Plot QQ
-  util.plotPdf("$IMGDIR/qq.pdf")
-  println("Computing QQ...")
-  qq_yobs_ypp = [util.qq_yobs_postpred(cbData, i, j, out) for i in 1:I, j in 1:J]
   y_obs_range = util.y_obs_range(cbData)
+  util.plotPdf("$IMGDIR/qq.pdf")
   println("Plotting QQ...")
   R"par(mfrow=c(3, 3), mar=c(5.1, 4, 2, 1))"
   for i in 1:I
     for j in 1:J
       println("i: $i, j: $j")
       # QQ of observed expression levels
-      y_obs, y_pp = qq_yobs_ypp[i, j]
+      y_obs, y_pp = util.qq_yobs_postpred(cbData, i, j, out)
       util.myQQ(y_obs, y_pp, pch=20, ylab="post pred quantiles", xlab="y
                 (observed) quantiles", main="i: $i, j: $j", xlim=y_obs_range,
                 ylim=y_obs_range)
@@ -175,7 +173,7 @@ function post_process(path_to_output)
     for j in 1:J
       println("i: $i, j: $j")
       # QQ of observed expression levels
-      y_obs, y_pp = qq_yobs_ypp[i, j]
+      y_obs, y_pp = util.qq_yobs_postpred(cbData, i, j, out)
       util.hist(y_obs, prob=true, xlim=y_obs_range, xlab="", ylab="density",
                 main="i: $i, j: $j", col=util.rgba("red", .3), border="transparent")
       util.hist(y_pp, prob=true, xlab="", ylab="", add=true, col=util.rgba("blue", .3),
