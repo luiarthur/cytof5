@@ -20,7 +20,7 @@ RESULTS_DIR = filter(d -> d != "PRE", RESULTS_DIR)
 sucessess = []
 failures = []
 
-@time for dir in RESULTS_DIR
+@time for dir in sort(RESULTS_DIR, rev=true)
   println("Processing: $dir")
   aws_dir = "$(AWS_BUCKET)/$(dir)"
   tmp_dir = "$(TMP_DIR)/$(dir)"
