@@ -156,6 +156,7 @@ function post_process(path_to_output)
   R"par(mfrow=c(3, 3), mar=c(5.1, 4, 2, 1))"
   for i in 1:I
     for j in 1:J
+      println("i: $i, j: $j")
       # QQ of observed expression levels
       y_obs, y_pp = qq_yobs_ypp[i, j]
       util.myQQ(y_obs, y_pp, pch=20, ylab="post pred quantiles", xlab="y
@@ -172,6 +173,7 @@ function post_process(path_to_output)
   R"par(mfrow=c(3, 3), mar=c(5.1, 4, 2, 1))"
   for i in 1:I
     for j in 1:J
+      println("i: $i, j: $j")
       # QQ of observed expression levels
       y_obs, y_pp = qq_yobs_ypp[i, j]
       util.hist(y_obs, prob=true, xlim=y_obs_range, xlab="", ylab="density",
