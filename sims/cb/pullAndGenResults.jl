@@ -45,9 +45,9 @@ failures = []
     println("Remove results locally...")
     run(`rm -rf $(tmp_dir)`)
 
-    append!(successes, [path_to_mcmc])
+    append!(successes, [tmp_dir])
   catch
-    append!(failures, [path_to_mcmc])
+    append!(failures, [tmp_dir])
   end
 end
 
