@@ -6,7 +6,7 @@ if ("mclust" %in% installed.packages()) {
   install.packages("mclust")
 }
 
-precluster <- function(y) {
+preimpute <- function(y) {
   # concatenate the y
   Y <- do.call(rbind, y)
 
@@ -19,4 +19,10 @@ precluster <- function(y) {
   stopifnot(sum(is.na(Y)) == 0)
 
   return(Y)
+}
+
+precluster <- function(Y, G) {
+  #' Y: list of matrices
+  #' G: number of groups in clustering
+  # TODO
 }
