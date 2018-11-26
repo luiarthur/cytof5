@@ -4,11 +4,11 @@ RESULTS_DIR_CB_RUN3 = "results/cb_preprocessed_fixed_b1/"
 AWS_BUCKET_CB_RUN3 = "s3://cytof-cb-results/cb-preprocessed-fixed-b1"
 
 RESULTS_DIR_CB_RUN4 = "results/cb_preprocessed_fixed_quadmiss/"
-AWS_BUCKET_CB_RUN4 = "s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss"
+AWS_BUCKET_CB_RUN4="s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss"
 
 .PHONY: run test postProcess postProcess2 clean retrieve 
 .PHONY: send2 retrieve2 retrieve run3 test3 postProcess3 litecp3 metrics
-.PHONY: send4 retrieve4 run4 test3 postProcess4 litecp4 metrics4
+.PHONY: send4 retrieve4 run4 test3 postProcess4 litecp4 metrics4 pullAndProcess4
 
 run:
 	 ./run
@@ -116,3 +116,7 @@ getRData:
 # send r data
 sendRData:
 	aws s3 sync data/ s3://cytof-cb-data/ --exclude '*' --include 'cytof_cb.rds'
+
+# pullAndProcess4
+pullAndProcess4:
+	julia pullAndGenResults.jl $(AWS_BUCKET_CB_RUN4)
