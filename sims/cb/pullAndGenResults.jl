@@ -22,10 +22,10 @@ failures = []
 
 @time for dir in RESULTS_DIR
   println("Processing: $dir")
-  try 
-    aws_dir = "$(AWS_BUCKET)/$(dir)"
-    tmp_dir = "$(TMP_DIR)/$(dir)"
+  aws_dir = "$(AWS_BUCKET)/$(dir)"
+  tmp_dir = "$(TMP_DIR)/$(dir)"
 
+  try 
     # Pull the dataset to TMP_DIR
     println("Pull data set from AWS to $(tmp_dir)...")
     cmd = `aws s3 sync $aws_dir $tmp_dir`
