@@ -149,6 +149,7 @@ function post_process(path_to_output)
     util.devOff()
   end
 
+  #= TODO: redo this with a thinned sample of gam
   # Plot QQ
   y_obs_range = util.y_obs_range(cbData)
   util.plotPdf("$IMGDIR/qq.pdf")
@@ -184,4 +185,5 @@ function post_process(path_to_output)
   end
   R"par(mfrow=c(1, 1), mar=mar.default())"
   util.devOff()
+  =#
 end
