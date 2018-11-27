@@ -17,7 +17,7 @@ mkpath(TMP_DIR)
 RESULTS_DIR = split(read(`aws s3 ls $(AWS_BUCKET)/`, String))
 RESULTS_DIR = filter(d -> d != "PRE", RESULTS_DIR)
 
-sucessess = []
+successes = []
 failures = []
 
 @time for dir in sort(RESULTS_DIR, rev=true)
