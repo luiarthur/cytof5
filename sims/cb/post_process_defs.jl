@@ -149,6 +149,25 @@ function post_process(path_to_output)
     util.devOff()
   end
 
+  # TODO: plot yZ inspect with a posterior of Z version II
+  for i in 1:I
+    util.plotPng("$IMGDIR/y_dat$(i)_with_zmean.png")
+
+    idx_best = R"estimate_ZWi_index($(out[1]), $i)"[1]
+    Zi = out[1][idx_best][:Z]
+    Wi = out[1][idx_best][:W][i,:]
+    lami = out[1][idx_best][:lam][i]
+
+    S = [findall(lami .== k) for k in 1:c.K]
+    Zi_bar = mean([[mean(o[:Z][j, o[:lam][i][S[k]]]) for j in 1:J, k in 1:c.K] for o in out[1]])
+
+    util.yZ(cbData[i], Zi_bar, Wi, lami, zlim=[-4,4], thresh=0.9, col=util.blueToRed(9),
+            na="black", using_zero_index=false, col_Z=R"grey(seq(1, 0, len=11))")
+
+    util.devOff()
+  end
+
+
   #= TODO: redo this with a thinned sample of gam
   # Plot QQ
   y_obs_range = util.y_obs_range(cbData)
