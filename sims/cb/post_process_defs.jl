@@ -162,7 +162,8 @@ function post_process(path_to_output)
     Zi_bar = mean([[mean(o[:Z][j, o[:lam][i][S[k]]]) for j in 1:J, k in 1:c.K] for o in out[1]])
 
     util.yZ(cbData[i], Zi_bar, Wi, lami, zlim=[-4,4], thresh=0.9, col=util.blueToRed(9),
-            na="black", using_zero_index=false, col_Z=R"grey(seq(1, 0, len=11))")
+            na="black", using_zero_index=false, col_Z=R"grey(seq(1, 0, len=11))", 
+            colorbar_Z=true, cex_z_leg=0)
 
     util.devOff()
   end
