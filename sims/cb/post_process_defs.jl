@@ -163,7 +163,7 @@ function post_process(path_to_output)
 
     util.yZ(cbData[i], Zi_bar, Wi, lami, zlim=[-4,4], thresh=0.9, col=util.blueToRed(9),
             na="black", using_zero_index=false, col_Z=R"grey(seq(1, 0, len=11))", 
-            colorbar_Z=true, cex_z_leg=0)
+            colorbar_Z=true, cex_z_leg=0.001)
 
     util.devOff()
   end
