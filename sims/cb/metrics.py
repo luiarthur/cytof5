@@ -32,16 +32,14 @@ if __name__ == '__main__':
         if len(sys.argv) > 2:
             excludes = sys.argv[2]
         else:
-            excludes = ""
+            excludes = "NOTHING"
         print("excludes: {}".format(excludes))
 
         sim_dirs = os.listdir(results_dir)
         sim_dirs = list(filter(lambda d: 'K_MCMC' in d, sim_dirs))
         sim_dirs = list(filter(lambda d: not re.search(excludes, d), sim_dirs))
-        # print("Removing K_MCMC = 14")
-        # sim_dirs = list(filter(lambda d: "K_MCMC14" not in d, sim_dirs))
 
-        L = np.array([int(re.findall(r'(?<=L_MCMC)\d+', d)[0])
+        L = np.array([int(re.findall(r'(?<=L0_MCMC)\d+', d)[0])
                       for d in sim_dirs])
         L = set(L)
         print('L: {}'.format(L))
@@ -52,12 +50,9 @@ if __name__ == '__main__':
             Dmean = []
             LPML = []
             
-            sim_dirs_l = filter(lambda d: 'L_MCMC{}'.format(l) in d, sim_dirs)
+            sim_dirs_l = filter(lambda d: 'L0_MCMC{}'.format(l) in d, sim_dirs)
             sim_dirs_l = sorted(sim_dirs_l)
-            # print(len(list(sim_dirs_l)))
-            # for d in sim_dirs_l:
-            #     print(d)
-
+        
             K = np.array([int(re.findall(r'(?<=K_MCMC)\d+', d)[0])
                           for d in sim_dirs_l])
             order = np.argsort(K)
@@ -71,7 +66,7 @@ if __name__ == '__main__':
                 LPML.append(parse(c, 'LPML'))
 
             # Plot
-            METRICS_DIR = '{}/metrics/L_MCMC{}/'.format(results_dir, l)
+            METRICS_DIR = '{}/metrics/L0_MCMC{}/'.format(results_dir, l)
             os.makedirs(METRICS_DIR, exist_ok=True)
 
             LPML = np.array(LPML)
