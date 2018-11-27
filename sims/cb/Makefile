@@ -8,7 +8,7 @@ AWS_BUCKET_CB_RUN4="s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss"
 
 .PHONY: run test postProcess postProcess2 clean retrieve 
 .PHONY: send2 retrieve2 retrieve run3 test3 postProcess3 litecp3 metrics
-.PHONY: send4 retrieve4 run4 test3 postProcess4 litecp4 metrics4 pullAndProcess4
+.PHONY: send4 retrieve4 run4 test3 postProcess4 litecp4 metrics4 pullAndProcess4 retrieve4lite
 
 run:
 	 ./run
@@ -120,3 +120,8 @@ sendRData:
 # pullAndProcess4
 pullAndProcess4:
 	julia pullAndGenResults.jl $(AWS_BUCKET_CB_RUN4)
+
+retrieve4lite:
+	aws s3 sync $(AWS_BUCKET_CB_RUN4) $(RESULTS_DIR_CB_RUN4) --exclude '*.jld2'
+
+
