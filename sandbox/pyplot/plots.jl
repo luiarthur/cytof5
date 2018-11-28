@@ -72,7 +72,7 @@ ax2 = ax[:twiny]()
 
 # Change default ticks! Comment this out to see the difference.
 ax2[:set_xticks](pyRange(K))
-plt.xticks((K-1) / K * pyRange(K) .+ .5, 1:K)
+plt.xticks((K-1) / K * pyRange(K) .+ .5, (1:K) / 10, fontsize=5)
 ax2[:tick_params](length=0)
 
 plt.subplot2grid((1, 10), (0, 3), colspan=7)
