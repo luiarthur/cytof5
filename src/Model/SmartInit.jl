@@ -96,6 +96,7 @@ function smartInit(y_orig; K::Int, modelNames::String="VVI",
       clus_means = [sum(clus_sums[k, :]) / group_sizes[k] for k in 1:K]
     end
   end
+
   if separate_Z
     Z = [Int8(1) * (Matrix(vcat(clus_means[:, i]...)') .> 0) for i in 1:I]
   else
