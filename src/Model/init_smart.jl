@@ -54,7 +54,7 @@ end
 
 
 function smartInit(y_orig; K::Int, modelNames::String="VVI",
-                   missMean=6.0, warn::Bool=true,
+                   missMean=6.0, warn::Bool=true, separate_Z::Bool=false,
                    cluster_samples_jointly::Bool=true) where {T <: Number}
 
   y = deepcopy(y_orig)
@@ -82,25 +82,33 @@ function smartInit(y_orig; K::Int, modelNames::String="VVI",
 
   # Get Z
   if cluster_samples_jointly
-    # clus_means = [mean(y[idx[i], :][lam[i] .== k, :], dims=1) for k in 1:K, i in 1:I]
-    clus_means = [mean(y[vcat(lam...) .== k, :], dims=1) for k in 1:K]
+    if separate_Z
+      clus_means = [mean(y[idx[i], :][lam[i] .== k, :], dims=1) for k in 1:K, i in 1:I]
+    else
+      clus_means = [mean(y[vcat(lam...) .== k, :], dims=1) for k in 1:K]
+    end
   else
-    # clus_means = [mean(y[i][lam[i] .== k, :], dims=1) for k in 1:K, i in 1:I]
-    group_sizes = [sum(vcat(lam...) .== k) for k in 1:K]
-    clus_sums = [sum(y[i][lam[i] .== k, :], dims=1) for k in 1:K, i in 1:I]
-    # FIXME!
-    clus_means = [sum(clus_sums[k, :], dims=2) / group_sizes[k] for k in 1:K]
+    if separate_Z
+      clus_means = [mean(y[i][lam[i] .== k, :], dims=1) for k in 1:K, i in 1:I]
+    else
+      group_sizes = [sum(vcat(lam...) .== k) for k in 1:K]
+      clus_sums = [sum(y[i][lam[i] .== k, :], dims=1) for k in 1:K, i in 1:I]
+      clus_means = [sum(clus_sums[k, :]) / group_sizes[k] for k in 1:K]
+    end
   end
-  # Z = [Int8(1) * (Matrix(vcat(clus_means[:, i]...)') .> 0) for i in 1:I]
-  Z = Int8(1) * (Matrix(vcat(clus_means...)') .> 0)
-
-  # Unqiue Z
-  # println.(size.(unique.(Z, dims=2)))
-  # unique(hcat(Z...), dims=2)
-  unique(Z, dims=2)
+  if separate_Z
+    Z = [Int8(1) * (Matrix(vcat(clus_means[:, i]...)') .> 0) for i in 1:I]
+  else
+    Z = Int8(1) * (Matrix(vcat(clus_means...)') .> 0)
+  end
 
   # Get W
   W = [mean(lam[i] .== k) for i in 1:I, k in 1:K]
+
+  # Get gam
+  # Get eta
+  # Get alpha
+  # Get sig
 
   return Dict(:N => N, :lam => lam, :Z => Z, :W => W, :idx => idx, :y => y,
               :cluster_samples_jointly => cluster_samples_jointly)
@@ -111,10 +119,10 @@ end # module
 #= Test 2: Cluster all samples, then separate
 include("../../sims/sim_study/util.jl")
 y = SmartInit.loadSingleObj("../../sims/cb/data/cytof_cb_with_nan.jld2")
-y = SmartInit.subsampleData.(y, .1)
+y = SmartInit.subsampleData.(y, 1)
 
 # Cluster things ##########
-init = SmartInit.smartInit(y, K=5, cluster_samples_jointly=false)
+init = SmartInit.smartInit(y, K=5, cluster_samples_jointly=false, separate_Z=true)
 
 # Plot yZ
 W = init[:W]
@@ -122,25 +130,26 @@ Z = init[:Z]
 lam = init[:lam]
 idx = init[:idx]
 
-util.yZ(y[1], Z, W[1,:], lam[1], using_zero_index=false, thresh=.9, na="black");
-util.yZ(y[2], Z, W[2,:], lam[2], using_zero_index=false, thresh=.9, na="black");
-util.yZ(y[3], Z, W[3,:], lam[3], using_zero_index=false, thresh=.9, na="black");
+util.yZ(y[1], Z[1], W[1,:], lam[1], using_zero_index=false, thresh=.9, na="black");
+util.yZ(y[2], Z[2], W[2,:], lam[2], using_zero_index=false, thresh=.9, na="black");
+util.yZ(y[3], Z[3], W[3,:], lam[3], using_zero_index=false, thresh=.9, na="black");
 
 util.hist(y[1][:, 7], xlab="", ylab="", main="")
 mean(isnan.(y[1][:, 7]))
 
 # Cluster things #########
-init = SmartInit.smartInit(y, K=10)
+init = SmartInit.smartInit(y, K=10, modelNames="EII")
+# EII, VII, EEV
 
 # Plot yZ
 W = init[:W]
 Z = init[:Z]
+unique(Z, dims=2)
 lam = init[:lam]
 idx = init[:idx]
 
-util.yZ(y[1], Z, W[1,:], lam[1], using_zero_index=false, thresh=.9, na="black");
-util.yZ(y[2], Z, W[2,:], lam[2], using_zero_index=false, thresh=.9, na="black");
-util.yZ(y[3], Z, W[3,:], lam[3], using_zero_index=false, thresh=.9, na="black");
-
+util.yZ(y[1], Z, W[1,:], lam[1], zlim=[-3,3], using_zero_ind=false, thresh=.7, na="black");
+util.yZ(y[2], Z, W[2,:], lam[2], zlim=[-3,3], using_zero_ind=false, thresh=.7, na="black");
+util.yZ(y[3], Z, W[3,:], lam[3], zlim=[-3,3], using_zero_ind=false, thresh=.7, na="black");
 =#
 
