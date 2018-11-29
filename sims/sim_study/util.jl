@@ -9,6 +9,7 @@ R"require(cytof3)";
 
 # Import R plotting functions
 plot = R"plot";
+boxplot = R"boxplot";
 ari = R"cytof3::ari";
 rgba = R"cytof3::rgba";
 density = R"density";
@@ -30,6 +31,14 @@ hist = R"hist";
 colorBtwn = R"color.btwn";
 myQQ = R"my.qqplot";
 
+
+function quantile_vm(xs, p)
+  I, J = size(xs[1])
+  for x in xs
+    @assert size(x) == (I, J)
+  end
+  return [quantile([x[i, j] for x in xs], p) for i in 1:I, j in 1:J]
+end
 
 function getPosterior(sym::Symbol, monitor)
   return [ m[sym] for m in monitor]

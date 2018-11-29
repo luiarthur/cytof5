@@ -58,13 +58,25 @@ function post_process(path_to_output)
 
   # Plot W
   Wpost = util.getPosterior(:W, out[1])
-  Wmean = mean(Wpost)
+  W_mean = mean(Wpost)
 
-  util.plotPdf("$IMGDIR/W_mean.pdf")
-  util.myImage(Wmean, xlab="Features", ylab="Samples", col=R"greys(10)", addL=true, zlim=[0,.3]);
+  println("Making W...")
+  util.plotPdf("$IMGDIR/W.pdf")
+  R"par(mfrow=c($I, 1), mar=c(5, 5.1, 0.5, 2.1))"
+  for i in 1:I
+    util.boxplot(hcat([w[i, :] for w in Wpost]...)', ylab="Posterior: W$i",
+                 xlab=i<I ? "" : "Features",
+                 col="steelblue", pch=20, cex=0, ylim=[0, 1]);
+  end
+  R"par(mfrow=c(1, 1), mar=rcommon::mar.default())"
   util.devOff()
 
+  # util.plotPdf("$IMGDIR/W_mean.pdf")
+  # util.myImage(W_mean, xlab="Features", ylab="Samples", col=R"greys(10)", addL=true, zlim=[0,.3]);
+  # util.devOff()
+
   # Get lam
+  println("Making lam...")
   lamPost = util.getPosterior(:lam, out[1])
   unique(lamPost)
 
@@ -91,7 +103,7 @@ function post_process(path_to_output)
   musPost = [ mus0Post mus1Post ]
 
   util.plotPdf("$IMGDIR/mus.pdf")
-  R"boxplot"(musPost, ylab="mu*", xlab="", xaxt="n", col="steelblue", pch=20, cex=0);
+  util.boxplot(musPost, ylab="mu*", xlab="", xaxt="n", col="steelblue", pch=20, cex=0);
   #util.plot(1:size(musPost, 2), mean(musPost, dims=1), typ="n", ylab="μ*", xlab="", xaxt="n")
   #util.addErrbar(R"t(apply($musPost, 2, quantile, c(.025, .975)))", 
   #               x=1:size(musPost, 2), ylab="μ*", xlab="", xaxt="n", col="blue", lend=1, lwd=10);
