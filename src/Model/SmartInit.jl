@@ -98,9 +98,9 @@ function smartInit(y_orig; K::Int, modelNames::String="VVI",
   end
 
   if separate_Z
-    Z = [Int8(1) * (Matrix(vcat(clus_means[:, i]...)') .> 0) for i in 1:I]
+    Z = [Matrix{Int8}(vcat(clus_means[:, i]...)' .> 0) for i in 1:I]
   else
-    Z = Int8(1) * (Matrix(vcat(clus_means...)') .> 0)
+    Z = Matrix{Int8}(vcat(clus_means...)' .> 0)
   end
 
   # Get W
@@ -117,10 +117,25 @@ end
 
 end # module
 
-#= Test 2: Cluster all samples, then separate
+#= Test: Cluster all samples, then separate
 include("../../sims/sim_study/util.jl")
 y = SmartInit.loadSingleObj("../../sims/cb/data/cytof_cb_with_nan.jld2")
 y = SmartInit.subsampleData.(y, 1)
+
+# Cluster things #########
+init = SmartInit.smartInit(y, K=15, modelNames="EII")
+# EII, VII, EEV
+
+# Plot yZ
+W = init[:W]
+Z = init[:Z]
+unique(Z, dims=2)
+lam = init[:lam]
+idx = init[:idx]
+
+util.yZ(y[1], Z, W[1,:], lam[1], zlim=[-3,3], using_zero_ind=false, thresh=.7, na="black");
+util.yZ(y[2], Z, W[2,:], lam[2], zlim=[-3,3], using_zero_ind=false, thresh=.7, na="black");
+util.yZ(y[3], Z, W[3,:], lam[3], zlim=[-3,3], using_zero_ind=false, thresh=.7, na="black");
 
 # Cluster things ##########
 init = SmartInit.smartInit(y, K=5, cluster_samples_jointly=false, separate_Z=true)
@@ -137,20 +152,5 @@ util.yZ(y[3], Z[3], W[3,:], lam[3], using_zero_index=false, thresh=.9, na="black
 
 util.hist(y[1][:, 7], xlab="", ylab="", main="")
 mean(isnan.(y[1][:, 7]))
-
-# Cluster things #########
-init = SmartInit.smartInit(y, K=10, modelNames="EII")
-# EII, VII, EEV
-
-# Plot yZ
-W = init[:W]
-Z = init[:Z]
-unique(Z, dims=2)
-lam = init[:lam]
-idx = init[:idx]
-
-util.yZ(y[1], Z, W[1,:], lam[1], zlim=[-3,3], using_zero_ind=false, thresh=.7, na="black");
-util.yZ(y[2], Z, W[2,:], lam[2], zlim=[-3,3], using_zero_ind=false, thresh=.7, na="black");
-util.yZ(y[3], Z, W[3,:], lam[3], zlim=[-3,3], using_zero_ind=false, thresh=.7, na="black");
 =#
 
