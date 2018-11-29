@@ -3,8 +3,10 @@
 # - move `using RCall` to Model.jl
 # - include this file from Model.jl
 # - add RCall, StatsBase to Manifest
+module SmartInit
 
 using RCall
+using JLD2, FileIO, Distributions
 import StatsBase
 
 # Install mclust if necessary
@@ -16,6 +18,19 @@ if ("mclust" %in% installed.packages()) {
   install.packages("mclust")
 }
 """
+
+function loadSingleObj(objPath)
+  data = load(objPath)
+  return data[collect(keys(data))[1]]
+end
+
+function gen_idx(N)
+  I = length(N)
+  upper_idx = cumsum(N)
+  lower_idx = [1; upper_idx[1:end-1] .+ 1]
+  return [lower_idx[i]:upper_idx[i] for i in 1:I]
+end
+
 
 # Convenience link
 Mclust = R"Mclust"
@@ -38,97 +53,94 @@ function preimpute!(y::Matrix{T}, missMean::AbstractFloat=6.0) where {T <: Numbe
 end
 
 
-function precluster(y::Matrix{T}; K::Int, modelNames::String="VVI", 
-                    warn::Bool=true) where {T <: Number}
-  return Mclust(y, G=K, modelNames=modelNames, warn=warn)
+function smartInit(y_orig; K::Int, modelNames::String="VVI",
+                   missMean=6.0, warn::Bool=true,
+                   cluster_samples_jointly::Bool=true) where {T <: Number}
+
+  y = deepcopy(y_orig)
+  I = length(y)
+  N = size.(y, 1)
+  idx = gen_idx(N)
+
+  if cluster_samples_jointly
+    y = vcat(y...)
+    preimpute!(y, missMean)
+    clus = Mclust(y, G=K, modelNames=modelNames, warn=warn)
+  else
+    preimpute!.(y, missMean)
+    clus = [Mclust(y[i], G=K, modelNames=modelNames, warn=warn) for i in 1:I]
+  end
+
+
+  # Get order of class labels
+  if cluster_samples_jointly
+    lam = [Int.(clus[:classification])[idx[i]] for i in 1:I]
+  else
+    lam = [Int.(clus[i][:classification]) for i in 1:I]
+  end
+  ord = [sortperm(lam[i]) for i in 1:I]
+
+  # Get Z
+  if cluster_samples_jointly
+    # clus_means = [mean(y[idx[i], :][lam[i] .== k, :], dims=1) for k in 1:K, i in 1:I]
+    clus_means = [mean(y[vcat(lam...) .== k, :], dims=1) for k in 1:K]
+  else
+    # clus_means = [mean(y[i][lam[i] .== k, :], dims=1) for k in 1:K, i in 1:I]
+    group_sizes = [sum(vcat(lam...) .== k) for k in 1:K]
+    clus_sums = [sum(y[i][lam[i] .== k, :], dims=1) for k in 1:K, i in 1:I]
+    # FIXME!
+    clus_means = [sum(clus_sums[k, :], dims=2) / group_sizes[k] for k in 1:K]
+  end
+  # Z = [Int8(1) * (Matrix(vcat(clus_means[:, i]...)') .> 0) for i in 1:I]
+  Z = Int8(1) * (Matrix(vcat(clus_means...)') .> 0)
+
+  # Unqiue Z
+  # println.(size.(unique.(Z, dims=2)))
+  # unique(hcat(Z...), dims=2)
+  unique(Z, dims=2)
+
+  # Get W
+  W = [mean(lam[i] .== k) for i in 1:I, k in 1:K]
+
+  return Dict(:N => N, :lam => lam, :Z => Z, :W => W, :idx => idx, :y => y,
+              :cluster_samples_jointly => cluster_samples_jointly)
 end
 
-#= Test 1: Cluster each sample separately
-using JLD2, FileIO, Distributions
-function loadSingleObj(objPath)
-  data = load(objPath)
-  return data[collect(keys(data))[1]]
-end
-include("../../sims/sim_study/util.jl")
-
-y = loadSingleObj("../../sims/cb/data/cytof_cb_with_nan.jld2")
-y = subsampleData.(y, 1)
-I = length(y)
-preimpute!.(y)
-
-size.(y)
-
-# Cluster things
-K = 10
-clus = [precluster(y[i], K=K) for i in 1:I]
-
-# Get order of class labels
-lam = [Int.(clus[i][:classification]) for i in 1:I]
-ord = [sortperm(lam[i]) for i in 1:I]
-
-# Get Z
-clus_means = [mean(y[i][lam[i] .== k, :], dims=1) for k in 1:K, i in 1:I]
-Z = [Int8(1) * (Matrix(vcat(clus_means[:, i]...)') .> 0) for i in 1:I]
-
-# Unqiue Z
-println.(size.(unique.(Z, dims=2)))
-unique(hcat(Z...), dims=2)
-
-# Get W
-W = [mean(lam[i] .== k) for i in 1:I, k in 1:K]
-
-
-# Plot yZ
-util.yZ(y[1], Z[1], W[1, :], lam[1], using_zero_index=false, thresh=.9);
-util.yZ(y[2], Z[2], W[2, :], lam[2], using_zero_index=false, thresh=.9);
-util.yZ(y[3], Z[3], W[3, :], lam[3], using_zero_index=false, thresh=.9);
-=#
+end # module
 
 #= Test 2: Cluster all samples, then separate
-using JLD2, FileIO, Distributions
-function loadSingleObj(objPath)
-  data = load(objPath)
-  return data[collect(keys(data))[1]]
-end
 include("../../sims/sim_study/util.jl")
+y = SmartInit.loadSingleObj("../../sims/cb/data/cytof_cb_with_nan.jld2")
+y = SmartInit.subsampleData.(y, .1)
 
-function gen_idx(N)
-  I = length(N)
-  upper_idx = cumsum(N)
-  lower_idx = [1; upper_idx[1:end-1] .+ 1]
-  return [lower_idx[i]:upper_idx[i] for i in 1:I]
-end
-
-y = loadSingleObj("../../sims/cb/data/cytof_cb_with_nan.jld2")
-y = subsampleData.(y, .1)
-I = length(y)
-N = size.(y, 1)
-idx = gen_idx(N)
-y = vcat(y...)
-preimpute!(y)
-
-# Cluster things
-K = 10
-clus = precluster(y, K=K)
-
-# Get order of class labels
-lam = [Int.(clus[:classification])[idx[i]] for i in 1:I]
-ord = [sortperm(lam[i]) for i in 1:I]
-
-# Get Z
-clus_means = [mean(y[idx[i], :][lam[i] .== k, :], dims=1) for k in 1:K, i in 1:I]
-Z = [Int8(1) * (Matrix(vcat(clus_means[:, i]...)') .> 0) for i in 1:I]
-
-# Unqiue Z
-println.(size.(unique.(Z, dims=2)))
-unique(hcat(Z...), dims=2)
-
-# Get W
-W = [mean(lam[i] .== k) for i in 1:I, k in 1:K]
-
+# Cluster things ##########
+init = SmartInit.smartInit(y, K=5, cluster_samples_jointly=false)
 
 # Plot yZ
-util.yZ(y[idx[1], :], Z[1], W[1, :], lam[1], using_zero_index=false, thresh=.9);
-util.yZ(y[idx[2], :], Z[2], W[2, :], lam[2], using_zero_index=false, thresh=.9);
-util.yZ(y[idx[3], :], Z[3], W[3, :], lam[3], using_zero_index=false, thresh=.9);
-=
+W = init[:W]
+Z = init[:Z]
+lam = init[:lam]
+idx = init[:idx]
+
+util.yZ(y[1], Z, W[1,:], lam[1], using_zero_index=false, thresh=.9, na="black");
+util.yZ(y[2], Z, W[2,:], lam[2], using_zero_index=false, thresh=.9, na="black");
+util.yZ(y[3], Z, W[3,:], lam[3], using_zero_index=false, thresh=.9, na="black");
+
+util.hist(y[1][:, 7], xlab="", ylab="", main="")
+mean(isnan.(y[1][:, 7]))
+
+# Cluster things #########
+init = SmartInit.smartInit(y, K=10)
+
+# Plot yZ
+W = init[:W]
+Z = init[:Z]
+lam = init[:lam]
+idx = init[:idx]
+
+util.yZ(y[1], Z, W[1,:], lam[1], using_zero_index=false, thresh=.9, na="black");
+util.yZ(y[2], Z, W[2,:], lam[2], using_zero_index=false, thresh=.9, na="black");
+util.yZ(y[3], Z, W[3,:], lam[3], using_zero_index=false, thresh=.9, na="black");
+
+=#
+
