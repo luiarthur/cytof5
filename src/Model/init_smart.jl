@@ -43,7 +43,7 @@ function precluster(y::Matrix{T}; K::Int, modelNames::String="VVI",
   return Mclust(y, G=K, modelNames=modelNames, warn=warn)
 end
 
-#= Test 1: One sample
+#= Test 1: Cluster each sample separately
 using JLD2, FileIO, Distributions
 function loadSingleObj(objPath)
   data = load(objPath)
@@ -84,7 +84,7 @@ util.yZ(y[2], Z[2], W[2, :], lam[2], using_zero_index=false, thresh=.9);
 util.yZ(y[3], Z[3], W[3, :], lam[3], using_zero_index=false, thresh=.9);
 =#
 
-#= Test 2: separate samples
+#= Test 2: Cluster all samples, then separate
 using JLD2, FileIO, Distributions
 function loadSingleObj(objPath)
   data = load(objPath)
