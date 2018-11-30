@@ -11,13 +11,15 @@ function genInitialState(c::Constants, d::Data)
   y_imputed = begin
     local out = [zeros(Float64, N[i], J) for i in 1:I]
     # y_lower, y_upper = quantile.(c.mus_prior[0], [0, .1])
-    y_lower, y_upper = quantile(y_neg, [0, .1])
+    grid_size = 30
+    y_grid = collect(range(-7, 0, length=grid_size))
+    miss_probs = [[prob_miss(yg, c.beta[:, i]) for yg in y_grid] for i in 1:I]
     for i in 1:I
       for n in 1:N[i]
         for j in 1:J
           if isnan(d.y[i][n, j])
-            # out[i][n, j] = rand(c.mus_prior[0])
-            out[i][n, j] = rand(Uniform(y_lower, y_upper))
+            # out[i][n, j] = rand(Uniform(y_lower, y_upper))
+            out[i][n, j] = wsample(y_grid, miss_probs[i])
           else
             out[i][n, j] = d.y[i][n, j]
           end

@@ -12,10 +12,10 @@ include("util.jl")
 include("State.jl")
 include("Data.jl")
 include("Constants.jl")
-include("genInitialState.jl")
 include("Tuners.jl")
 include("update.jl")
 include("repFAM.jl")
+include("genInitialState.jl")
 
 @namedargs mutable struct DICparam
   p::Vector{Matrix{Float64}}

@@ -4,6 +4,7 @@ using Random, Distributions
 using JLD2, FileIO
 using ArgParse
 include("PreProcess.jl")
+include("post_process_defs.jl")
 
 function loadSingleObj(objPath)
   data = load(objPath)
@@ -111,8 +112,17 @@ sig2_a, sig2_b = Cytof5.Model.solve_ig_params(mu=.2, sig2=.01)
                                         tau0=TAU0, tau1=TAU1,
                                         sig2_prior=InverseGamma(sig2_a, sig2_b),
                                         sig2_range=[0, 0.1],
-                                        yQuantiles=[.02, .05, .1], pBounds=[.05, .8, .05])
+                                        yQuantiles=[.01, .05, .1], pBounds=[.05, .8, .05])
 Cytof5.Model.printConstants(c)
+
+# Plot missing mechanism
+util.plotPdf("$(OUTDIR)/prob_miss.pdf")
+R"par(mfrow=c($(dat.I), 1))"
+for i in 1:dat.I
+  util.plotProbMiss(c.beta, i)
+end
+R"par(mfrow=c(1,1))"
+util.devOff()
 
 Cytof5.Model.logger("\nGenerating initial state ...");
 @time init = Cytof5.Model.genInitialState(c, dat)

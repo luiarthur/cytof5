@@ -20,7 +20,12 @@ function update_Z(s::State, c::Constants, d::Data)
       lfc0 = lp0 + ll0[j, k]
       lfc1 = lp1 + ll1[j, k]
       p = 1.0 / (1.0 + exp(lfc0 - lfc1))
-      s.Z[j, k] = rand(Bernoulli(p))
+      if !(0 < p < 1)
+        println("WARNING in update_Z: p=$p for (j=$j, k=$k).")
+        println("mu0: $(s.mus[0])")
+        println("mu1: $(s.mus[1])")
+      end
+      s.Z[j, k] = p > rand() # rand(Bernoulli(p))
     end
   end
 end
