@@ -57,6 +57,12 @@ function post_process(path_to_output)
                f=Z->addGridLines(J,K_MCMC));
   util.devOff()
 
+  # Plot alpha
+  alphaPost = util.getPosterior(:alpha, out[1])
+  util.plotPdf("$(IMGDIR)/alpha.pdf")
+  util.plotPost(alphaPost, ylab="density", xlab="alpha", main="");
+  util.devOff()
+
   # Plot W
   Wpost = util.getPosterior(:W, out[1])
   W_mean = mean(Wpost)
