@@ -1,3 +1,12 @@
+function print_debug_Z(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)
+  println("y_inj = $(s.y_imputed[i][n, j])")
+  println("sig2[i]: $(s.sig2[i])")
+  println("mus0: $(s.mus[0])")
+  println("mus1: $(s.mus[1])")
+  println("etaz0_i$(i)_j$(j): $(s.eta[0][i, j, :])")
+  println("etaz1_i$(i)_j$(j): $(s.eta[1][i, j, :])")
+end
+
 function update_Z(s::State, c::Constants, d::Data)
   ll0 = zeros(d.J, c.K)
   ll1 = zeros(d.J, c.K)
@@ -8,6 +17,19 @@ function update_Z(s::State, c::Constants, d::Data)
       for j in 1:d.J
         ll0[j, k] += log(dmixture(0, i, n, j, s, c, d))
         ll1[j, k] += log(dmixture(1, i, n, j, s, c, d))
+
+        # Warn of unexpected behavior
+        if isinf(ll0[j, k]) && isinf(ll1[j, k])
+          println("WARNING in update_Z: log(dmixture(0, $i, $n, $j, s, c, d)) = $(ll0[j, k])")
+          println("WARNING in update_Z: log(dmixture(1, $i, $n, $j, s, c, d)) = $(ll1[j, k])")
+          print_debug_Z(i, n, j, s, c, d)
+          println()
+        end
+
+        if isinf(ll0[j, k]) && d.m[i][n, j] == 1
+          println("WARNING in update_Z: y[$i][$n, $j] imputed as $(s.y_imputed[i][n, j]). But dmixture(0, $i, $n, $j, s, c, d) = 0.")
+          print_debug_Z(i, n, j, s, c, d)
+        end
       end
     end
   end
@@ -20,11 +42,6 @@ function update_Z(s::State, c::Constants, d::Data)
       lfc0 = lp0 + ll0[j, k]
       lfc1 = lp1 + ll1[j, k]
       p = 1.0 / (1.0 + exp(lfc0 - lfc1))
-      if !(0 < p < 1)
-        println("WARNING in update_Z: p=$p for (j=$j, k=$k).")
-        println("mu0: $(s.mus[0])")
-        println("mu1: $(s.mus[1])")
-      end
       s.Z[j, k] = p > rand() # rand(Bernoulli(p))
     end
   end

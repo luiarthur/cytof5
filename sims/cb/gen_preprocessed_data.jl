@@ -30,6 +30,17 @@ mar_tmp = [2, 5.1, 2, 2.1]
 imgDir = "results/misc/img/"
 mkpath(imgDir)
 
+println("Create index of missing obs")
+for i in 1:I
+  idx_missing = findall(isnan.(cbData[i]))
+  open("$(imgDir)/index_of_missing_obs_sample$(i).txt", "w") do f
+    for idx in idx_missing
+      n, j = (idx[1], idx[2])
+      write(f, "i: $i, n: $n, j: $j\n")
+    end
+  end
+end
+
 util.plotPdf("$(imgDir)/reducedDataHist.pdf");
 R"par(mfrow=c(4, 2), mar=$mar_tmp, cex.main=.8)";
 for i in 1:I
@@ -81,4 +92,5 @@ for i in 1:I
             xlab="number of missing marker expression levels")
   util.devOff()
 end
+
 

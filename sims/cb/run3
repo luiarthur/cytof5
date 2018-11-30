@@ -49,7 +49,7 @@ then
   MCMC_ITER=1000
   BURN=10000
   K_MCMC=20
-  subsample="0.01"
+  subsample="1"
   isTest="_isTest"
 fi
 
