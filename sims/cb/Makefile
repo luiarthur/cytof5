@@ -109,26 +109,7 @@ pullAndProcess4:
 retrieve4lite:
 	aws s3 sync $(AWS_BUCKET_CB_RUN4) $(RESULTS_DIR_CB_RUN4) --exclude '*.jld2'
 
-# Preprocess ###
-genpreprocessGraphs:
-	julia gen_preprocessed_data.jl
-
-sendPreprocessedGraphs:
-	aws s3 sync results/misc/img/ s3://cytof-cb-results/misc/img/
-
-getPreprocessedGraphs:
-	aws s3 sync s3://cytof-cb-results/misc/img/ results/misc/img/
-
-# get r data
-getRData:
-	aws s3 sync s3://cytof-cb-data/ data/ --exclude '*' --include 'cytof_cb.rds'
-
-# send r data
-sendRData:
-	aws s3 sync data/ s3://cytof-cb-data/ --exclude '*' --include 'cytof_cb.rds'
-
-
-# Run4 ################################################################################
+# Run5 ################################################################################
 run5:
 	./run3 $(RESULTS_DIR_CB_RUN5) $(AWS_BUCKET_CB_RUN5)
 
@@ -159,5 +140,24 @@ pullAndProcess5:
 
 retrieve5lite:
 	aws s3 sync $(AWS_BUCKET_CB_RUN5) $(RESULTS_DIR_CB_RUN5) --exclude '*.jld2'
+
+
+# Preprocess ###
+genpreprocessGraphs:
+	julia gen_preprocessed_data.jl
+
+sendPreprocessedGraphs:
+	aws s3 sync results/misc/img/ s3://cytof-cb-results/misc/img/
+
+getPreprocessedGraphs:
+	aws s3 sync s3://cytof-cb-results/misc/img/ results/misc/img/
+
+# get r data
+getRData:
+	aws s3 sync s3://cytof-cb-data/ data/ --exclude '*' --include 'cytof_cb.rds'
+
+# send r data
+sendRData:
+	aws s3 sync data/ s3://cytof-cb-data/ --exclude '*' --include 'cytof_cb.rds'
 
 
