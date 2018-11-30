@@ -6,9 +6,13 @@ AWS_BUCKET_CB_RUN3 = "s3://cytof-cb-results/cb-preprocessed-fixed-b1"
 RESULTS_DIR_CB_RUN4 = "results/cb_preprocessed_fixed_quadmiss/"
 AWS_BUCKET_CB_RUN4="s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss"
 
+RESULTS_DIR_CB_RUN5 = "results/cb_preprocessed_fixed_quadmiss_smallsig2/"
+AWS_BUCKET_CB_RUN5="s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-smallsig2"
+
 .PHONY: run test postProcess postProcess2 clean retrieve 
 .PHONY: send2 retrieve2 retrieve run3 test3 postProcess3 litecp3 metrics
-.PHONY: send4 retrieve4 run4 test3 postProcess4 litecp4 metrics4 pullAndProcess4 retrieve4lite
+.PHONY: send4 retrieve4 run4 test4 postProcess4 litecp4 metrics4 pullAndProcess4 retrieve4lite
+.PHONY: send5 retrieve5 run5 test5 postProcess5 litecp5 metrics5 pullAndProcess5 retrieve5lite
 
 run:
 	 ./run
@@ -99,6 +103,12 @@ litecp4:
 metrics4: metrics.py
 	python3 metrics.py $(RESULTS_DIR_CB_RUN4)
 
+pullAndProcess4:
+	julia pullAndGenResults.jl $(AWS_BUCKET_CB_RUN4)
+
+retrieve4lite:
+	aws s3 sync $(AWS_BUCKET_CB_RUN4) $(RESULTS_DIR_CB_RUN4) --exclude '*.jld2'
+
 # Preprocess ###
 genpreprocessGraphs:
 	julia gen_preprocessed_data.jl
@@ -117,11 +127,37 @@ getRData:
 sendRData:
 	aws s3 sync data/ s3://cytof-cb-data/ --exclude '*' --include 'cytof_cb.rds'
 
-# pullAndProcess4
-pullAndProcess4:
-	julia pullAndGenResults.jl $(AWS_BUCKET_CB_RUN4)
 
-retrieve4lite:
-	aws s3 sync $(AWS_BUCKET_CB_RUN4) $(RESULTS_DIR_CB_RUN4) --exclude '*.jld2'
+# Run4 ################################################################################
+run5:
+	./run3 $(RESULTS_DIR_CB_RUN5) $(AWS_BUCKET_CB_RUN5)
+
+postProcess5:
+	julia genResults.jl $(RESULTS_DIR_CB_RUN5)
+	aws s3 sync $(RESULTS_DIR_CB_RUN5) $(AWS_BUCKET_CB_RUN5) --exclude '*.nfs*'
+
+send5:
+	aws s3 sync $(RESULTS_DIR_CB_RUN5) $(AWS_BUCKET_CB_RUN5) --exclude '*.nfs*'
+
+retrieve5:
+	aws s3 sync $(AWS_BUCKET_CB_RUN5) $(RESULTS_DIR_CB_RUN5)
+
+test5:
+	./run3 $(RESULTS_DIR_CB_RUN5) $(AWS_BUCKET_CB_RUN5) --test
+
+testlocal:
+	./run3 results/testlocal/ $(AWS_BUCKET_CB_RUN5) --test --testlocal
+
+litecp5:
+	rsync -av --exclude '*.jld*' $(RESULTS_DIR_CB_RUN5) .sandbox/cb_preprocessed_fixed_quadmiss_smallsig2
+
+metrics5: metrics.py
+	python3 metrics.py $(RESULTS_DIR_CB_RUN5)
+
+pullAndProcess5:
+	julia pullAndGenResults.jl $(AWS_BUCKET_CB_RUN5)
+
+retrieve5lite:
+	aws s3 sync $(AWS_BUCKET_CB_RUN5) $(RESULTS_DIR_CB_RUN5) --exclude '*.jld2'
 
 
