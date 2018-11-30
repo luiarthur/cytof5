@@ -126,7 +126,7 @@ retrieve5:
 test5:
 	./run3 $(RESULTS_DIR_CB_RUN5) $(AWS_BUCKET_CB_RUN5) --test
 
-testlocal:
+testlocal5:
 	./run3 results/testlocal/ $(AWS_BUCKET_CB_RUN5) --test --testlocal
 
 litecp5:
