@@ -2,6 +2,7 @@ using Distributions
 using Cytof5, Random, RCall
 using JLD2, FileIO
 include("../sim_study/util.jl")
+Random.seed!(0)
 
 function loadSingleObj(objPath)
   data = load(objPath)
@@ -92,7 +93,7 @@ function post_process(path_to_output)
   util.plotPdf("$IMGDIR/prob_miss.pdf")
   R"par(mfrow=c($I, 1))"
   for i in 1:I
-    util.plotProbMiss(c.beta, i)
+    util.plotProbMiss(c.beta, i, xlim=[-20, 5])
   end
   R"par(mfrow=c(1,1))"
   util.devOff()
@@ -141,11 +142,33 @@ function post_process(path_to_output)
 
 
   idx_missing = [ findall(isnan.(cbData[i])) for i in 1:I ]
-  idx = idx_missing[2][1]
-  util.plotPdf("$(IMGDIR)/y_trace.pdf")
-  util.hist([ y_imputed[b][2][idx] for b in 1:length(y_imputed) ], col="blue", border="transparent")
-  util.plot([ y_imputed[b][2][idx] for b in 1:length(y_imputed) ], typ="l")
-  util.devOff()
+  num_missing_per_sample= 3
+  idx_missing = [shuffle!(idx_missing[i])[1:num_missing_per_sample] for i in 1:I]
+  idx_missing = [map(idx -> (i, idx[1], idx[2]), idx_missing[i]) for i in 1:I]
+  idx_missing = vcat(idx_missing...)
+  for idx in idx_missing
+    i, n, j = idx
+    y_inj = [y_imputed[b][i][n, j] for b in 1:length(y_imputed)]
+    util.plotPdf("$(IMGDIR)/y_trace_i$(i)_n$(n)_j$(j).pdf")
+    util.hist(y_inj, col="blue", border="transparent",
+              main="", xlab="y (i: 2, n: $n, j: $j)", ylab="counts")
+    util.plot(y_inj, typ="l", xlab="Index", ylab="y (i: $i, n: $n, j: $j)", main="")
+    util.devOff()
+  end
+
+  B = length(y_imputed)
+  for i in 1:I
+    idx_missing = findall(isnan.(cbData[i]))
+    y_i = [y_imputed[b][i][idx_missing] for b in 1:B]
+    util.plotPdf("$IMGDIR/y_imputed_hist_i$(i).pdf")
+    R"par(mfrow=c($I, 1), mar=c(5, 5.1, 0.5, 2.1))"
+    util.hist(mean(y_i),    xlim=[-10, 5], xlab="means of imputed y for sample $i", ylab="counts", main="");
+    util.hist(maximum(y_i), xlim=[-10, 5], xlab="max of imputed y for sample $i", ylab="counts", main="");
+    util.hist(minimum(y_i), xlim=[-10, 5], xlab="min of imputed y for sample $i", ylab="counts", main="");
+    R"par(mfrow=c(1,1), mar=mar.default())"
+    util.devOff()
+  end
+
 
   for i in 1:I
     util.plotPng("$IMGDIR/y_imputed$(i).png")
