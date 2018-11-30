@@ -14,7 +14,7 @@ STAGGER_TIME=100
 # Experiment settings
 MCMC_ITER=1000
 BURN=20000
-K_MCMC="`seq -w 2 10`"
+K_MCMC="`seq -w 2 20 | shuf`"
 L0_MCMC="10"
 L1_MCMC="5"
 TAU0="0.0"
