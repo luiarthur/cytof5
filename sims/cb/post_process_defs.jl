@@ -89,11 +89,18 @@ function post_process(path_to_output)
     end
   end
 
+  # y_imputed cache
+  y_imputed = [ o[:y_imputed] for o in out[2] ]
+  B = length(y_imputed)
+  y_imputed_min = minimum(vcat([minimum.(yb) for yb in y_imputed]...))
+  y_imputed_max = maximum(vcat([maximum.(yb) for yb in y_imputed]...))
+  y_imputed_range = [y_imputed_min, y_imputed_max]
+
   # Plot missing mechanism
   util.plotPdf("$IMGDIR/prob_miss.pdf")
   R"par(mfrow=c($I, 1))"
   for i in 1:I
-    util.plotProbMiss(c.beta, i, xlim=[-20, 5])
+    util.plotProbMiss(c.beta, i, xlim=y_imputed_range)
   end
   R"par(mfrow=c(1,1))"
   util.devOff()
@@ -121,7 +128,7 @@ function post_process(path_to_output)
   util.devOff()
 
   # Posterior of y_imputed
-  y_imputed = [ o[:y_imputed] for o in out[2] ]
+
   util.plotPdf("$(IMGDIR)/ydatPost.pdf")
   R"par(mfrow=c(4,2))"
   for i in 1:I
@@ -131,7 +138,7 @@ function post_process(path_to_output)
       util.plot(util.density([cbData[i][:, j]; fill(-10, numMissing)], na=true), col="red",
                 xlim=[-8,8], main="Y sample: $(i), marker: $(j), missing: $numMissing",
                 bty="n", fg="grey")
-      for iter in 1:length(y_imputed)
+      for iter in 1:B
         yimp = y_imputed[iter]
         util.lines(util.density(yimp[i][:, j]), col=util.rgba("blue", .5))
       end
@@ -148,7 +155,7 @@ function post_process(path_to_output)
   idx_missing = vcat(idx_missing...)
   for idx in idx_missing
     i, n, j = idx
-    y_inj = [y_imputed[b][i][n, j] for b in 1:length(y_imputed)]
+    y_inj = [y_imputed[b][i][n, j] for b in 1:B]
     util.plotPdf("$(IMGDIR)/y_trace_i$(i)_n$(n)_j$(j).pdf")
     util.hist(y_inj, col="blue", border="transparent",
               main="", xlab="y (i: 2, n: $n, j: $j)", ylab="counts")
@@ -156,15 +163,14 @@ function post_process(path_to_output)
     util.devOff()
   end
 
-  B = length(y_imputed)
   for i in 1:I
     idx_missing = findall(isnan.(cbData[i]))
     y_i = [y_imputed[b][i][idx_missing] for b in 1:B]
     util.plotPdf("$IMGDIR/y_imputed_hist_i$(i).pdf")
     R"par(mfrow=c($I, 1), mar=c(5, 5.1, 0.5, 2.1))"
-    util.hist(mean(y_i),    xlim=[-10, 5], xlab="means of imputed y for sample $i", ylab="counts", main="");
-    util.hist(maximum(y_i), xlim=[-10, 5], xlab="max of imputed y for sample $i", ylab="counts", main="");
-    util.hist(minimum(y_i), xlim=[-10, 5], xlab="min of imputed y for sample $i", ylab="counts", main="");
+    util.hist(mean(y_i),    xlim=y_imputed_range, xlab="means of imputed y for sample $i", ylab="counts", main="");
+    util.hist(maximum(y_i), xlim=y_imputed_range, xlab="max of imputed y for sample $i", ylab="counts", main="");
+    util.hist(minimum(y_i), xlim=y_imputed_range, xlab="min of imputed y for sample $i", ylab="counts", main="");
     R"par(mfrow=c(1,1), mar=mar.default())"
     util.devOff()
   end
