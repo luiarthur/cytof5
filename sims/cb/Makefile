@@ -94,7 +94,7 @@ testlocal:
 	./run3 results/testlocal/ $(AWS_BUCKET_CB_RUN4) --test --testlocal
 
 litecp4:
-	rsync -av --exclude '*.jld*' $(RESULTS_DIR_CB_RUN4) .sandbox/cb_preprocessed_fixed_b1_smallTau
+	rsync -av --exclude '*.jld*' $(RESULTS_DIR_CB_RUN4) .sandbox/cb_preprocessed_fixed_quadmiss
 
 metrics4: metrics.py
 	python3 metrics.py $(RESULTS_DIR_CB_RUN4)
