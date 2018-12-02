@@ -7,7 +7,7 @@ RESULTS_DIR_CB_RUN4 = "results/cb_preprocessed_fixed_quadmiss/"
 AWS_BUCKET_CB_RUN4="s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss"
 
 RESULTS_DIR_CB_RUN5 = "results/cb_preprocessed_fixed_quadmiss_smallsig2/"
-AWS_BUCKET_CB_RUN5="s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-smallsig2"
+AWS_BUCKET_CB_RUN5="s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-smartinit"
 
 .PHONY: run test postProcess postProcess2 clean retrieve 
 .PHONY: send2 retrieve2 retrieve run3 test3 postProcess3 litecp3 metrics
@@ -111,7 +111,7 @@ retrieve4lite:
 
 # Run5 ################################################################################
 run5:
-	./run3 $(RESULTS_DIR_CB_RUN5) $(AWS_BUCKET_CB_RUN5)
+	./run5 $(RESULTS_DIR_CB_RUN5) $(AWS_BUCKET_CB_RUN5)
 
 postProcess5:
 	julia genResults.jl $(RESULTS_DIR_CB_RUN5)
@@ -124,13 +124,13 @@ retrieve5:
 	aws s3 sync $(AWS_BUCKET_CB_RUN5) $(RESULTS_DIR_CB_RUN5)
 
 test5:
-	./run3 $(RESULTS_DIR_CB_RUN5) $(AWS_BUCKET_CB_RUN5) --test
+	./run5 $(RESULTS_DIR_CB_RUN5) $(AWS_BUCKET_CB_RUN5) --test
 
 testlocal5:
-	./run3 results/testlocal/ $(AWS_BUCKET_CB_RUN5) --test --testlocal
+	./run5 results/testlocal/ $(AWS_BUCKET_CB_RUN5) --test --testlocal
 
 litecp5:
-	rsync -av --exclude '*.jld*' $(RESULTS_DIR_CB_RUN5) .sandbox/cb_preprocessed_fixed_quadmiss_smallsig2
+	rsync -av --exclude '*.jld*' $(RESULTS_DIR_CB_RUN5) .sandbox/cb_preprocessed_fixed_quadmiss_smartinit
 
 metrics5: metrics.py
 	python3 metrics.py $(RESULTS_DIR_CB_RUN5)
