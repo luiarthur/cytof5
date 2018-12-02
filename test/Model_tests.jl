@@ -94,7 +94,8 @@ end
   R"dev.off()"
 
 
-  @time init = Cytof5.Model.genInitialState(c, y_dat)
+  # @time init = Cytof5.Model.genInitialState(c, y_dat)
+  @time init = Cytof5.Model.smartInit(c, y_dat)
 
   printstyled("Test Model Fitting...\n", color=:yellow)
   @time out, lastState, ll = Cytof5.Model.cytof5_fit(init, c, y_dat,

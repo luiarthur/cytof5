@@ -58,3 +58,4 @@ function genInitialState(c::Constants, d::Data)
                eta=eta, lam=lam, gam=gam, y_imputed=y_imputed)
 end
 
+include("SmartInit.jl")

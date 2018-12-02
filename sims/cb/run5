@@ -15,7 +15,7 @@ STAGGER_TIME=100
 MCMC_ITER=1000
 BURN=20000
 # K_MCMC="`seq -w 2 20 | shuf`"
-K_MCMC="15"
+K_MCMC="10 15 20"
 L0_MCMC="5"
 L1_MCMC="5"
 TAU0="0.0"
@@ -50,7 +50,7 @@ then
   MCMC_ITER=1000
   BURN=10000
   K_MCMC=20
-  SUBSAMPLE="0.01"
+  SUBSAMPLE="0.05"
   isTest="_isTest"
 fi
 

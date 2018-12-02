@@ -1,9 +1,10 @@
 module Model
 
 using Distributions
-
-import LinearAlgebra
+using RCall # Mclust
+import LinearAlgebra # Identity matrix
 import Random # shuffle
+import StatsBase # wsample
 
 include("../MCMC/MCMC.jl")
 import .MCMC.Util.@namedargs
