@@ -5,8 +5,7 @@
 # - add RCall, StatsBase to Manifest
 module SmartInit
 
-using RCall
-using JLD2, FileIO, Distributions
+using RCall, Distributions
 import StatsBase
 
 # Install mclust if necessary
@@ -19,10 +18,8 @@ if ("mclust" %in% installed.packages()) {
 }
 """
 
-function loadSingleObj(objPath)
-  data = load(objPath)
-  return data[collect(keys(data))[1]]
-end
+# Convenience link
+Mclust = R"Mclust"
 
 function gen_idx(N)
   I = length(N)
@@ -31,9 +28,6 @@ function gen_idx(N)
   return [lower_idx[i]:upper_idx[i] for i in 1:I]
 end
 
-
-# Convenience link
-Mclust = R"Mclust"
 
 function subsampleData(y::Matrix{T}, percentage) where {T <: Number}
   if 0 < percentage < 1
@@ -47,19 +41,21 @@ function subsampleData(y::Matrix{T}, percentage) where {T <: Number}
   end
 end
 
+
 function preimpute!(y::Matrix{T}, missMean::AbstractFloat=6.0) where {T <: Number}
   num_missing = sum(isnan.(y))
   y[isnan.(y)] .= randn(num_missing) .- missMean
 end
 
 
-function smartInit(y_orig; K::Int, modelNames::String="VVI",
+function smartInit(y_orig; K::Int, L::Dict{Int, Int}, modelNames::String="VVI",
                    missMean=6.0, warn::Bool=true, separate_Z::Bool=false,
                    cluster_samples_jointly::Bool=true) where {T <: Number}
 
   y = deepcopy(y_orig)
   I = length(y)
   N = size.(y, 1)
+  J = size(y[1], 2)
   idx = gen_idx(N)
 
   if cluster_samples_jointly
@@ -106,19 +102,45 @@ function smartInit(y_orig; K::Int, modelNames::String="VVI",
   # Get W
   W = [mean(lam[i] .== k) for i in 1:I, k in 1:K]
 
-  # Get gam
-  # Get eta
   # Get alpha
-  # Get sig
+  alpha = mean(sum(Z, dims=2))
+
+  # Get v
+  v = mean(Z .+ (1.0 / J), dims=1)
+
+  # Get mus
+  # ???
+
+  # Get sig2
+
+  # Get gam
+
+  # Get eta
+
+  # Get y_imputed
 
   return Dict(:N => N, :lam => lam, :Z => Z, :W => W, :idx => idx, :y => y,
+              :alpha => alpha,
+              :v => v,
+              :mus => nothing,
+              :sig2 => nothing,
+              :gam = nothing,
+              :eta => nothing,
+              :y_imputed => nothing,
               :cluster_samples_jointly => cluster_samples_jointly)
 end
 
 end # module
 
 #= Test: Cluster all samples, then separate
+using JLD2, FileIO
 include("../../sims/sim_study/util.jl")
+
+function loadSingleObj(objPath)
+  data = load(objPath)
+  return data[collect(keys(data))[1]]
+end
+
 y = SmartInit.loadSingleObj("../../sims/cb/data/cytof_cb_with_nan.jld2")
 y = SmartInit.subsampleData.(y, 1)
 
