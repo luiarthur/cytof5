@@ -6,7 +6,7 @@ AWS_BUCKET_CB_RUN3 = "s3://cytof-cb-results/cb-preprocessed-fixed-b1"
 RESULTS_DIR_CB_RUN4 = "results/cb_preprocessed_fixed_quadmiss/"
 AWS_BUCKET_CB_RUN4="s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss"
 
-RESULTS_DIR_CB_RUN5 = "results/cb_preprocessed_fixed_quadmiss_smallsig2/"
+RESULTS_DIR_CB_RUN5 = "results/cb_preprocessed_fixed_quadmiss_smartinit/"
 AWS_BUCKET_CB_RUN5="s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-smartinit"
 
 .PHONY: run test postProcess postProcess2 clean retrieve 
