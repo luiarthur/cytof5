@@ -38,6 +38,8 @@ function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
                           pBounds=[.01, .8, .05], yQuantiles=[0.01, .1, .25],
                           sig2_prior=InverseGamma(3.0, 2 / 3),
                           sig2_range=[0.0, Inf],
+                          mus0_range=[-10.0, 0.0],
+                          mus1_range=[0.0, 10.0],
                           tau0::Float64=0.0, tau1::Float64=0.0,
                           probFlip_Z::Float64=1.0 / (data.J * K),
                           similarity_Z::Function=sim_fn_abs(0))
@@ -55,8 +57,9 @@ function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
   if tau1 <= 0
     tau1 = std(y_pos)
   end
-  mus_prior[0] = TruncatedNormal(mean(y_neg), tau0, -10,  0)
-  mus_prior[1] = TruncatedNormal(mean(y_pos), tau1,   0, 10)
+  mus_prior[0] = TruncatedNormal(mean(y_neg), tau0, mus0_range[1], mus0_range[2])
+  mus_prior[1] = TruncatedNormal(mean(y_pos), tau1, mus1_range[1], mus1_range[2])
+
   W_prior = Dirichlet(K, 1 / K)
   eta_prior = Dict(z => Dirichlet(L[z], 1 / L[z]) for z in 0:1)
 
