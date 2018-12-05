@@ -40,13 +40,13 @@ function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
                           sig2_range=[0.0, Inf],
                           mus0_range=[-10.0, 0.0],
                           mus1_range=[0.0, 10.0],
+                          alpha_prior = Gamma(3.0, 0.5),
                           tau0::Float64=0.0, tau1::Float64=0.0,
                           probFlip_Z::Float64=1.0 / (data.J * K),
                           similarity_Z::Function=sim_fn_abs(0))
   # Assert range of sig2 is positive
   @assert 0 <= sig2_range[1] < sig2_range[2]
 
-  alpha_prior = Gamma(3.0, 0.5)
   mus_prior = Dict{Int, Truncated{Normal{Float64}, Continuous}}()
   vec_y = vcat(vec.(data.y)...)
   y_neg = filter(y_inj -> !isnan(y_inj) && y_inj < 0, vec_y)
