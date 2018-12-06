@@ -38,6 +38,9 @@ function preprocess!(y::Vector{Matrix{T}}; maxNanOrNegProp::Float64=.9,
   @assert all(J .== Js)
   @assert 0 <= subsample <= 1
 
+  goodColumns = [!isBadColumnForAllSamples(j, y, maxNanOrNegProp=maxNanOrNegProp,
+                                           maxPosProp=maxPosProp) for j in 1:J]
+
   if 0 < subsample < 1
     for i in 1:I
       Ni = size(y[i], 1)
@@ -47,9 +50,6 @@ function preprocess!(y::Vector{Matrix{T}}; maxNanOrNegProp::Float64=.9,
       y[i] = y[i][random_indices, :]
     end
   end
-
-  goodColumns = [!isBadColumnForAllSamples(j, y, maxNanOrNegProp=maxNanOrNegProp,
-                                           maxPosProp=maxPosProp) for j in 1:J]
 
   for i in 1:I
     y[i] = y[i][:, goodColumns]
