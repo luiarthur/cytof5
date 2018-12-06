@@ -15,14 +15,15 @@ STAGGER_TIME=100
 MCMC_ITER=1000
 BURN=20000
 # K_MCMC="`seq -w 2 20 | shuf`"
-K_MCMC="15"
+# K_MCMC="15"
+K_MCMC="`seq -w 2 20 | shuf`"
 L0_MCMC="10"
 L1_MCMC="5"
 TAU0="10.0"
 TAU1="10.0"
 DATA_PATH="data/cytof_cb_with_nan.jld2"
 SEED=0
-SUBSAMPLE="0.05 0.1 0"
+SUBSAMPLE="0.1"
 isTest=""
 otherFlags=""
 
