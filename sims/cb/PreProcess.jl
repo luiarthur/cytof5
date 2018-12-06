@@ -1,4 +1,5 @@
 module PreProcess
+using Distributions
 
 #= Idea:
   - if across all samples, a marker has > 90% missing or negative, then remove
@@ -41,7 +42,8 @@ function preprocess!(y::Vector{Matrix{T}}; maxNanOrNegProp::Float64=.9,
     for i in 1:I
       Ni = size(y[i], 1)
       new_Ni = Int(round(Ni * subsample))
-      random_indices = rand(1:Ni, new_Ni)
+      # random_indices = rand(1:Ni, new_Ni)
+      random_indices = Distributions.sample(1:Ni, new_Ni, replace=false)
       y[i] = y[i][random_indices, :]
     end
   end
