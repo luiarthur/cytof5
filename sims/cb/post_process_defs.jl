@@ -134,16 +134,16 @@ function post_process(path_to_output)
   util.devOff()
 
   # Posterior of y_imputed
-
   util.plotPdf("$(IMGDIR)/ydatPost.pdf")
   R"par(mfrow=c(4,2))"
   for i in 1:I
     for j in 1:J
       println("i: $i, j: $j")
       numMissing = sum(cbData[i][:, j] .=== NaN)
-      util.plot(util.density([cbData[i][:, j]; fill(-10, numMissing)], na=true), col="red",
-                xlim=[-8,8], main="Y sample: $(i), marker: $(j), missing: $numMissing",
-                bty="n", fg="grey")
+      h = maximum(util.density(yimp[i][:, j])[:y])
+      util.plot(util.density([cbData[i][:, j]; fill(-10, numMissing)], na=true, bw=.3),
+                col="red", xlim=[-8,8], main="Y sample: $(i), marker: $(j),
+                missing: $numMissing", bty="n", fg="grey", ylim=c(0,h))
       for iter in 1:B
         yimp = y_imputed[iter]
         util.lines(util.density(yimp[i][:, j]), col=util.rgba("blue", .5))
