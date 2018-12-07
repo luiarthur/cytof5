@@ -74,7 +74,7 @@ if __name__ == '__main__':
             plt.plot(K[order], LPML[order], linestyle='--', marker='o')
             plt.ylabel('LPML')
             plt.xlabel('K')
-            plt.xticks(K)
+            plt.xticks(K, rotation=90)
             plt.savefig('{}/lpml.pdf'.format(METRICS_DIR), bbox_inches='tight')
             plt.close()
 
@@ -83,7 +83,7 @@ if __name__ == '__main__':
             plt.plot(K[order], DIC[order], linestyle='--', marker='o')
             plt.ylabel('DIC')
             plt.xlabel('K')
-            plt.xticks(K)
+            plt.xticks(K, rotation=90)
             plt.savefig('{}/dic.pdf'.format(METRICS_DIR), bbox_inches='tight')
             plt.close()
 
@@ -92,7 +92,7 @@ if __name__ == '__main__':
             plt.plot(K[order], pD[order], linestyle='--', marker='o')
             plt.ylabel('pD')
             plt.xlabel('K')
-            plt.xticks(K)
+            plt.xticks(K, rotation=90)
             plt.savefig('{}/pD.pdf'.format(METRICS_DIR), bbox_inches='tight')
             plt.close()
 
@@ -101,7 +101,7 @@ if __name__ == '__main__':
             plt.plot(K[order], Dmean[order], linestyle='--', marker='o')
             plt.ylabel('Dmean')
             plt.xlabel('K')
-            plt.xticks(K)
+            plt.xticks(K, rotation=90)
             plt.savefig('{}/Dmean.pdf'.format(METRICS_DIR), bbox_inches='tight')
             plt.close()
 
