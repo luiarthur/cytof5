@@ -94,7 +94,7 @@ mkpath(OUTDIR)
 cbData = loadSingleObj(cbDataPath)
 # Reduce Data by removing highly non-expressive / expressive columns
 goodColumns, J = PreProcess.preprocess!(cbData, maxNanOrNegProp=.9, maxPosProp=.9,
-                                        subsample=subsample)
+                                        subsample=subsample, rowThresh=-6.0)
 Cytof5.Model.logger("good columns: $goodColumns")
 
 # Possibly reduce data size
