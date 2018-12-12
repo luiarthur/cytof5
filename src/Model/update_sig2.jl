@@ -3,9 +3,12 @@ function update_sig2(i::Int, s::State, c::Constants, d::Data)
 
   for j in 1:d.J
     for n in 1:d.N[i]
-      z = s.Z[j, s.lam[i][n]]
-      l = s.gam[i][n, j]
-      ss += (s.y_imputed[i][n, j] - s.mus[z][l]) ^ 2
+      k = s.lam[i][n]
+      if k > 0
+        z = s.Z[j, k]
+        l = s.gam[i][n, j]
+        ss += (s.y_imputed[i][n, j] - s.mus[z][l]) ^ 2
+      end
     end
   end
 

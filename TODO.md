@@ -5,7 +5,7 @@
 - [ ] update y_imputed
 - [x] update mus
 - [x] update Z
-- [ ] update sig2
+- [x] update sig2
 - [x] update gam
 - [x] update eta
 - [x] update logdnoisy
