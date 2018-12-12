@@ -2,11 +2,17 @@ function update_y_imputed(i::Int, n::Int, j::Int, s::State, c::Constants, d::Dat
 
   function logFullCond(yinj)
     p = prob_miss(yinj, c.beta[:, i])
-    z = s.Z[j, s.lam[i][n]]
-    l = s.gam[i][n, j]
-    mu = s.mus[z][l]
-    sig = sqrt(s.sig2[i])
-    logPrior = logpdf(Normal(mu, sig), yinj)
+    k = s.lam[i][n]
+    if k > 0
+      z = s.Z[j, k]
+      l = s.gam[i][n, j]
+      mu = s.mus[z][l]
+      sig = sqrt(s.sig2[i])
+      logPrior = logpdf(Normal(mu, sig), yinj)
+    else
+      sig = sqrt(c.sig2_0)
+      logPrior = logpdf(Normal(0, sig2), yinj)
+    end
     return log(p) + logPrior
   end
   

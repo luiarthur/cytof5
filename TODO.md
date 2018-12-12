@@ -2,7 +2,7 @@
 - [ ] run `rgrep lam | grep update`
 - [x] update lam
 - [x] update W
-- [ ] update y_imputed
+- [x] update y_imputed
 - [x] update mus
 - [x] update Z
 - [x] update sig2
