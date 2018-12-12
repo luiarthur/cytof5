@@ -3,7 +3,7 @@ function update_lam(i::Int, n::Int, s::State, c::Constants, d::Data)
   logpriorVec = log.(s.W[i,:]) .+ log(1.0 - c.eps)
   loglikeVec = zeros(c.K)
 
-  logprior0 = log(eps)
+  logprior0 = log(c.eps)
   loglike0 = logdnoisy(i, n, s, c, d)
   logPost0 = logprior0 + loglike0
 
