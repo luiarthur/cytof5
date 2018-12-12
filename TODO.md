@@ -1,4 +1,5 @@
 # TODO
+- [ ] run `rgrep lam | grep update`
 - [x] update lam
 - [x] update W
 - [ ] update y_imputed
