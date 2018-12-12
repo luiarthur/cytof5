@@ -9,9 +9,14 @@ function compute_like(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)::
     like *= pdf(Bernoulli(p), d.m[i][n, j])
   else
     # multiply to likelihood for y_observed (non-missing)
-    z = s.Z[j, s.lam[i][n]]
-    l = s.gam[i][n, j]
-    like *= pdf(Normal(s.mus[z][l], sqrt(s.sig2[i])), d.y[i][n, j])
+    k = s.lam[i][n]
+    if k > 0
+      z = s.Z[j, k]
+      l = s.gam[i][n, j]
+      like *= pdf(Normal(s.mus[z][l], sqrt(s.sig2[i])), d.y[i][n, j])
+    else
+      like *= exp(logdnoisy(i, n, s, c, d))
+    end
   end
 
   if iszero(like)
@@ -33,9 +38,14 @@ function compute_loglike(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data
     ll += logpdf(Bernoulli(p), d.m[i][n, j])
   else
     # Add to log-likelihood for y_observed (non-missing)
-    z = s.Z[j, s.lam[i][n]]
-    l = s.gam[i][n, j]
-    ll += logpdf(Normal(s.mus[z][l], sqrt(s.sig2[i])), d.y[i][n, j])
+    k = s.lam[i][n]
+    if k > 0
+      z = s.Z[j, k]
+      l = s.gam[i][n, j]
+      ll += logpdf(Normal(s.mus[z][l], sqrt(s.sig2[i])), d.y[i][n, j])
+    else
+      ll += logdnoisy(i, n, s, c, d)
+    end
   end
 
   if isinf(ll)

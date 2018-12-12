@@ -2,8 +2,9 @@ function update_eta(i::Int, j::Int, s::State, c::Constants, d::Data)
   counts = Dict(z => zeros(c.L[z]) for z in 0:1)
 
   for n in 1:d.N[i]
-    if s.lam[i][n] > 0
-      z = s.Z[j, s.lam[i][n]]
+    k = s.lam[i][n]
+    if k > 0
+      z = s.Z[j, k]
       l = s.gam[i][n, j]
       counts[z][l] += 1
     end

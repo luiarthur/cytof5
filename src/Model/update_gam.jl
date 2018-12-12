@@ -1,6 +1,7 @@
 function update_gam(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)
-  if lam[i][n] > 0 s.lam[i][n]
-    z = s.Z[j, s.lam[i][n]]
+  k = s.lam[i][n]
+  if k > 0
+    z = s.Z[j, k]
     logpriorVec = log.(s.eta[z][i, j, :])
     loglikeVec = logpdf.(Normal.(s.mus[z], sqrt(s.sig2[i])), s.y_imputed[i][n, j])
     logPostVec = logpriorVec .+ loglikeVec

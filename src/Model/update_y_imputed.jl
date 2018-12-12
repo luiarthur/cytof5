@@ -11,7 +11,7 @@ function update_y_imputed(i::Int, n::Int, j::Int, s::State, c::Constants, d::Dat
       logPrior = logpdf(Normal(mu, sig), yinj)
     else
       sig = sqrt(c.sig2_0)
-      logPrior = logpdf(Normal(0, sig2), yinj)
+      logPrior = logpdf(Normal(0, sig), yinj)
     end
     return log(p) + logPrior
   end

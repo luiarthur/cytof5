@@ -21,7 +21,7 @@ include("genInitialState.jl")
 @namedargs mutable struct DICparam
   p::Vector{Matrix{Float64}}
   mu::Vector{Matrix{Float64}}
-  sig::Vector{Float64}
+  sig::Vector{Vector{Float64}}
 end
 
 """
@@ -78,7 +78,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
 
   # CPO
   if computeLPML
-    invLike = [ [ 1 / compute_like(i, n, j, init, c, d) for n in 1:d.N[i], j in 1:d.J ]
+    invLike = [ [ 1.0 / compute_like(i, n, j, init, c, d) for n in 1:d.N[i], j in 1:d.J ]
                  for i in 1:d.I ]
     invLikeType = typeof(invLike)
     cpoStream = MCMC.CPOstream{invLikeType}(invLike)
@@ -86,7 +86,9 @@ function cytof5_fit(init::State, c::Constants, d::Data;
 
   # DIC
   if computeDIC
-    local tmp = DICparam(p=deepcopy(d.y), mu=deepcopy(d.y), sig=zeros(Float64, d.I))
+    local tmp = DICparam(p=deepcopy(d.y),
+                         mu=deepcopy(d.y),
+                         sig=[zeros(Float64, d.N[i]) for i in 1:d.I])
     dicStream = MCMC.DICstream{DICparam}(tmp)
 
     function updateParams(d::MCMC.DICstream{DICparam}, param::DICparam)
@@ -99,7 +101,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
     function paramMeanCompute(d::MCMC.DICstream{DICparam})::DICparam
       return DICparam(d.paramSum.p ./ d.counter,
                       d.paramSum.mu ./ d.counter,
-                      d.paramSum.sig / d.counter)
+                      d.paramSum.sig ./ d.counter)
     end
 
     function loglikeDIC(param::DICparam)::Float64
@@ -113,7 +115,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
             if y_inj_is_missing
               ll += logpdf(Bernoulli(param.p[i][n, j]), d.m[i][n, j])
             else
-              ll += logpdf(Normal(param.mu[i][n, j], param.sig[i]), d.y[i][n, j])
+              ll += logpdf(Normal(param.mu[i][n, j], param.sig[i][n]), d.y[i][n, j])
             end
           end
         end
@@ -123,9 +125,14 @@ function cytof5_fit(init::State, c::Constants, d::Data;
     end
 
     function convertStateToDicParam(s::State)::DICparam
-      p = [[prob_miss(s.y_imputed[i][n, j], c.beta[:, i]) for n in 1:d.N[i], j in 1:d.J] for i in 1:d.I]
-      mu = [[s.mus[s.Z[j, s.lam[i][n]]][s.gam[i][n, j]] for n in 1:d.N[i], j in 1:d.J] for i in 1:d.I]
-      sig = sqrt.(s.sig2)
+      p = [[prob_miss(s.y_imputed[i][n, j], c.beta[:, i])
+            for n in 1:d.N[i], j in 1:d.J] for i in 1:d.I]
+
+      mu = [[s.lam[i][n] > 0 ? s.mus[s.Z[j, s.lam[i][n]]][s.gam[i][n, j]] : 0.0 
+             for n in 1:d.N[i], j in 1:d.J] for i in 1:d.I]
+
+      sig = [[s.lam[i][n] > 0 ? sqrt(s.sig2[i]) : sqrt(c.sig2_0) for n in 1:d.N[i]] for i in 1:d.I]
+
       return DICparam(p, mu, sig)
     end
   end

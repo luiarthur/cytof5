@@ -17,8 +17,8 @@ function update_lam(i::Int, n::Int, s::State, c::Constants, d::Data)
   logPostVec = logpriorVec .+ loglikeVec
   append!(logPostVec, logPost0)
 
-  lam_in = MCMC.wsample_logprob(logPostVec)
-  s.lam[i][n] = lam_in <= K ? lam_in : 0
+  k = MCMC.wsample_logprob(logPostVec)
+  s.lam[i][n] = k <= c.K ? k : 0
 end
 
 function update_lam(s::State, c::Constants, d::Data)
