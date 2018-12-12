@@ -14,22 +14,11 @@ function update_Z(s::State, c::Constants, d::Data)
   for i in 1:d.I
     for n in 1:d.N[i]
       k = s.lam[i][n]
-      for j in 1:d.J
-        ll0[j, k] += log(dmixture(0, i, n, j, s, c, d))
-        ll1[j, k] += log(dmixture(1, i, n, j, s, c, d))
-
-        # Warn of unexpected behavior
-        # if isinf(ll0[j, k]) && isinf(ll1[j, k])
-        #   println("WARNING in update_Z: log(dmixture(0, $i, $n, $j, s, c, d)) = $(ll0[j, k])")
-        #   println("WARNING in update_Z: log(dmixture(1, $i, $n, $j, s, c, d)) = $(ll1[j, k])")
-        #   print_debug_Z(i, n, j, s, c, d)
-        #   println()
-        # end
-
-        # if isinf(ll0[j, k]) && d.m[i][n, j] == 1
-        #   println("WARNING in update_Z: y[$i][$n, $j] imputed as $(s.y_imputed[i][n, j]). But dmixture(0, $i, $n, $j, s, c, d) = 0.")
-        #   print_debug_Z(i, n, j, s, c, d)
-        # end
+      if k > 0
+        for j in 1:d.J
+          ll0[j, k] += log(dmixture(0, i, n, j, s, c, d))
+          ll1[j, k] += log(dmixture(1, i, n, j, s, c, d))
+        end
       end
     end
   end

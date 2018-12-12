@@ -4,10 +4,12 @@ function update_mus(s::State, c::Constants, d::Data)
   for i in 1:d.I
     for j in 1:d.J
       for n in 1:d.N[i]
-        l = s.gam[i][n, j]
-        z = s.Z[j, s.lam[i][n]]
-        sumYOverSig2[z][l] += s.y_imputed[i][n, j] / s.sig2[i]
-        cardinality[z][i, l] += 1
+        if s.lam[i][n] > 0
+          l = s.gam[i][n, j]
+          z = s.Z[j, s.lam[i][n]]
+          sumYOverSig2[z][l] += s.y_imputed[i][n, j] / s.sig2[i]
+          cardinality[z][i, l] += 1
+        end
       end
     end
   end

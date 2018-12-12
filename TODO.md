@@ -3,8 +3,8 @@
 - [x] update lam
 - [x] update W
 - [ ] update y_imputed
-- [ ] update mus
-- [ ] update Z
+- [x] update mus
+- [x] update Z
 - [ ] update sig2
 - [x] update gam
 - [ ] update eta
