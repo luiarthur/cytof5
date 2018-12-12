@@ -1,5 +1,14 @@
 # TODO
-- [ ] `mclust` package in R to set initial values
+- [x] update lam
+- [x] update W
+- [ ] update y_imputed
+- [ ] update mus
+- [ ] update Z
+- [ ] update sig2
+- [x] update gam
+- [ ] update eta
+- [x] update logdnoisy
+- [x] `mclust` package in R to set initial values
 - [ ] visually check to see if mu* are reasonably initialized according to
       `psi` and `tau^2`
 - [ ] FOR NOW, KEEP instead of throw away cells with `y < -6`

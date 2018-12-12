@@ -3,7 +3,9 @@ function update_W(i::Int, s::State, c::Constants, d::Data)
   counts = zeros(c.K)
   for n in 1:d.N[i]
     k = s.lam[i][n]
-    counts[k] += 1
+    if k > 0
+      counts[k] += 1
+    end
   end
   updatedParam = currParam .+ counts
   s.W[i, :] = rand(Dirichlet(updatedParam))
