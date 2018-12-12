@@ -7,7 +7,7 @@
 - [x] update Z
 - [ ] update sig2
 - [x] update gam
-- [ ] update eta
+- [x] update eta
 - [x] update logdnoisy
 - [x] `mclust` package in R to set initial values
 - [ ] visually check to see if mu* are reasonably initialized according to
