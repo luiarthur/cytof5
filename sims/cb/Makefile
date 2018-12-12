@@ -14,9 +14,13 @@ AWS_BUCKET_CB_RUN4="s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss"
 # RESULTS_DIR_CB_RUN5 = "results/$(DIR_CB_RUN5)/"
 # AWS_BUCKET_CB_RUN5 = "s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-smartinit-lpml"
 
-DIR_CB_RUN5 = cb_preprocessed_fixed_quadmiss_smartinit_lpml_rmbadrows
+# DIR_CB_RUN5 = cb_preprocessed_fixed_quadmiss_smartinit_lpml_rmbadrows
+# RESULTS_DIR_CB_RUN5 = "results/$(DIR_CB_RUN5)/"
+# AWS_BUCKET_CB_RUN5 = "s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-smartinit-lpml-rmbadrows"
+
+DIR_CB_RUN5 = cb_preprocessed_fixed_quadmiss_smartinit_lpml_rmbadrows_lamzero
 RESULTS_DIR_CB_RUN5 = "results/$(DIR_CB_RUN5)/"
-AWS_BUCKET_CB_RUN5 = "s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-smartinit-lpml-rmbadrows"
+AWS_BUCKET_CB_RUN5 = "s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-smartinit-lpml-rmbadrows-lamzero"
 
 .PHONY: run test postProcess postProcess2 clean retrieve 
 .PHONY: send2 retrieve2 retrieve run3 test3 postProcess3 litecp3 metrics
