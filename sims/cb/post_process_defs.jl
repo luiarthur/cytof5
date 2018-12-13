@@ -232,7 +232,7 @@ function post_process(path_to_output)
     println("Making lam.pdf ...")
     util.plotPdf("$IMGDIR/lam.pdf")
     R"par(mfrow=c($I, 1), mar=c(5, 5.1, 0.5, 2.1))"
-    prop0 = [[mean(lam[i] .== 0) for lam in lamPost] for i in 1:I]
+    prop0 = hcat([[mean(lam[i] .== 0) for lam in lamPost] for i in 1:I]...)
     util.boxplot(prop0, ylab="Posterior: lam$i", xlab="lam", col="steelblue", pch=20, cex=0);
     R"par(mfrow=c(1, 1), mar=rcommon::mar.default())"
     util.devOff()
