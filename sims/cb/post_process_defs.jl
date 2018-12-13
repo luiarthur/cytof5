@@ -134,11 +134,12 @@ function post_process(path_to_output)
   util.devOff()
 
   # Posterior of y_imputed
+  println("Making ydatPost.pdf ...")
   util.plotPdf("$(IMGDIR)/ydatPost.pdf")
   R"par(mfrow=c(4,2))"
   for i in 1:I
     for j in 1:J
-      println("i: $i, j: $j")
+      print("\r i: $i, j: $j")
       numMissing = sum(cbData[i][:, j] .=== NaN)
       h = maximum(util.density(y_imputed[1][i][:, j])[:y])
       util.plot(util.density([cbData[i][:, j]; fill(-10, numMissing)], na=true, bw=.3),
@@ -151,6 +152,7 @@ function post_process(path_to_output)
     end
   end
   R"par(mfrow=c(1,1))"
+  println()
   util.devOff()
 
 
