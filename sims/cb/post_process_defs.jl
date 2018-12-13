@@ -46,19 +46,25 @@ function post_process(path_to_output)
   Zpost = util.getPosterior(:Z, out[1])
   Zmean = mean(Zpost)
 
-  util.plotPdf("$IMGDIR/Z_mean.pdf")
-  util.myImage(Zmean, xlab="Features", ylab="Markers", addL=true, col=util.greys(11),
-               f=Z->addGridLines(J,K_MCMC));
-  util.devOff()
+  println("Making Z ...")
+  try
+    util.plotPdf("$IMGDIR/Z_mean.pdf")
+    util.myImage(Zmean, xlab="Features", ylab="Markers", addL=true, col=util.greys(11),
+                 f=Z->addGridLines(J,K_MCMC));
+    util.devOff()
 
-  util.plotPdf("$IMGDIR/Z_mean_est_leftordered.pdf")
-  util.myImage(Cytof5.Model.leftOrder((Zmean .> .5)*1),
-               xlab="Features", ylab="Markers", addL=true, col=util.greys(11),
-               f=Z->addGridLines(J,K_MCMC));
-  util.devOff()
+    util.plotPdf("$IMGDIR/Z_mean_est_leftordered.pdf")
+    util.myImage(Cytof5.Model.leftOrder((Zmean .> .5)*1),
+                 xlab="Features", ylab="Markers", addL=true, col=util.greys(11),
+                 f=Z->addGridLines(J,K_MCMC));
+    util.devOff()
+  catch
+    println("Failed to make complete making Z ...")
+  end
 
   # Plot alpha
   alphaPost = util.getPosterior(:alpha, out[1])
+  println("Making alpha ...")
   util.plotPdf("$(IMGDIR)/alpha.pdf")
   util.plotPost(alphaPost, ylab="density", xlab="alpha", main="");
   util.devOff()
@@ -88,6 +94,7 @@ function post_process(path_to_output)
   unique(lamPost)
 
   # Missing Mechanism
+  println("Making beta  ...")
   open("$IMGDIR/beta.txt", "w") do file
     for i in 1:I
       bi = join(c.beta[:, i], ", ")
@@ -103,6 +110,7 @@ function post_process(path_to_output)
   y_imputed_range = [y_imputed_min, y_imputed_max]
 
   # Plot missing mechanism
+  println("Making prob miss  ...")
   util.plotPdf("$IMGDIR/prob_miss.pdf")
   R"par(mfrow=c($I, 1))"
   for i in 1:I
@@ -116,6 +124,7 @@ function post_process(path_to_output)
   mus1Post = hcat([m[:mus][1] for m in out[1]]...)'
   musPost = [ mus0Post mus1Post ]
 
+  println("Making mus...")
   util.plotPdf("$IMGDIR/mus.pdf")
   util.boxplot(musPost, ylab="mu*", xlab="", xaxt="n", col="steelblue", pch=20, cex=0);
   #util.plot(1:size(musPost, 2), mean(musPost, dims=1), typ="n", ylab="μ*", xlab="", xaxt="n")
@@ -129,6 +138,7 @@ function post_process(path_to_output)
   sig2Mean = mean(sig2Post, dims=1)
   sig2Sd = std(sig2Post, dims=1)
 
+  println("Making sig2...")
   util.plotPdf("$IMGDIR/sig2.pdf")
   util.plotPosts(sig2Post);
   util.devOff()
@@ -199,6 +209,7 @@ function post_process(path_to_output)
   end
 
   # TODO: plot yZ inspect with a posterior of Z version II
+  println("Making yZ with Z mean...")
   try
     for i in 1:I
       util.plotPng("$IMGDIR/y_dat$(i)_with_zmean.png")
