@@ -210,7 +210,7 @@ function post_process(path_to_output)
 
   # TODO: plot yZ inspect with a posterior of Z version II
   println("Making yZ with Z mean...")
-  try
+  if c.eps == 0
     for i in 1:I
       util.plotPng("$IMGDIR/y_dat$(i)_with_zmean.png")
 
@@ -228,13 +228,12 @@ function post_process(path_to_output)
 
       util.devOff()
     end
-  catch
+  else
     println("Making lam.pdf ...")
     util.plotPdf("$IMGDIR/lam.pdf")
-    R"par(mfrow=c($I, 1), mar=c(5, 5.1, 0.5, 2.1))"
     prop0 = hcat([[mean(lam[i] .== 0) for lam in lamPost] for i in 1:I]...)
-    util.boxplot(prop0, ylab="Posterior: lam$i", xlab="lam", col="steelblue", pch=20, cex=0);
-    R"par(mfrow=c(1, 1), mar=rcommon::mar.default())"
+    println("prop0 dim: $(size(prop0))")
+    util.boxplot(prop0, ylab="Posterior", xlab="lam", col="steelblue", pch=20, cex=0);
     util.devOff()
   end
 

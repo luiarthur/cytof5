@@ -1,5 +1,6 @@
 # TODO
 
+- [ ] post processing should account for lam=0 (yZ, yZ_inspect)
 - [ ] explain `sig2_i` vs `mus`
 - [ ] try `sig2_i ~ Unif(.01, .3)` or something
 - [ ] plot prior missing prob
