@@ -197,21 +197,33 @@ function post_process(path_to_output)
   end
 
   # TODO: plot yZ inspect with a posterior of Z version II
-  for i in 1:I
-    util.plotPng("$IMGDIR/y_dat$(i)_with_zmean.png")
+  try
+    for i in 1:I
+      util.plotPng("$IMGDIR/y_dat$(i)_with_zmean.png")
 
-    idx_best = R"estimate_ZWi_index($(out[1]), $i)"[1]
-    Zi = out[1][idx_best][:Z]
-    Wi = out[1][idx_best][:W][i,:]
-    lami = out[1][idx_best][:lam][i]
+      idx_best = R"estimate_ZWi_index($(out[1]), $i)"[1]
+      Zi = out[1][idx_best][:Z]
+      Wi = out[1][idx_best][:W][i,:]
+      lami = out[1][idx_best][:lam][i]
 
-    S = [findall(lami .== k) for k in 1:c.K]
-    Zi_bar = mean([[mean(o[:Z][j, o[:lam][i][S[k]]]) for j in 1:J, k in 1:c.K] for o in out[1]])
+      S = [findall(lami .== k) for k in 1:c.K]
+      Zi_bar = mean([[mean(o[:Z][j, o[:lam][i][S[k]]]) for j in 1:J, k in 1:c.K] for o in out[1]])
 
-    util.yZ(cbData[i], Zi_bar, Wi, lami, zlim=[-4,4], thresh=0.9, col=util.blueToRed(9),
-            na="black", using_zero_index=false, col_Z=R"grey(seq(1, 0, len=11))", 
-            colorbar_Z=true, cex_z_leg=0.001)
+      util.yZ(cbData[i], Zi_bar, Wi, lami, zlim=[-4,4], thresh=0.9, col=util.blueToRed(9),
+              na="black", using_zero_index=false, col_Z=R"grey(seq(1, 0, len=11))", 
+              colorbar_Z=true, cex_z_leg=0.001)
 
+      util.devOff()
+    end
+  catch
+    util.plotPdf("$IMGDIR/lam.pdf")
+    R"par(mfrow=c($I, 1), mar=c(5, 5.1, 0.5, 2.1))"
+    for i in 1:I
+      prop0 = [mean(lam[i] .== 0) for lam in lamPost]
+      util.boxplot(prop0, ylab="Posterior: lam$i",
+                   xlab="", col="steelblue", pch=20, cex=0, ylim=[0, 1]);
+    end
+    R"par(mfrow=c(1, 1), mar=rcommon::mar.default())"
     util.devOff()
   end
 
