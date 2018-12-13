@@ -119,8 +119,7 @@ Cytof5.Model.logger("\nGenerating priors ...");
                                         mus1_range=[0.0, 10.0],
                                         alpha_prior=Gamma(0.1, 10.0),
                                         yQuantiles=[.1, .25, .4], pBounds=[.05, .8, .05],
-                                        eps=.05, sig2_0=100.0)
-Cytof5.Model.printConstants(c)
+                                        eps=.05, sig2_0=10.0)
 
 # Plot missing mechanism
 util.plotPdf("$(OUTDIR)/prob_miss.pdf")
@@ -132,8 +131,8 @@ R"par(mfrow=c(1,1))"
 util.devOff()
 
 Cytof5.Model.logger("\nGenerating initial state ...");
-@time init = Cytof5.Model.genInitialState(c, dat)
-# @time init = Cytof5.Model.smartInit(c, dat)
+# @time init = Cytof5.Model.genInitialState(c, dat)
+@time init = Cytof5.Model.smartInit(c, dat)
 
 Cytof5.Model.logger("Fitting Model ...");
 @time out, lastState, ll, metrics =

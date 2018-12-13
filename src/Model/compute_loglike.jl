@@ -15,7 +15,7 @@ function compute_like(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)::
       l = s.gam[i][n, j]
       like *= pdf(Normal(s.mus[z][l], sqrt(s.sig2[i])), d.y[i][n, j])
     else
-      like *= exp(logdnoisy(i, n, s, c, d))
+      like *= pdf(Normal(0, sqrt(c.sig2_0)), d.y[i][n, j])
     end
   end
 
@@ -44,7 +44,7 @@ function compute_loglike(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data
       l = s.gam[i][n, j]
       ll += logpdf(Normal(s.mus[z][l], sqrt(s.sig2[i])), d.y[i][n, j])
     else
-      ll += logdnoisy(i, n, s, c, d)
+      ll += pdf(Normal(0, sqrt(c.sig2_0)), d.y[i][n, j])
     end
   end
 

@@ -232,13 +232,8 @@ function post_process(path_to_output)
     println("Making lam.pdf ...")
     util.plotPdf("$IMGDIR/lam.pdf")
     R"par(mfrow=c($I, 1), mar=c(5, 5.1, 0.5, 2.1))"
-    for i in 1:I
-      prop0 = [mean(lam[i] .== 0) for lam in lamPost]
-      println("prop0_$(i) mean: $(mean(prop0))")
-      println("prop0_$(i) sd: $(std(prop0))")
-      util.boxplot(prop0, ylab="Posterior: lam$i",
-                   xlab="", col="steelblue", pch=20, cex=0, ylim=[0, 1]);
-    end
+    prop0 = [[mean(lam[i] .== 0) for lam in lamPost] for i in 1:I]
+    util.boxplot(prop0, ylab="Posterior: lam$i", xlab="lam", col="steelblue", pch=20, cex=0);
     R"par(mfrow=c(1, 1), mar=rcommon::mar.default())"
     util.devOff()
   end
