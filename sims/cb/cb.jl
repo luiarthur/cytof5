@@ -118,7 +118,8 @@ Cytof5.Model.logger("\nGenerating priors ...");
                                         mus0_range=[-15.0, 0.0],
                                         mus1_range=[0.0, 10.0],
                                         alpha_prior=Gamma(0.1, 10.0),
-                                        yQuantiles=[.1, .25, .4], pBounds=[.05, .8, .05])
+                                        yQuantiles=[.1, .25, .4], pBounds=[.05, .8, .05],
+                                        eps=.05, sig2_0=100.0)
 Cytof5.Model.printConstants(c)
 
 # Plot missing mechanism
