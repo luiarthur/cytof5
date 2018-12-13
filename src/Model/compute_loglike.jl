@@ -1,9 +1,9 @@
 function compute_like(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)::Float64
-  p = prob_miss(s.y_imputed[i][n, j], c.beta[:, i])
   like = 1.0
   y_inj_is_missing = (d.m[i][n, j] == 1)
 
   if y_inj_is_missing
+    p = prob_miss(s.y_imputed[i][n, j], c.beta[:, i])
     # Don't compute this if it's observed because missing mechanism is fixed
     # because this will be a constant 
     like *= pdf(Bernoulli(p), d.m[i][n, j])
@@ -28,11 +28,11 @@ end
 
 
 function compute_loglike(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)::Float64
-  p = prob_miss(s.y_imputed[i][n, j], c.beta[:, i])
   ll = 0.0
   y_inj_is_missing = (d.m[i][n, j] == 1)
 
   if y_inj_is_missing
+    p = prob_miss(s.y_imputed[i][n, j], c.beta[:, i])
     # Don't compute this if it's observed because missing mechanism is fixed
     # because this will be a constant 
     ll += logpdf(Bernoulli(p), d.m[i][n, j])
