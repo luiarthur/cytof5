@@ -132,8 +132,8 @@ R"par(mfrow=c(1,1))"
 util.devOff()
 
 Cytof5.Model.logger("\nGenerating initial state ...");
-# @time init = Cytof5.Model.genInitialState(c, dat)
-@time init = Cytof5.Model.smartInit(c, dat)
+@time init = Cytof5.Model.genInitialState(c, dat)
+# @time init = Cytof5.Model.smartInit(c, dat)
 
 Cytof5.Model.logger("Fitting Model ...");
 @time out, lastState, ll, metrics =
