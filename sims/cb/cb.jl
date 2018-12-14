@@ -47,6 +47,9 @@ function parse_cmd()
     "--USE_REPULSIVE"
       arg_type = Bool
       default = false
+    "--smartinit"
+      arg_type = Bool
+      default = true
 
     "--RESULTS_DIR"
       arg_type = String
@@ -82,6 +85,7 @@ USE_REPULSIVE = PARSED_ARGS["USE_REPULSIVE"]
 cbDataPath = PARSED_ARGS["DATA_PATH"]
 cbDataPath = PARSED_ARGS["DATA_PATH"]
 subsample = PARSED_ARGS["subsample"]
+SMARTINIT = PARSED_ARGS["smartinit"]
 
 Random.seed!(SEED);
 # End of ArgParse
@@ -134,8 +138,13 @@ R"par(mfrow=c(1,1))"
 util.devOff()
 
 Cytof5.Model.logger("\nGenerating initial state ...");
-# @time init = Cytof5.Model.genInitialState(c, dat)
-@time init = Cytof5.Model.smartInit(c, dat)
+if SMARTINIT
+  println("use smart init ...")
+  @time init = Cytof5.Model.smartInit(c, dat)
+else
+  println("init from priors ...")
+  @time init = Cytof5.Model.genInitialState(c, dat)
+end
 
 Cytof5.Model.logger("Fitting Model ...");
 @time out, lastState, ll, metrics =

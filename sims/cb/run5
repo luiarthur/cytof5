@@ -28,6 +28,7 @@ SEED=0
 SUBSAMPLE="0.1"
 isTest=""
 otherFlags=""
+SMARTINIT="true false"
 
 if [[ $@ == **--test** ]]
 then
@@ -60,13 +61,13 @@ fi
 # simulation number, just for book keeping. Ignore this.
 simNumber=0
 
-for subsample in $SUBSAMPLE; do
+for smartinit in $SMARTINIT; do
   for k_mcmc in $K_MCMC; do
     # Simulation number
     simNumber=$((simNumber + 1)) 
 
     # Experiment name
-    exp_name="K_MCMC${k_mcmc}_L0_MCMC${L0_MCMC}_L1_MCMC${L1_MCMC}_tau0_${TAU0}_tau1_${TAU1}_SEED${SEED}_SUBSAMPLE${subsample}$isTest"
+    exp_name="K_MCMC${k_mcmc}_L0_MCMC${L0_MCMC}_L1_MCMC${L1_MCMC}_tau0_${TAU0}_tau1_${TAU1}_SEED${SEED}_smartinit${smartinit}_subsample${SUBSAMPLE}$isTest"
 
     # Output directory
     outdir="$RESULTS_DIR/$exp_name/"
@@ -75,10 +76,11 @@ for subsample in $SUBSAMPLE; do
     # Julia Command to run
     jlCmd="julia cb.jl --K_MCMC=${k_mcmc} \
       --L0_MCMC=${L0_MCMC} --L1_MCMC=${L1_MCMC} \
-      --subsample=$subsample \
+      --subsample=$SUBSAMPLE \
       --tau0=$TAU0 --tau1=$TAU1 \
       --RESULTS_DIR=$RESULTS_DIR --EXP_NAME=$exp_name \
       --MCMC_ITER=$MCMC_ITER --BURN=$BURN --SEED=${SEED} \
+      --smartinit=$smartinit \
       --DATA_PATH=${DATA_PATH} \
       ${otherFlags}"
 
