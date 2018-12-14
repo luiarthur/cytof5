@@ -75,6 +75,13 @@ function post_process(path_to_output)
 
   println("Making W...")
   util.plotPdf("$IMGDIR/W.pdf")
+
+  cols = vcat([k .+ c.K .* (0:I-1) for k in 1:c.K]...)
+  colnames = vec(["$i:$k" for i in 1:I, k in 1:c.K])
+  W_post = hcat([hcat([w[i, :] for w in Wpost]...)' for i in 1:I]...)
+  util.boxplot(W_post[:, cols], col=R"rep(2:$(I+1), $(c.K))", names=colnames, las=2, cex=.2);
+  util.abline(v=(0:c.K) * I .+ .5, lty=2, col="grey")
+
   R"par(mfrow=c($I, 1), mar=c(5, 5.1, 0.5, 2.1))"
   for i in 1:I
     util.boxplot(hcat([w[i, :] for w in Wpost]...)', ylab="Posterior: W$i",
@@ -87,11 +94,6 @@ function post_process(path_to_output)
   # util.plotPdf("$IMGDIR/W_mean.pdf")
   # util.myImage(W_mean, xlab="Features", ylab="Samples", col=R"greys(10)", addL=true, zlim=[0,.3]);
   # util.devOff()
-
-  # Get lam
-  println("Making lam...")
-  lamPost = util.getPosterior(:lam, out[1])
-  unique(lamPost)
 
   # Missing Mechanism
   println("Making beta  ...")
@@ -229,7 +231,11 @@ function post_process(path_to_output)
       util.devOff()
     end
   else
-    println("Making lam.pdf ...")
+    # Get lam
+    println("Making lam...")
+    lamPost = util.getPosterior(:lam, out[1])
+    unique(lamPost)
+
     util.plotPdf("$IMGDIR/lam.pdf")
     prop0 = hcat([[mean(lam[i] .== 0) for lam in lamPost] for i in 1:I]...)
     println("prop0 dim: $(size(prop0))")
