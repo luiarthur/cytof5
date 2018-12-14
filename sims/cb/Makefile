@@ -18,9 +18,13 @@ AWS_BUCKET_CB_RUN4="s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss"
 # RESULTS_DIR_CB_RUN5 = "results/$(DIR_CB_RUN5)/"
 # AWS_BUCKET_CB_RUN5 = "s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-smartinit-lpml-rmbadrows"
 
-DIR_CB_RUN5 = cb_preprocessed_fixed_quadmiss_smartinit_lpml_rmbadrows_lamzero
+# DIR_CB_RUN5 = cb_preprocessed_fixed_quadmiss_smartinit_lpml_rmbadrows_lamzero
+# RESULTS_DIR_CB_RUN5 = "results/$(DIR_CB_RUN5)/"
+# AWS_BUCKET_CB_RUN5 = "s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-smartinit-lpml-rmbadrows-lamzero"
+
+DIR_CB_RUN5 = cb_preprocessed_fixed_quadmiss_smartinit_lpml_rmbadrows_lamzero_cauchy
 RESULTS_DIR_CB_RUN5 = "results/$(DIR_CB_RUN5)/"
-AWS_BUCKET_CB_RUN5 = "s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-smartinit-lpml-rmbadrows-lamzero"
+AWS_BUCKET_CB_RUN5 = "s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-smartinit-lpml-rmbadrows-lamzero-cauchy"
 
 # DIR_CB_RUN5 = cb_preprocessed_fixed_quadmiss_lpml_rmbadrows_lamzero
 # RESULTS_DIR_CB_RUN5 = "results/$(DIR_CB_RUN5)/"
