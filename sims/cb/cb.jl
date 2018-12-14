@@ -119,7 +119,7 @@ Cytof5.Model.logger("\nGenerating priors ...");
                                         mus1_range=[0.0, 10.0],
                                         alpha_prior=Gamma(0.1, 10.0),
                                         yQuantiles=[.1, .25, .4], pBounds=[.05, .8, .05],
-                                        eps=.05, sig2_0=10.0)
+                                        eps=.2, sig2_0=10.0)
 
 # Plot missing mechanism
 util.plotPdf("$(OUTDIR)/prob_miss.pdf")
