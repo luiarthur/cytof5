@@ -203,6 +203,10 @@ function post_process(path_to_output)
     util.devOff()
   end
 
+  if c.eps > 0
+    println("Plot noisy group... (TODO)")
+  end
+
   for i in 1:I
     util.plotPng("$IMGDIR/y_dat$(i).png")
     util.yZ_inspect(out[1], i=i, cbData, zlim=[-4,4], using_zero_index=false, na="black",
