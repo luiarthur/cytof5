@@ -119,7 +119,7 @@ Cytof5.Model.logger("\nGenerating priors ...");
                                         mus1_range=[0.0, 10.0],
                                         alpha_prior=Gamma(0.1, 10.0),
                                         yQuantiles=[.1, .25, .4], pBounds=[.05, .8, .05],
-                                        eps=.2, sig2_0=10.0)
+                                        eps=.05, sig2_0=10.0)
 
 # Print model constants
 Cytof5.Model.printConstants(c)
@@ -147,7 +147,8 @@ Cytof5.Model.logger("Fitting Model ...");
                                     [:y_imputed, :gam]],
                            thins=[1, round(Int, MCMC_ITER / 10)],
                            nmcmc=MCMC_ITER, nburn=BURN,
-                           computeLPML=true, computeDIC=true,
+                           # computeLPML=true, computeDIC=true,
+                           computeLPML=true, computeDIC=false,
                            use_repulsive=USE_REPULSIVE,
                            printFreq=10, flushOutput=true)
 

@@ -7,7 +7,8 @@ end
 
 function logdnoisy(i::Integer, n::Integer,
                    s::State, c::Constants, d::Data)::Float64
-  sd = sqrt(c.sig2_0)
-  return sum(logpdf.(Normal(0, sd), s.y_imputed[i][n, :]))
+  # sd = sqrt(c.sig2_0)
+  # return sum(logpdf.(Normal(0, sd), s.y_imputed[i][n, :]))
+  return sum(logpdf.(TDist(1), s.y_imputed[i][n, :]))
 end
 
