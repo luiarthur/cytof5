@@ -121,6 +121,9 @@ Cytof5.Model.logger("\nGenerating priors ...");
                                         yQuantiles=[.1, .25, .4], pBounds=[.05, .8, .05],
                                         eps=.2, sig2_0=10.0)
 
+# Print model constants
+Cytof5.Model.printConstants(c)
+
 # Plot missing mechanism
 util.plotPdf("$(OUTDIR)/prob_miss.pdf")
 R"par(mfrow=c($(dat.I), 1))"
