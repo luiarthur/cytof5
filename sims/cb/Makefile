@@ -2,11 +2,15 @@
 .PHONY: run pullAndProcess postProcess repFamTest test testlocal metrics 
 .PHONY: genpreprocessGraphs sendPreprocessedGraphs getPreprocessedGraphs getRData sendRData
 
-AWS_BUCKET_CB_PREPROCESSED = "s3://cytof-cb-results/cb-preprocessed"
+# AWS bucket for preprocessed data
+AWS_BUCKET_CB_PREPROCESSED = s3://cytof-cb-results/cb-preprocessed
 
+# Current run name
 DIR_CB_RUN = cb_preprocessed_fixed_quadmiss_smartinit_lpml_rmbadrows_lamzero_cauchy
-RESULTS_DIR_CB_RUN = "results/$(DIR_CB_RUN)/"
-AWS_BUCKET_CB_RUN = "s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-smartinit-lpml-rmbadrows-lamzero-cauchy"
+# Current run dir
+RESULTS_DIR_CB_RUN = results/$(DIR_CB_RUN)/
+# Current AWS bucket
+AWS_BUCKET_CB_RUN = s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-smartinit-lpml-rmbadrows-lamzero-cauchy
 
 # {{{1
 # RESULTS_DIR_CB_RUN3 = "results/cb_preprocessed_fixed_b1/"
