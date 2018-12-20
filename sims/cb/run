@@ -1,10 +1,12 @@
 #!/bin/bash
 
-# Maximum number of cores to use
-MAX_CORES=6
-
+# Results directory
+RESULTS_DIR=$1
 # AWS Bucket to store results
-AWS_BUCKET="s3://cytof-cb-results/cb-preprocessed"
+AWS_BUCKET=$2
+
+# Maximum number of cores to use
+MAX_CORES=27
 
 # STAGGER_TIME in seconds. To avoid mass dumping to disk simultaneously. 
 STAGGER_TIME=100
@@ -12,13 +14,21 @@ STAGGER_TIME=100
 # Experiment settings
 MCMC_ITER=1000
 BURN=20000
-K_MCMC=20
-L_MCMC=5
-betaPriorScales="0.01 0.1 1.0"
-betaTunerInit="0.01 0.1"
-RESULTS_DIR="results/cb_preprocessed/"
+# K_MCMC="15"
+# K_MCMC="`seq -w 2 20 | shuf`"
+K_MCMC="`seq -w 2 2 50 | shuf`"
+# L0_MCMC="10"
+# L1_MCMC="5"
+L0_MCMC="5"
+L1_MCMC="3"
+TAU0="10.0"
+TAU1="10.0"
 DATA_PATH="data/cytof_cb_with_nan.jld2"
 SEED=0
+SUBSAMPLE="0.1"
+isTest=""
+otherFlags=""
+SMARTINIT="true false"
 
 if [[ $@ == **--test** ]]
 then
@@ -27,36 +37,52 @@ then
   STAGGER_TIME=0
 
   # Experiment settings
-  MCMC_ITER=100
+  MCMC_ITER=50
   BURN=100
-  K_MCMC=10
-  L_MCMC=5
-  betaPriorScales="0.01"
-  betaTunerInit="0.01"
+  K_MCMC=5
+  SUBSAMPLE="0.01"
+  isTest="_isTest"
+fi
+
+if [[ $@ == **--testlocal** ]]
+then
+  echo "Testing with subsample locally..."
+  # STAGGER_TIME in seconds. To avoid mass dumping to disk simultaneously. 
+  STAGGER_TIME=0
+
+  # Experiment settings
+  MCMC_ITER=1000
+  BURN=10000
+  K_MCMC=15
+  SUBSAMPLE="0.05"
+  isTest="_isTest"
 fi
 
 # simulation number, just for book keeping. Ignore this.
 simNumber=0
 
-
-for scale in $betaPriorScales; do
-  for bti in $betaTunerInit; do
+for smartinit in $SMARTINIT; do
+  for k_mcmc in $K_MCMC; do
     # Simulation number
     simNumber=$((simNumber + 1)) 
 
     # Experiment name
-    exp_name="K_MCMC${K_MCMC}_L_MCMC${L_MCMC}_scale${scale}_tuner${bti}_SEED${SEED}"
+    exp_name="K_MCMC${k_mcmc}_L0_MCMC${L0_MCMC}_L1_MCMC${L1_MCMC}_tau0_${TAU0}_tau1_${TAU1}_SEED${SEED}_smartinit${smartinit}_subsample${SUBSAMPLE}$isTest"
 
     # Output directory
     outdir="$RESULTS_DIR/$exp_name/"
     mkdir -p $outdir
 
     # Julia Command to run
-    jlCmd="julia cb.jl --K_MCMC=${K_MCMC} --L_MCMC=${L_MCMC} \
-      --b0PriorSd=${scale} --b1PriorScale=${scale} --SEED=${SEED} \
+    jlCmd="julia cb.jl --K_MCMC=${k_mcmc} \
+      --L0_MCMC=${L0_MCMC} --L1_MCMC=${L1_MCMC} \
+      --subsample=$SUBSAMPLE \
+      --tau0=$TAU0 --tau1=$TAU1 \
       --RESULTS_DIR=$RESULTS_DIR --EXP_NAME=$exp_name \
-      --MCMC_ITER=$MCMC_ITER --BURN=$BURN --b0TunerInit=${bti} --b1TunerInit=${bti} \
-      --DATA_PATH=${DATA_PATH}"
+      --MCMC_ITER=$MCMC_ITER --BURN=$BURN --SEED=${SEED} \
+      --smartinit=$smartinit \
+      --DATA_PATH=${DATA_PATH} \
+      ${otherFlags}"
 
     # Sync results to S3
     syncToS3="aws s3 sync $outdir $AWS_BUCKET/$exp_name --exclude '*.nfs*'"
@@ -64,10 +90,16 @@ for scale in $betaPriorScales; do
     # Remove output files to save space on cluster
     rmOutput="rm -rf ${outdir}"
 
-    cmd="$jlCmd > ${outdir}/log.txt && $syncToS3 && $rmOutput"
 
-    sem -j $MAX_CORES $cmd
-    echo $cmd
+    if [[ $@ == **--testlocal** ]]
+    then
+      echo $jlCmd
+      $jlCmd > ${outdir}/log.txt && julia genResults.jl $RESULTS_DIR
+    else
+      cmd="$jlCmd > ${outdir}/log.txt && $syncToS3 && $rmOutput"
+      echo $cmd
+      sem -j $MAX_CORES $cmd
+    fi
 
     echo "Results for simulation $simNumber -> $outdir"
 

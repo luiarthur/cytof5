@@ -1,10 +1,19 @@
+.PHONY: send retrieve retrievelite litecp 
+.PHONY: run pullAndProcess postProcess repFamTest test testlocal metrics 
+.PHONY: genpreprocessGraphs sendPreprocessedGraphs getPreprocessedGraphs getRData sendRData
+
 AWS_BUCKET_CB_PREPROCESSED = "s3://cytof-cb-results/cb-preprocessed"
 
-RESULTS_DIR_CB_RUN3 = "results/cb_preprocessed_fixed_b1/"
-AWS_BUCKET_CB_RUN3 = "s3://cytof-cb-results/cb-preprocessed-fixed-b1"
+DIR_CB_RUN = cb_preprocessed_fixed_quadmiss_smartinit_lpml_rmbadrows_lamzero_cauchy
+RESULTS_DIR_CB_RUN = "results/$(DIR_CB_RUN)/"
+AWS_BUCKET_CB_RUN = "s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-smartinit-lpml-rmbadrows-lamzero-cauchy"
 
-RESULTS_DIR_CB_RUN4 = "results/cb_preprocessed_fixed_quadmiss/"
-AWS_BUCKET_CB_RUN4="s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss"
+# {{{1
+# RESULTS_DIR_CB_RUN3 = "results/cb_preprocessed_fixed_b1/"
+# AWS_BUCKET_CB_RUN3 = "s3://cytof-cb-results/cb-preprocessed-fixed-b1"
+# 
+# RESULTS_DIR_CB_RUN4 = "results/cb_preprocessed_fixed_quadmiss/"
+# AWS_BUCKET_CB_RUN4="s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss"
 
 # DIR_CB_RUN5 = "cb_preprocessed_fixed_quadmiss_smartinit/"
 # RESULTS_DIR_CB_RUN5 = "results/cb_preprocessed_fixed_quadmiss_smartinit/"
@@ -22,145 +31,44 @@ AWS_BUCKET_CB_RUN4="s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss"
 # RESULTS_DIR_CB_RUN5 = "results/$(DIR_CB_RUN5)/"
 # AWS_BUCKET_CB_RUN5 = "s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-smartinit-lpml-rmbadrows-lamzero"
 
-DIR_CB_RUN5 = cb_preprocessed_fixed_quadmiss_smartinit_lpml_rmbadrows_lamzero_cauchy
-RESULTS_DIR_CB_RUN5 = "results/$(DIR_CB_RUN5)/"
-AWS_BUCKET_CB_RUN5 = "s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-smartinit-lpml-rmbadrows-lamzero-cauchy"
-
 # DIR_CB_RUN5 = cb_preprocessed_fixed_quadmiss_lpml_rmbadrows_lamzero
 # RESULTS_DIR_CB_RUN5 = "results/$(DIR_CB_RUN5)/"
 # AWS_BUCKET_CB_RUN5 = "s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-lpml-rmbadrows-lamzero"
-
-.PHONY: run test postProcess postProcess2 clean retrieve 
-.PHONY: send2 retrieve2 retrieve run3 test3 postProcess3 litecp3 metrics
-.PHONY: send4 retrieve4 run4 test4 postProcess4 litecp4 metrics4 pullAndProcess4 retrieve4lite
-.PHONY: send5 retrieve5 run5 test5 postProcess5 litecp5 metrics5 pullAndProcess5 retrieve5lite
-
-run:
-	 ./run
-
-postProcess:
-	for d in `ls results/`; do echo $$d && julia post_process.jl results/$$d; done
-
-imgClean:
-	rm -rf results/*/img/*
-
-clean:
-	rm -rf results/*
-
-retrieve:
-	aws s3 sync s3://cytof-cb-results/ results/
-
-
-# Run2 ################################################################################
-run2:
-	./run
-
-postProcess2:
-	julia genResults.jl results/cb_preprocessed/
-	aws s3 sync results/cb_preprocessed $(AWS_BUCKET_CB_PREPROCESSED) --exclude '*.nfs*'
-
-send2:
-	aws s3 sync results/cb_preprocessed $(AWS_BUCKET_CB_PREPROCESSED) --exclude '*.nfs*'
-
-retrieve2:
-	aws s3 sync $(AWS_BUCKET_CB_PREPROCESSED) results/cb_preprocessed
-
-test:
-	./run --test
-
-litecp2:
-	rsync -av --exclude '*.jld*' results/cb_preprocessed .sandbox/
-
-
-# Run3 ################################################################################
-run3:
-	./run3 $(RESULTS_DIR_CB_RUN3) $(AWS_BUCKET_CB_RUN3)
-
-postProcess3:
-	julia genResults.jl $(RESULTS_DIR_CB_RUN3)
-	aws s3 sync $(RESULTS_DIR_CB_RUN3) $(AWS_BUCKET_CB_RUN3) --exclude '*.nfs*'
-
-send3:
-	aws s3 sync $(RESULTS_DIR_CB_RUN3) $(AWS_BUCKET_CB_RUN3) --exclude '*.nfs*'
-
-retrieve3:
-	aws s3 sync $(AWS_BUCKET_CB_RUN3) $(RESULTS_DIR_CB_RUN3)
-
-test3:
-	./run3 $(RESULTS_DIR_CB_RUN3) $(AWS_BUCKET_CB_RUN3) --test
-
-litecp3:
-	rsync -av --exclude '*.jld*' $(RESULTS_DIR_CB_RUN3) .sandbox/cb_preprocessed_fixed_b1
-
-metrics: metrics.py
-	python3 metrics.py $(RESULTS_DIR_CB_RUN3)
-
-# Run4 ################################################################################
-run4:
-	./run3 $(RESULTS_DIR_CB_RUN4) $(AWS_BUCKET_CB_RUN4)
+# }}}1
 
 repFamTest:
-	./run3 $(RESULTS_DIR_CB_RUN4) $(AWS_BUCKET_CB_RUN4) --repFAM
+	./run $(RESULTS_DIR_CB_RUN) $(AWS_BUCKET_CB_RUN) --repFAM
 
-postProcess4:
-	julia genResults.jl $(RESULTS_DIR_CB_RUN4)
-	aws s3 sync $(RESULTS_DIR_CB_RUN4) $(AWS_BUCKET_CB_RUN4) --exclude '*.nfs*'
+run:
+	./run $(RESULTS_DIR_CB_RUN) $(AWS_BUCKET_CB_RUN)
 
-send4:
-	aws s3 sync $(RESULTS_DIR_CB_RUN4) $(AWS_BUCKET_CB_RUN4) --exclude '*.nfs*'
+postProcess:
+	julia genResults.jl $(RESULTS_DIR_CB_RUN)
+	aws s3 sync $(RESULTS_DIR_CB_RUN) $(AWS_BUCKET_CB_RUN) --exclude '*.nfs*'
 
-retrieve4:
-	aws s3 sync $(AWS_BUCKET_CB_RUN4) $(RESULTS_DIR_CB_RUN4)
+send:
+	aws s3 sync $(RESULTS_DIR_CB_RUN) $(AWS_BUCKET_CB_RUN) --exclude '*.nfs*'
 
-test4:
-	./run3 $(RESULTS_DIR_CB_RUN4) $(AWS_BUCKET_CB_RUN4) --test
+retrieve:
+	aws s3 sync $(AWS_BUCKET_CB_RUN) $(RESULTS_DIR_CB_RUN)
+
+test:
+	./run $(RESULTS_DIR_CB_RUN) $(AWS_BUCKET_CB_RUN) --test
 
 testlocal:
-	./run3 results/testlocal/ $(AWS_BUCKET_CB_RUN4) --test --testlocal
+	./run results/testlocal/ $(AWS_BUCKET_CB_RUN) --test --testlocal
 
-litecp4:
-	rsync -av --exclude '*.jld*' $(RESULTS_DIR_CB_RUN4) .sandbox/cb_preprocessed_fixed_quadmiss
+litecp:
+	rsync -av --exclude '*.jld*' $(RESULTS_DIR_CB_RUN) .sandbox/$(DIR_CB_RUN)
 
-metrics4: metrics.py
-	python3 metrics.py $(RESULTS_DIR_CB_RUN4)
+metrics: metrics.py
+	python3 metrics.py $(RESULTS_DIR_CB_RUN)
 
-pullAndProcess4:
-	julia pullAndGenResults.jl $(AWS_BUCKET_CB_RUN4)
+pullAndProcess:
+	julia pullAndGenResults.jl $(AWS_BUCKET_CB_RUN)
 
-retrieve4lite:
-	aws s3 sync $(AWS_BUCKET_CB_RUN4) $(RESULTS_DIR_CB_RUN4) --exclude '*.jld2'
-
-# Run5 ################################################################################
-run5:
-	./run5 $(RESULTS_DIR_CB_RUN5) $(AWS_BUCKET_CB_RUN5)
-
-postProcess5:
-	julia genResults.jl $(RESULTS_DIR_CB_RUN5)
-	aws s3 sync $(RESULTS_DIR_CB_RUN5) $(AWS_BUCKET_CB_RUN5) --exclude '*.nfs*'
-
-send5:
-	aws s3 sync $(RESULTS_DIR_CB_RUN5) $(AWS_BUCKET_CB_RUN5) --exclude '*.nfs*'
-
-retrieve5:
-	aws s3 sync $(AWS_BUCKET_CB_RUN5) $(RESULTS_DIR_CB_RUN5)
-
-test5:
-	./run5 $(RESULTS_DIR_CB_RUN5) $(AWS_BUCKET_CB_RUN5) --test
-
-testlocal5:
-	./run5 results/testlocal/ $(AWS_BUCKET_CB_RUN5) --test --testlocal
-
-litecp5:
-	rsync -av --exclude '*.jld*' $(RESULTS_DIR_CB_RUN5) .sandbox/$(DIR_CB_RUN5)
-
-metrics5: metrics.py
-	python3 metrics.py $(RESULTS_DIR_CB_RUN5)
-
-pullAndProcess5:
-	julia pullAndGenResults.jl $(AWS_BUCKET_CB_RUN5)
-
-retrieve5lite:
-	aws s3 sync $(AWS_BUCKET_CB_RUN5) $(RESULTS_DIR_CB_RUN5) --exclude '*.jld2'
+retrievelite:
+	aws s3 sync $(AWS_BUCKET_CB_RUN) $(RESULTS_DIR_CB_RUN) --exclude '*.jld2'
 
 
 # Preprocess ###

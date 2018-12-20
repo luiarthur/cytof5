@@ -1,4 +1,4 @@
-.PHONY: test install
+.PHONY: test install issues
 
 # Test package.
 test:
@@ -12,3 +12,6 @@ testParallel:
 install:
 	julia -e 'import Pkg; Pkg.pkg"dev .; precompile"; using Cytof5' --color=yes
 
+# View Issues
+issues:
+	hub browse -- issues

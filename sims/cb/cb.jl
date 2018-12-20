@@ -146,6 +146,13 @@ else
   @time init = Cytof5.Model.genInitialState(c, dat)
 end
 
+# Plot initial Z
+util.plotPdf("$(OUTDIR)/Z_init.pdf")
+addGridLines(J::Int, K::Int, col="grey") = util.abline(v=(1:K) .+ .5, h=(1:J) .+ .5, col=col)
+util.myImage(init.Z, xlab="Features", ylab="Markers", addL=false, f=Z->addGridLines(dat.J, c.K))
+util.devOff()
+
+
 Cytof5.Model.logger("Fitting Model ...");
 @time out, lastState, ll, metrics =
   Cytof5.Model.cytof5_fit(init, c, dat,
@@ -162,7 +169,7 @@ Cytof5.Model.logger("Fitting Model ...");
                            printFreq=10, flushOutput=true)
 
 Cytof5.Model.logger("Saving Data ...");
-@save "$(OUTDIR)/output.jld2" out ll lastState c metrics
+@save "$(OUTDIR)/output.jld2" out ll lastState c metrics init
 @save "$(OUTDIR)/reduced_data/reduced_cb.jld2" deepcopy(cbData)
 
 Cytof5.Model.logger("MCMC Completed.");
