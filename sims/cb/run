@@ -52,10 +52,25 @@ then
 
   # Experiment settings
   MCMC_ITER=1000
-  BURN=10000
+  BURN=1000
   K_MCMC=15
   SUBSAMPLE="0.05"
   isTest="_isTest"
+fi
+
+if [[ $@ == **--testplots** ]]
+then
+  echo "Testing with subsample locally..."
+  # STAGGER_TIME in seconds. To avoid mass dumping to disk simultaneously. 
+  STAGGER_TIME=0
+
+  # Experiment settings
+  MCMC_ITER=100
+  BURN=100
+  K_MCMC=5
+  SUBSAMPLE="0.1"
+  isTest="_isTest"
+  SMARTINIT="true"
 fi
 
 # simulation number, just for book keeping. Ignore this.
@@ -91,7 +106,7 @@ for smartinit in $SMARTINIT; do
     rmOutput="rm -rf ${outdir}"
 
 
-    if [[ $@ == **--testlocal** ]]
+    if [[ $@ == **--testlocal** ]] || [[ $@ == **--testplots** ]]
     then
       echo $jlCmd
       $jlCmd > ${outdir}/log.txt && julia genResults.jl $RESULTS_DIR

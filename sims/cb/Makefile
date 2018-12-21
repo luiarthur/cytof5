@@ -1,5 +1,5 @@
 .PHONY: send retrieve retrievelite litecp 
-.PHONY: run pullAndProcess postProcess repFamTest test testlocal metrics 
+.PHONY: run pullAndProcess postProcess repFamTest test testlocal testplots metrics 
 .PHONY: genpreprocessGraphs sendPreprocessedGraphs getPreprocessedGraphs getRData sendRData
 
 # AWS bucket for preprocessed data
@@ -61,6 +61,9 @@ test:
 
 testlocal:
 	./run results/testlocal/ $(AWS_BUCKET_CB_RUN) --test --testlocal
+
+testplots:
+	./run results/testplots/ $(AWS_BUCKET_CB_RUN) --test --testplots
 
 litecp:
 	rsync -av --exclude '*.jld*' $(RESULTS_DIR_CB_RUN) .sandbox/$(DIR_CB_RUN)

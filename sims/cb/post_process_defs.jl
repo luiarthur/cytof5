@@ -23,7 +23,7 @@ function post_process(path_to_output)
   println("Loading Data ...")
   cbData = loadSingleObj(datapath)
   println("Loading Results ...")
-  @load path_to_output out ll lastState c
+  @load path_to_output out ll lastState c init
 
   I, K_MCMC = size(lastState.W)
   J = size(lastState.Z, 1)
@@ -61,6 +61,15 @@ function post_process(path_to_output)
   catch
     println("Failed to make complete making Z ...")
   end
+
+  println("Plot Z diffs")
+  util.plotPdf("$IMGDIR/Z_minus_init.pdf")
+  for i in 1:length(Zpost)
+    z = Zpost[i]
+    util.myImage(z - init.Z, xlab="Features", ylab="Markers", addL=true, col=util.blueToRed(3),
+                 zlim=[-1, 1], f=Z->addGridLines(J,K_MCMC), main="Z_$i - Z_0");
+  end
+  util.devOff()
 
   # Plot alpha
   alphaPost = util.getPosterior(:alpha, out[1])
@@ -203,10 +212,6 @@ function post_process(path_to_output)
     util.devOff()
   end
 
-  if c.eps > 0
-    println("Plot noisy group... (TODO)")
-  end
-
   for i in 1:I
     util.plotPng("$IMGDIR/y_dat$(i).png")
     util.yZ_inspect(out[1], i=i, cbData, zlim=[-4,4], using_zero_index=false, na="black",
@@ -214,7 +219,6 @@ function post_process(path_to_output)
     util.devOff()
   end
 
-  # TODO: plot yZ inspect with a posterior of Z version II
   println("Making yZ with Z mean...")
   if c.eps == 0
     for i in 1:I
@@ -240,14 +244,57 @@ function post_process(path_to_output)
     lamPost = util.getPosterior(:lam, out[1])
     unique(lamPost)
 
-    util.plotPdf("$IMGDIR/lam.pdf")
-    prop0 = hcat([[mean(lam[i] .== 0) for lam in lamPost] for i in 1:I]...)
-    println("prop0 dim: $(size(prop0))")
-    util.boxplot(prop0, ylab="Posterior", xlab="lam", col="steelblue", pch=20, cex=0);
+    prop_lam0 = hcat([[mean(lam[i] .== 0) for lam in lamPost] for i in 1:I]...)
+    sum_lam0 = hcat([[sum(lam[i] .== 0) for lam in lamPost] for i in 1:I]...)
+    println("prop0 dim: $(size(prop_lam0))")
+    util.plotPdf("$IMGDIR/lam0.pdf")
+    util.boxplot(prop_lam0, ylab="P(lambda_i = 0 | data)",
+                 xlab="sample", col="steelblue", pch=20, cex=0);
     util.devOff()
+
+    util.plotPdf("$IMGDIR/lam0_counts.pdf")
+    util.boxplot(sum_lam0, ylab="sum(lambda_i = 0 | data)",
+                 xlab="sample", col="steelblue", pch=20, cex=0);
+    util.devOff()
+
+
+    # Plot lambda = 0 group
+    println("Plot noisy group")
+    for i in 1:I
+      idx_best = R"estimate_ZWi_index($(out[1]), $i)"[1]
+      lami = out[1][idx_best][:lam][i]
+      idx0 = findall(lami .== 0)
+      if length(idx0) > 0
+        println("making y_dat$(i)_lam0.png")
+        util.plotPng("$IMGDIR/y_dat$(i)_lam0.png")
+        util.myImage(cbData[i][idx0, :], xlab="markers", ylab="cells", 
+                     na="black", col=util.blueToRed(9), addL=true, zlim=[-4, 4], nticks=11)
+        util.devOff()
+
+        util.plotPng("$IMGDIR/y_imputed$(i)_lam0.png")
+        util.myImage(lastState.y_imputed[i][idx0, :], xlab="markers", ylab="cells", 
+                     na="black", col=util.blueToRed(9), addL=true, zlim=[-4, 4])
+        util.devOff()
+      else
+        println("length(lam0) == 0. Not making y_dat$(i)_lam0.png!")
+      end
+    end
   end
 
 
+  println("Making y_dat init ...")
+  for i in 1:I
+    util.plotPng("$IMGDIR/y_dat$(i)_init.png")
+    Zi = init.Z
+    Wi = init.W[i, :]
+    lami = init.lam[i]
+
+    util.yZ(cbData[i], Zi, Wi, lami, zlim=[-4,4], thresh=0.9, col=util.blueToRed(9),
+            na="black", using_zero_index=false, col_Z=R"grey(seq(1, 0, len=11))", 
+            colorbar_Z=true, cex_z_leg=0.001)
+    util.devOff()
+  end
+ 
   #= TODO: redo this with a thinned sample of gam
   # Plot QQ
   y_obs_range = util.y_obs_range(cbData)

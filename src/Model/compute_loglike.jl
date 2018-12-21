@@ -16,7 +16,7 @@ function compute_loglike(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data
       ll += logpdf(Normal(s.mus[z][l], sqrt(s.sig2[i])), d.y[i][n, j])
     else
       # ll += pdf(Normal(0, sqrt(c.sig2_0)), d.y[i][n, j])
-      ll += pdf(TDist(1), d.y[i][n, j])
+      ll += pdf(Cauchy(0, 2), d.y[i][n, j])
     end
   end
 
@@ -28,10 +28,10 @@ function compute_loglike(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data
 end
 
 function compute_like(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)::Float64
-  return compute(i, n, j, s, c, d)
+  return exp(compute_loglike(i, n, j, s, c, d))
 end
 
-kunction compute_loglike(s::State, c::Constants, d::Data; normalize::Bool=true)::Float64
+function compute_loglike(s::State, c::Constants, d::Data; normalize::Bool=true)::Float64
   ll = 0.0
 
   sumN = sum(d.N)
