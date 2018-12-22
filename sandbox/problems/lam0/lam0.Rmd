@@ -1,0 +1,60 @@
+---
+title: "Lambda = 0 Problems..."
+output: pdf_document
+---
+
+<!-- headers -->
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\p}[1]{\left(#1\right)}
+\newcommand{\bk}[1]{\left[#1\right]}
+\newcommand{\bc}[1]{ \left\{#1\right\} }
+\newcommand{\abs}[1]{ \left|#1\right| }
+\newcommand{\mat}{ \begin{pmatrix} }
+\newcommand{\tam}{ \end{pmatrix} }
+\newcommand{\suml}{ \sum_{i=1}^n }
+\newcommand{\prodl}{ \prod_{i=1}^n }
+\newcommand{\ds}{ \displaystyle }
+\newcommand{\df}[2]{ \frac{d#1}{d#2} }
+\newcommand{\ddf}[2]{ \frac{d^2#1}{d{#2}^2} }
+\newcommand{\pd}[2]{ \frac{\partial#1}{\partial#2} }
+\newcommand{\pdd}[2]{\frac{\partial^2#1}{\partial{#2}^2} }
+\newcommand{\N}{ \mathcal{N} }
+\newcommand{\E}{ \text{E} }
+<!-- end of headers -->
+
+# Lambda0
+
+```{r}
+# Set random seed
+set.seed(1)
+
+# Generate some y_{in}
+J = 32
+y = rnorm(J, mean=1, sd=.5)
+y[1] = -3
+print(y)
+
+# Plot y_{in}
+{
+  par(mfrow=c(1,2))
+  plot(y)
+  hist(y)
+  par(mfrow=c(1,1))
+}
+
+# Likelihood
+d1 <- dnorm(y, mean=1, sd=1)
+
+# Noisy likelihood
+d2 <- dnorm(y, mean=0, sd=3)
+
+# Cauchy likelihood
+d3 <- dt(y, df=1)
+
+# d4 <- dnorm(y, mean=1, sd=3)
+
+print(prod(d1))
+print(prod(d2))
+print(prod(d3))
+# print(prod(d4))
+```
