@@ -16,7 +16,7 @@ function compute_loglike(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data
       ll += logpdf(Normal(s.mus[z][l], sqrt(s.sig2[i])), d.y[i][n, j])
     else
       # ll += pdf(Normal(0, sqrt(c.sig2_0)), d.y[i][n, j])
-      ll += pdf(Cauchy(0, 2), d.y[i][n, j])
+      ll += pdf(Cauchy(), d.y[i][n, j])
     end
   end
 

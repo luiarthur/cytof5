@@ -12,7 +12,7 @@ function update_y_imputed(i::Int, n::Int, j::Int, s::State, c::Constants, d::Dat
     else
       # sig = sqrt(c.sig2_0)
       # logPrior = logpdf(Normal(0, sig), yinj)
-      logPrior = logpdf(Cauchy(0, 2), yinj)
+      logPrior = logpdf(Cauchy(), yinj)
     end
     return log(p) + logPrior
   end
