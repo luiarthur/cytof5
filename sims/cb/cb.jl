@@ -140,7 +140,7 @@ util.devOff()
 Cytof5.Model.logger("\nGenerating initial state ...");
 if SMARTINIT
   println("use smart init ...")
-  @time init = Cytof5.Model.smartInit(c, dat, modelNames="kmeans")
+  @time init = Cytof5.Model.smartInit(c, dat)
 else
   println("init from priors ...")
   @time init = Cytof5.Model.genInitialState(c, dat)
