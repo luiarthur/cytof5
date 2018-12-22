@@ -47,11 +47,15 @@ function preimpute!(y::Matrix{T}, missMean::AbstractFloat, missSD::AbstractFloat
 end
 
 
-function smartInit(c::Constants, d::Data;
+function smartInit(c::Constants, d::Data; iterMax::Int=10,
                    modelNames::String="VVI", warn::Bool=true) where {T <: Number}
 
-  load_or_install_mclust()
-  Mclust = R"mclust::Mclust"
+  if modelNames != "kmeans"
+    load_or_install_mclust()
+    Mclust = R"mclust::Mclust"
+  else
+    kmeans = R"kmeans"
+  end
 
   y_imputed = deepcopy(d.y)
   I = d.I
@@ -68,10 +72,19 @@ function smartInit(c::Constants, d::Data;
   for i in 1:I
     preimpute!(y_imputed[i], missMean[i])
   end
-  clus = Mclust(vcat(y_imputed...), G=K, modelNames=modelNames, warn=warn)
+
+  if modelNames == "kmeans"
+    clus = kmeans(vcat(y_imputed...), centers=K, iter=iterMax)
+  else
+    clus = Mclust(vcat(y_imputed...), G=K, modelNames=modelNames, warn=warn)
+  end
 
   # Get order of class labels
-  lam = [Int.(clus[:classification])[idx[i]] for i in 1:I]
+  if modelNames == "kmeans"
+    lam = [Int.(clus[:cluster])[idx[i]] for i in 1:I]
+  else
+    lam = [Int.(clus[:classification])[idx[i]] for i in 1:I]
+  end
   lam = [Int8.(lam[i]) for i in 1:I]
   ord = [sortperm(lam[i]) for i in 1:I]
 
