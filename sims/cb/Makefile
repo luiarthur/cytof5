@@ -6,14 +6,17 @@
 AWS_BUCKET_CB_PREPROCESSED = s3://cytof-cb-results/cb-preprocessed
 
 # Current run name
-DIR_CB_RUN = cb_preprocessed_fixed_quadmiss_smartinit_lpml_rmbadrows_lamzero_cauchy
+DIR_CB_RUN = cb_preprocessed_fixed_quadmiss_smartinit_lpml_rmbadrows_lamzero_cauchy_sig2fixed
 # Current run dir
 RESULTS_DIR_CB_RUN = results/$(DIR_CB_RUN)/
 # Current AWS bucket
-AWS_BUCKET_CB_RUN = s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-smartinit-lpml-rmbadrows-lamzero-cauchy
+AWS_BUCKET_CB_RUN = s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-smartinit-lpml-rmbadrows-lamzero-cauchy-sig2fixed
 
 # {{{1
-# RESULTS_DIR_CB_RUN3 = "results/cb_preprocessed_fixed_b1/"
+# DIR_CB_RUN = cb_preprocessed_fixed_quadmiss_smartinit_lpml_rmbadrows_lamzero_cauchy
+# RESULTS_DIR_CB_RUN = results/$(DIR_CB_RUN)/
+# AWS_BUCKET_CB_RUN = s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-smartinit-lpml-rmbadrows-lamzero-cauchy
+# # RESULTS_DIR_CB_RUN3 = "results/cb_preprocessed_fixed_b1/"
 # AWS_BUCKET_CB_RUN3 = "s3://cytof-cb-results/cb-preprocessed-fixed-b1"
 # 
 # RESULTS_DIR_CB_RUN4 = "results/cb_preprocessed_fixed_quadmiss/"
