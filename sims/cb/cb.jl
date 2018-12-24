@@ -154,6 +154,7 @@ util.devOff()
 
 
 Cytof5.Model.logger("Fitting Model ...");
+init.sig2 = fill(.3, dat.I)
 @time out, lastState, ll, metrics =
   Cytof5.Model.cytof5_fit(init, c, dat,
                           monitors=[[:Z, :lam, :W,
@@ -162,6 +163,7 @@ Cytof5.Model.logger("Fitting Model ...");
                                      :eta],
                                     [:y_imputed, :gam]],
                            thins=[1, round(Int, MCMC_ITER / 10)],
+                           fix=[:sig2],
                            nmcmc=MCMC_ITER, nburn=BURN,
                            # computeLPML=true, computeDIC=true,
                            computeLPML=true, computeDIC=false,

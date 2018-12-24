@@ -1,6 +1,7 @@
 using Distributions
 using Cytof5, Random, RCall
 using JLD2, FileIO
+import Printf
 include("../sim_study/util.jl")
 Random.seed!(0)
 
@@ -8,6 +9,41 @@ function loadSingleObj(objPath)
   data = load(objPath)
   return data[collect(keys(data))[1]]
 end
+
+# TODO:
+# Write a macro to reconstruct types 
+
+# Turn reconstructed type into type State
+function convertState(s)
+  println("Trying to convert reconstructed state to Cytof5.Model.State ...")
+  return Cytof5.Model.State(Z=s.Z, mus=s.mus, alpha=s.alpha, v=s.v, W=s.W,
+                            sig2=s.sig2, eta=s.eta, lam=s.lam, gam=s.gam,
+                            y_imputed=s.y_imputed)
+end
+
+# FIXME: similarity_Z...
+function convertConstants(c)
+  println("Trying to convert reconstructed state to Cytof5.Model.Constants ...")
+  return Cytof5.Model.Constants(alpha_prior=c.alpha_prior,
+                                mus_prior=c.mus_prior, W_prior=c.W_prior,
+                                eta_prior=c.eta_prior, sig2_prior=c.sig2_prior,
+                                beta=c.beta, K=c.K, L=c.L,
+                                sig2_range=c.sig2_range,
+                                probFlip_Z=c.probFlip_Z, similarity_Z=x -> x,
+                                eps=c.eps, sig2_0=c.sig2_0)
+end
+
+# TODO: Write somrthing generic here.
+function convertType(s, T)
+  if T == Cytof5.Model.State
+    return convertState(s)
+  elseif T == Cytof5.Model.Constants
+    return convertConstants(s)
+  else
+    println("Don't know how to convert to type $(T)")
+  end
+end
+
 
 
 function post_process(path_to_output)
@@ -27,6 +63,7 @@ function post_process(path_to_output)
 
   I, K_MCMC = size(lastState.W)
   J = size(lastState.Z, 1)
+  N = size.(lastState.y_imputed, 1)
 
   # Plot loglikelihood
   util.plotPdf("$(IMGDIR)/ll_complete_history.pdf")
@@ -294,6 +331,45 @@ function post_process(path_to_output)
             colorbar_Z=true, cex_z_leg=0.001)
     util.devOff()
   end
+
+  # plot {yᵢₙ : λᵢₙ = k ∩ ∃ j : yᵢₙⱼ is missing ∩ Zⱼₖ = 1}
+  #= BUG FIX HERE:
+  d = Cytof5.Model.Data(cbData);
+  k = 4
+  i = 3
+  # idx_ik = findall([lastState.lam[i][n] == k && !(sum(isnan.(cbData[i][n, :]) .& lastState.Z[:, k] .== 1) >= 1) for n in 1:N[i]])
+  idx_ik = findall([lastState.lam[i][n] == k && (sum(isnan.(cbData[i][n, :]) .& lastState.Z[:, k] .== 1) >= 1) for n in 1:N[i]])
+  # idx_ik = findall([lastState.lam[i][n] == k && any(isnan.(cbData[i][n, :])) for n in 1:N[i]])
+  lastState.y_imputed[i][idx_ik, :]
+  y_ik_dat = cbData[i][idx_ik, :]
+  y_ik = lastState.y_imputed[i][idx_ik, :]
+  util.myImage(y_ik, col=util.blueToRed(9), zlim=[-4, 4], addL=true, na="black");
+
+  s = convertState(lastState);
+  c = convertConstants(c);
+ 
+  R"par(mfrow=c(1,2))"
+  R"mx = 6"
+  R"m = matrix(2, mx, mx)"
+  R"m[, 1] = 1"
+  R"m[, mx] = 3"
+  R"layout(m)"
+  util.myImage(lastState.Z[:, k], xlab="Feature", ylab="markers", xaxt="n");
+  R"axis(1, at=1, label=$k)"
+  R"axis(3, at=1, label=paste0(round($(s.W[i, k] * 100), 3), '%'))"
+  util.myImage(y_ik_dat', col=util.blueToRed(9), zlim=[-4, 4], addL=false,
+               na="black", xlab="cells", ylab="");
+  # util.myImage(y_ik', col=util.blueToRed(9), zlim=[-4, 4], addL=false, na="black");
+  R"color.bar(blueToRed(9), zlim=c(-4, 4))"
+  R"par(mfrow=c(1,1))"
+
+  s.sig2 = fill(.5, d.I)
+  for n in idx_ik
+    lpv = Cytof5.Model.update_lam_logpostvec(i, n, s, c, d)
+    Printf.@printf "lpost_k%.0f: %8.3f  |  lpost_k0: %8.3f  |  post_k%.0f/post_k0 = %12.3f \n" k lpv[k] lpv[end] k exp(lpv[k] - lpv[end])
+  end
+  =#
+
  
   #= TODO: redo this with a thinned sample of gam
   # Plot QQ
