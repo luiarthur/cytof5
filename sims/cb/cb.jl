@@ -154,7 +154,7 @@ util.devOff()
 
 
 Cytof5.Model.logger("Fitting Model ...");
-init.sig2 = fill(.3, dat.I) # TODO: remove this?
+init.sig2 = fill(.1, dat.I) # TODO: remove this?
 @time out, lastState, ll, metrics =
   Cytof5.Model.cytof5_fit(init, c, dat,
                           monitors=[[:Z, :lam, :W,
