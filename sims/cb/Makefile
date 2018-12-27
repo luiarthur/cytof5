@@ -6,17 +6,17 @@
 AWS_BUCKET_CB_PREPROCESSED = s3://cytof-cb-results/cb-preprocessed
 
 # Current run name
-DIR_CB_RUN = cb_preprocessed_fixed_quadmiss_smartinit_lpml_rmbadrows_lamzero_cauchy_sig2fixed0.1
+DIR_CB_RUN = cb_preprocessed_fixed_quadmiss_smartinit_lpml_rmbadrows_lamzero_cauchy_sig2fixed
 # Current run dir
 RESULTS_DIR_CB_RUN = results/$(DIR_CB_RUN)/
 # Current AWS bucket
-AWS_BUCKET_CB_RUN = s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-smartinit-lpml-rmbadrows-lamzero-cauchy-sig2fixed0.1
+AWS_BUCKET_CB_RUN = s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-smartinit-lpml-rmbadrows-lamzero-cauchy-sig2fixed
 
 # {{{1
 #
-# DIR_CB_RUN = cb_preprocessed_fixed_quadmiss_smartinit_lpml_rmbadrows_lamzero_cauchy_sig2fixed
+# DIR_CB_RUN = cb_preprocessed_fixed_quadmiss_smartinit_lpml_rmbadrows_lamzero_cauchy_sig2fixed0.1
 # RESULTS_DIR_CB_RUN = results/$(DIR_CB_RUN)/
-# AWS_BUCKET_CB_RUN = s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-smartinit-lpml-rmbadrows-lamzero-cauchy-sig2fixed
+# AWS_BUCKET_CB_RUN = s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-smartinit-lpml-rmbadrows-lamzero-cauchy-sig2fixed0.1
 #
 # DIR_CB_RUN = cb_preprocessed_fixed_quadmiss_smartinit_lpml_rmbadrows_lamzero_cauchy
 # RESULTS_DIR_CB_RUN = results/$(DIR_CB_RUN)/
