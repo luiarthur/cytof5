@@ -98,10 +98,10 @@ getPreprocessedGraphs:
 
 # get r data
 getRData:
-	aws s3 sync s3://cytof-cb-data/ data/ --exclude '*' --include 'cytof_cb.rds'
+	aws s3 sync s3://cytof-cb-data/ data/
 
 # send r data
 sendRData:
-	aws s3 sync data/ s3://cytof-cb-data/ --exclude '*' --include 'cytof_cb.rds'
+	aws s3 sync data/ s3://cytof-cb-data/
 
 
