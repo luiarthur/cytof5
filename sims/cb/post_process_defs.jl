@@ -46,7 +46,7 @@ end
 
 
 
-function post_process(path_to_output)
+function post_process(path_to_output, thresh=0.9)
   jld_filename = split(path_to_output, "/")[end]
   outdir = join(split(path_to_output, "/")[1:end-1], "/")
   # datapath = "data/reduced_cb.jld2"
@@ -245,14 +245,14 @@ function post_process(path_to_output)
   for i in 1:I
     util.plotPng("$IMGDIR/y_imputed$(i).png")
     util.yZ_inspect(out[1], i=i, lastState.y_imputed, zlim=[-4,4], using_zero_index=false,
-                    thresh=0.9, col=util.blueToRed(9))
+                    thresh=thresh, col=util.blueToRed(9))
     util.devOff()
   end
 
   for i in 1:I
     util.plotPng("$IMGDIR/y_dat$(i).png")
     util.yZ_inspect(out[1], i=i, cbData, zlim=[-4,4], using_zero_index=false, na="black",
-                    thresh=0.9, col=util.blueToRed(9))
+                    thresh=thresh, col=util.blueToRed(9))
     util.devOff()
   end
 
@@ -269,7 +269,7 @@ function post_process(path_to_output)
       S = [findall(lami .== k) for k in 1:c.K]
       Zi_bar = mean([[mean(o[:Z][j, o[:lam][i][S[k]]]) for j in 1:J, k in 1:c.K] for o in out[1]])
 
-      util.yZ(cbData[i], Zi_bar, Wi, lami, zlim=[-4,4], thresh=0.9, col=util.blueToRed(9),
+      util.yZ(cbData[i], Zi_bar, Wi, lami, zlim=[-4,4], thresh=thresh, col=util.blueToRed(9),
               na="black", using_zero_index=false, col_Z=R"grey(seq(1, 0, len=11))", 
               colorbar_Z=true, cex_z_leg=0.001)
 
@@ -318,7 +318,6 @@ function post_process(path_to_output)
     end
   end
 
-
   println("Making y_dat init ...")
   for i in 1:I
     util.plotPng("$IMGDIR/y_dat$(i)_init.png")
@@ -326,86 +325,16 @@ function post_process(path_to_output)
     Wi = init.W[i, :]
     lami = init.lam[i]
 
-    util.yZ(cbData[i], Zi, Wi, lami, zlim=[-4,4], thresh=0.9, col=util.blueToRed(9),
+    util.yZ(cbData[i], Zi, Wi, lami, zlim=[-4,4], thresh=thresh, col=util.blueToRed(9),
             na="black", using_zero_index=false, col_Z=R"grey(seq(1, 0, len=11))", 
             colorbar_Z=true, cex_z_leg=0.001)
     util.devOff()
-  end
 
-  # plot {yᵢₙ : λᵢₙ = k ∩ ∃ j : yᵢₙⱼ is missing ∩ Zⱼₖ = 1}
-  #= BUG FIX HERE:
-  d = Cytof5.Model.Data(cbData);
-  k = 4
-  i = 3
-  # idx_ik = findall([lastState.lam[i][n] == k && !(sum(isnan.(cbData[i][n, :]) .& lastState.Z[:, k] .== 1) >= 1) for n in 1:N[i]])
-  idx_ik = findall([lastState.lam[i][n] == k && (sum(isnan.(cbData[i][n, :]) .& lastState.Z[:, k] .== 1) >= 1) for n in 1:N[i]])
-  # idx_ik = findall([lastState.lam[i][n] == k && any(isnan.(cbData[i][n, :])) for n in 1:N[i]])
-  lastState.y_imputed[i][idx_ik, :]
-  y_ik_dat = cbData[i][idx_ik, :]
-  y_ik = lastState.y_imputed[i][idx_ik, :]
-  util.myImage(y_ik, col=util.blueToRed(9), zlim=[-4, 4], addL=true, na="black");
-
-  s = convertState(lastState);
-  c = convertConstants(c);
- 
-  R"par(mfrow=c(1,2))"
-  R"mx = 6"
-  R"m = matrix(2, mx, mx)"
-  R"m[, 1] = 1"
-  R"m[, mx] = 3"
-  R"layout(m)"
-  util.myImage(lastState.Z[:, k], xlab="Feature", ylab="markers", xaxt="n");
-  R"axis(1, at=1, label=$k)"
-  R"axis(3, at=1, label=paste0(round($(s.W[i, k] * 100), 3), '%'))"
-  util.myImage(y_ik_dat', col=util.blueToRed(9), zlim=[-4, 4], addL=false,
-               na="black", xlab="cells", ylab="");
-  # util.myImage(y_ik', col=util.blueToRed(9), zlim=[-4, 4], addL=false, na="black");
-  R"color.bar(blueToRed(9), zlim=c(-4, 4))"
-  R"par(mfrow=c(1,1))"
-
-  s.sig2 = fill(.5, d.I)
-  for n in idx_ik
-    lpv = Cytof5.Model.update_lam_logpostvec(i, n, s, c, d)
-    Printf.@printf "lpost_k%.0f: %8.3f  |  lpost_k0: %8.3f  |  post_k%.0f/post_k0 = %12.3f \n" k lpv[k] lpv[end] k exp(lpv[k] - lpv[end])
-  end
-  =#
-
- 
-  #= TODO: redo this with a thinned sample of gam
-  # Plot QQ
-  y_obs_range = util.y_obs_range(cbData)
-  util.plotPdf("$IMGDIR/qq.pdf")
-  println("Plotting QQ...")
-  R"par(mfrow=c(3, 3), mar=c(5.1, 4, 2, 1))"
-  for i in 1:I
-    for j in 1:J
-      println("i: $i, j: $j")
-      # QQ of observed expression levels
-      y_obs, y_pp = util.qq_yobs_postpred(cbData, i, j, out)
-      util.myQQ(y_obs, y_pp, pch=20, ylab="post pred quantiles", xlab="y
-                (observed) quantiles", main="i: $i, j: $j", xlim=y_obs_range,
-                ylim=y_obs_range)
+    # Print the number of number of celltypes making up the predominant 90% of cells.
+    open("$IMGDIR/K_P$(round(Int, thresh * 100))_i$(i).txt", "w") do file
+      cswi = cumsum(sort(Wi, rev=true))
+      K_TOP = findfirst(cswi .> thresh)
+      write(file, "K_TOP: $K_TOP \n")
     end
   end
-  R"par(mfrow=c(1, 1), mar=mar.default())"
-  util.devOff()
-
-  # Plot postpred hist
-  util.plotPdf("$IMGDIR/postpred_hist.pdf")
-  println("Plotting postpred histograms...")
-  R"par(mfrow=c(3, 3), mar=c(5.1, 4, 2, 1))"
-  for i in 1:I
-    for j in 1:J
-      println("i: $i, j: $j")
-      # QQ of observed expression levels
-      y_obs, y_pp = util.qq_yobs_postpred(cbData, i, j, out)
-      util.hist(y_obs, prob=true, xlim=y_obs_range, xlab="", ylab="density",
-                main="i: $i, j: $j", col=util.rgba("red", .3), border="transparent")
-      util.hist(y_pp, prob=true, xlab="", ylab="", add=true, col=util.rgba("blue", .3),
-                border="transparent")
-    end
-  end
-  R"par(mfrow=c(1, 1), mar=mar.default())"
-  util.devOff()
-  =#
 end
