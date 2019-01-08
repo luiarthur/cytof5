@@ -11,6 +11,7 @@ const Cube = Array{T, 3} where T
   lam::Vector{Vector{Int8}} # Array of Array. lam[1:I] ∈ {1,...,K}
   gam::Vector{Matrix{Int8}}
   y_imputed::Vector{Matrix{F}}
+  eps::Vector{F} # dim I
 end
 
 #= Note:
@@ -32,6 +33,7 @@ function compress(state::State)
                  eta=Dict{Bool, Cube{Float32}}(state.eta),
                  lam=Vector{Vector{Int8}}(state.lam),
                  gam=Vector{Matrix{Int8}}(state.gam),
+                 eps=Float32.(state.eps),
                  y_imputed=Vector{Matrix{Float32}}(state.y_imputed))
   end
 end

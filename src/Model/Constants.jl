@@ -17,7 +17,6 @@ end
   # For repulsive Z
   probFlip_Z::Float64
   similarity_Z::Function
-  eps::Float64
   sig2_0::Float64
 end
 
@@ -45,7 +44,6 @@ function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
                           alpha_prior = Gamma(3.0, 0.5),
                           tau0::Float64=0.0, tau1::Float64=0.0,
                           probFlip_Z::Float64=1.0 / (data.J * K),
-                          eps::Float64=.05,
                           sig2_0::Float64=10.0,
                           similarity_Z::Function=sim_fn_abs(0))
   # Assert range of sig2 is positive
@@ -76,7 +74,7 @@ function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
                    sig2_prior=sig2_prior, sig2_range=sig2_range,
                    beta=beta, K=K, L=L,
                    probFlip_Z=probFlip_Z, similarity_Z=similarity_Z,
-                   eps=eps, sig2_0=sig2_0)
+                   sig2_0=sig2_0)
 end
 
 function priorMu(z::Int, l::Int, s::State, c::Constants)
