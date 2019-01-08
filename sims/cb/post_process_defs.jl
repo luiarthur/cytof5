@@ -59,7 +59,19 @@ function post_process(path_to_output, thresh=0.9)
   println("Loading Data ...")
   cbData = loadSingleObj(datapath)
   println("Loading Results ...")
-  @load path_to_output out ll lastState c init
+
+  init_is_defined = false
+  try
+    @load path_to_output out ll lastState c init
+    init_is_defined = true
+    println("init_is_defined = $init_is_defined ...")
+  catch
+    println("init_is_defined = $init_is_defined ...")
+  end
+
+  if !init_is_defined
+    @load path_to_output out ll lastState c
+  end
 
   I, K_MCMC = size(lastState.W)
   J = size(lastState.Z, 1)
@@ -100,13 +112,18 @@ function post_process(path_to_output, thresh=0.9)
   end
 
   println("Plot Z diffs")
-  util.plotPdf("$IMGDIR/Z_minus_init.pdf")
-  for i in 1:length(Zpost)
-    z = Zpost[i]
-    util.myImage(z - init.Z, xlab="Features", ylab="Markers", addL=true, col=util.blueToRed(3),
-                 zlim=[-1, 1], f=Z->addGridLines(J,K_MCMC), main="Z_$i - Z_0");
+  if init_is_defined
+    util.plotPdf("$IMGDIR/Z_minus_init.pdf")
+    for i in 1:length(Zpost)
+      z = Zpost[i]
+      util.myImage(z - init.Z, xlab="Features", ylab="Markers", addL=true, col=util.blueToRed(3),
+                   zlim=[-1, 1], f=Z->addGridLines(J,K_MCMC), main="Z_$i - Z_0");
+    end
+    util.devOff()
+  else
+    println("Can't make Z-diffs because init isn't defined ...")
+    run(`rm -f $IMGDIR/Z_minus_init.pdf`)
   end
-  util.devOff()
 
   # Plot alpha
   alphaPost = util.getPosterior(:alpha, out[1])
@@ -318,19 +335,29 @@ function post_process(path_to_output, thresh=0.9)
     end
   end
 
-  println("Making y_dat init ...")
+  if init_is_defined
+    println("Making y_dat init ...")
+    for i in 1:I
+      util.plotPng("$IMGDIR/y_dat$(i)_init.png")
+      Zi = init.Z
+      Wi = init.W[i, :]
+      lami = init.lam[i]
+
+      util.yZ(cbData[i], Zi, Wi, lami, zlim=[-4,4], thresh=thresh, col=util.blueToRed(9),
+              na="black", using_zero_index=false, col_Z=R"grey(seq(1, 0, len=11))", 
+              colorbar_Z=true, cex_z_leg=0.001)
+      util.devOff()
+    end
+  else
+    println("Skipping this plot, init is not defined ...")
+  end
+
+
   for i in 1:I
-    util.plotPng("$IMGDIR/y_dat$(i)_init.png")
-    Zi = init.Z
-    Wi = init.W[i, :]
-    lami = init.lam[i]
+    println("Printing number of predominant celltypes for i = $i ...")
+    idx_best = R"estimate_ZWi_index($(out[1]), $i)"[1]
+    Wi = out[1][idx_best][:W][i,:]
 
-    util.yZ(cbData[i], Zi, Wi, lami, zlim=[-4,4], thresh=thresh, col=util.blueToRed(9),
-            na="black", using_zero_index=false, col_Z=R"grey(seq(1, 0, len=11))", 
-            colorbar_Z=true, cex_z_leg=0.001)
-    util.devOff()
-
-    # Print the number of number of celltypes making up the predominant 90% of cells.
     open("$IMGDIR/K_P$(round(Int, thresh * 100))_i$(i).txt", "w") do file
       cswi = cumsum(sort(Wi, rev=true))
       K_TOP = findfirst(cswi .> thresh)
