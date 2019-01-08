@@ -54,7 +54,9 @@ function genInitialState(c::Constants, d::Data)
     end
   end
 
-  return State(Z=Z, mus=mus, alpha=alpha, v=v, W=W, sig2=sig2, 
+  eps = mean.(c.eps_prior)
+
+  return State(Z=Z, mus=mus, alpha=alpha, v=v, W=W, sig2=sig2, eps=eps,
                eta=eta, lam=lam, gam=gam, y_imputed=y_imputed)
 end
 

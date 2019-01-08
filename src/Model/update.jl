@@ -8,6 +8,7 @@ include("update_W.jl")
 include("update_sig2.jl")
 include("update_eta.jl")
 include("update_lam.jl")
+include("update_eps.jl")
 include("update_gam.jl")
 include("update_y_imputed.jl")
 include("compute_loglike.jl") # TODO
@@ -28,6 +29,7 @@ function update_state(s::State, c::Constants, d::Data, tuners::Tuners,
   @doIf isRandom(:v)          update_v(s, c, d)
   @doIf isRandom(:alpha)      update_alpha(s, c, d)
   @doIf isRandom(:lam)        update_lam(s, c, d)
+  @doIf isRandom(:eps)        update_eps(s, c, d) 
   @doIf isRandom(:W)          update_W(s, c, d)
 
   @doIf isRandom(:gam)        update_gam(s, c, d) # must be done between updating Z and mus

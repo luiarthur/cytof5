@@ -30,7 +30,7 @@ function convertConstants(c)
                                 beta=c.beta, K=c.K, L=c.L,
                                 sig2_range=c.sig2_range,
                                 probFlip_Z=c.probFlip_Z, similarity_Z=x -> x,
-                                eps=c.eps, sig2_0=c.sig2_0)
+                                sig2_0=c.sig2_0)
 end
 
 # TODO: Write somrthing generic here.
@@ -274,7 +274,7 @@ function post_process(path_to_output, thresh=0.9)
   end
 
   println("Making yZ with Z mean...")
-  if c.eps == 0
+  if any(lastState.eps .== 0)
     for i in 1:I
       util.plotPng("$IMGDIR/y_dat$(i)_with_zmean.png")
 

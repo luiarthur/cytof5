@@ -22,7 +22,8 @@ using JLD2, FileIO
               eta=Dict{Bool, Cube{Float16}}(),
               lam=[ones(Int8, N[i]) for i in 1:I],
               gam=[ones(Int8, N[i], J) for i in 1:I],
-              y_imputed=[randn(Float16, N[i], J) for i in 1:I])
+              y_imputed=[randn(Float16, N[i], J) for i in 1:I],
+              eps=[Float16(.05) for i in 1:I])
   @test true
 
   # Debug Data constructor

@@ -29,7 +29,7 @@ printFreq: defaults to 0 => prints every 10%. turn off printing by setting to -1
 """
 function cytof5_fit(init::State, c::Constants, d::Data;
                     nmcmc::Int=1000, nburn::Int=1000, 
-                    monitors=[[:Z, :lam, :W, :v, :sig2, :mus, :alpha, :v, :eta]],
+                    monitors=[[:Z, :lam, :W, :v, :sig2, :mus, :alpha, :v, :eta, :eps]],
                     fix::Vector{Symbol}=Vector{Symbol}(),
                     thins::Vector{Int}=[1],
                     printFreq::Int=0, flushOutput::Bool=false,

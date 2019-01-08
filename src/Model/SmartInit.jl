@@ -159,8 +159,10 @@ function smartInit(c::Constants, d::Data; iterMax::Int=10,
     sig2[i] /= (N[i] * J)
   end
 
+  eps = mean.(c.eps_prior)
+
   return State(Z=Z, mus=mus, alpha=alpha, v=v, W=W, sig2=sig2, eta=eta,
-               lam=lam, gam=gam, y_imputed=y_imputed)
+               lam=lam, gam=gam, y_imputed=y_imputed, eps=eps)
 end
 
 

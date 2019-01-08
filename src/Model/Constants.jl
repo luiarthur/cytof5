@@ -12,6 +12,7 @@ end
   sig2_prior::InverseGamma # sig2_i ~ IG(shape, scale)
   sig2_range::Vector{Float64} # lower and upper bound for sig2
   beta::Matrix{Float64} # beta_dims x I, beta[:, i] refers to the beta's for sample i
+  eps_prior::Vector{Beta{Float64}} # I-dim
   K::Int
   L::Dict{Int, Int}
   # For repulsive Z
@@ -64,6 +65,7 @@ function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
 
   W_prior = Dirichlet(K, 1 / K)
   eta_prior = Dict(z => Dirichlet(L[z], 1 / L[z]) for z in 0:1)
+  eps_prior = [Beta(5.0, 95.0) for i in 1:data.I]
 
   # TODO: use empirical bayes to find these priors
   y_negs = [filter(y_i -> !isnan(y_i) && y_i < 0, vec(data.y[i])) for i in 1:data.I]
@@ -74,7 +76,7 @@ function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
                    sig2_prior=sig2_prior, sig2_range=sig2_range,
                    beta=beta, K=K, L=L,
                    probFlip_Z=probFlip_Z, similarity_Z=similarity_Z,
-                   sig2_0=sig2_0)
+                   sig2_0=sig2_0, eps_prior=eps_prior)
 end
 
 function priorMu(z::Int, l::Int, s::State, c::Constants)
