@@ -11,7 +11,7 @@ R"require(cytof3)";
 plot = R"plot";
 boxplot = R"boxplot";
 ari = R"cytof3::ari";
-rgba = R"cytof3::rgba";
+rgba = R"rcommon::rgba";
 density = R"density";
 lines = R"lines";
 plotPost = R"rcommon::plotPost";

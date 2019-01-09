@@ -123,6 +123,26 @@ function post_process(path_to_output, thresh=0.9, min_presence=.05)
     run(`rm -f $IMGDIR/Z_minus_init.pdf`)
   end
 
+  # Plot Posterior Density for i, j observed
+  for i in 1:I
+    for j in 1:J
+      println("Plot posterior density for (i: $i, j: $j) observed ...")
+      util.plotPdf("$(IMGDIR)/dden_i$(i)_j$(j).pdf")
+      dyij = util.density(filter(yij -> !isnan(yij), cbData[i][:, j]))
+      dd_ij = hcat([dd[i, j] for dd in dden]...)
+      pdyij_mean = R"rowMeans($dd_ij)" .+ 0
+      pdyij_lower = R"apply($dd_ij, 1, quantile, .025)" .+ 0
+      pdyij_upper = R"apply($dd_ij, 1, quantile, .975)" .+ 0
+      h = maximum([dyij[:y] .+ 0; pdyij_upper])
+      util.plot(c.y_grid, pdyij_mean, xlab="y", ylab="density", ylim=[0, h],
+                main="i: $i, j: $j", col="blue", lwd=2, typ="l")
+      util.colorBtwn(c.y_grid, pdyij_lower, pdyij_upper, from=-10, to=10,
+                     col=util.rgba("blue", .3))
+      util.lines(dyij, col="grey", lwd=2)
+      util.devOff()
+    end
+  end
+
   for i in 1:I
     println("Separate graphs for yZ $(i)...")
     idx_best = R"estimate_ZWi_index($(out[1]), $i)"[1]
@@ -407,6 +427,4 @@ function post_process(path_to_output, thresh=0.9, min_presence=.05)
       write(file, "K_TOP: $K_TOP \n")
     end
   end
-
-
 end
