@@ -16,6 +16,7 @@ mkpath(TMP_DIR)
 
 RESULTS_DIR = split(read(`aws s3 ls $(AWS_BUCKET)/`, String))
 RESULTS_DIR = filter(d -> d != "PRE", RESULTS_DIR)
+RESULTS_DIR = filter(d -> !occursin("EXCLUDE_ME", d), RESULTS_DIR)
 
 successes = []
 failures = []

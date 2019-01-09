@@ -4,13 +4,13 @@
 
 # Current run name
 DIR_CB_RUN = cb_preprocessed_smartinit_randeps
-
-# AWS bucket for preprocessed data
-AWS_BUCKET_CB_PREPROCESSED = s3://cytof-cb-results/cb-preprocessed
 # Current run dir
 RESULTS_DIR_CB_RUN = results/$(DIR_CB_RUN)/
 # Current AWS bucket
 AWS_BUCKET_CB_RUN = s3://cytof-cb-results/$(subst _,-,$(DIR_CB_RUN))
+
+# AWS bucket for preprocessed data
+AWS_BUCKET_CB_PREPROCESSED = s3://cytof-cb-results/cb-preprocessed
 
 # {{{1
 # DIR_CB_RUN = cb_preprocessed_fixed_quadmiss_smartinit_lpml_rmbadrows_lamzero_cauchy
@@ -65,7 +65,7 @@ send:
 	aws s3 sync $(RESULTS_DIR_CB_RUN) $(AWS_BUCKET_CB_RUN) --exclude '*.nfs*'
 
 retrieve:
-	aws s3 sync $(AWS_BUCKET_CB_RUN) $(RESULTS_DIR_CB_RUN)
+	aws s3 sync $(AWS_BUCKET_CB_RUN) $(RESULTS_DIR_CB_RUN) --exclude '*EXCLUDE_ME*'
 
 test:
 	./run $(RESULTS_DIR_CB_RUN) $(AWS_BUCKET_CB_RUN) --test
