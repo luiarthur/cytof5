@@ -89,7 +89,7 @@ cbDataPath = PARSED_ARGS["DATA_PATH"]
 cbDataPath = PARSED_ARGS["DATA_PATH"]
 subsample = PARSED_ARGS["subsample"]
 SMARTINIT = PARSED_ARGS["smartinit"]
-dnoisy = PARSED_ARGS["dnoisy"] == "cauchy" ? Cauchy() : Normal(0.0, sqrt(10))
+dnoisy = PARSED_ARGS["dnoisy"] == "normal" ? Normal(0.0, sqrt(10)) : Cauchy()
 
 Random.seed!(SEED);
 # End of ArgParse
