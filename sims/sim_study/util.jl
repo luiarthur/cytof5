@@ -30,6 +30,7 @@ addErrbar = R"rcommon::add.errbar";
 hist = R"hist";
 colorBtwn = R"color.btwn";
 myQQ = R"my.qqplot";
+addCut = R"add.cut";
 
 
 function quantile_vm(xs, p)
@@ -116,6 +117,29 @@ function qq_yobs_postpred(y, i::Int, j::Int, out)
   y_pp = gen_post_pred(i, j, y, out)
 
   return y_obs, y_pp
+end
+
+function reorder_lami(ord, lami)
+  lami_new = fill(NaN, length(lami))
+  K = length(ord)
+  for k in 1:K
+    lami_new[lami .== ord[k]] .= k
+  end
+  return lami_new
+end
+
+function get_common_celltypes(Wi; thresh=.9, filter_by_min_presence=false)
+  ord = sortperm(Wi, rev=true)
+  cumsum_Wi = cumsum(Wi[ord])
+
+  if filter_by_min_presence
+    # filter celltypes by min threshold
+    return ord[Wi[ord] .> thresh]
+  else
+    # filter celltypes by a cumulative presence
+    k = minimum(findall(cumsum_Wi .> thresh))
+    return ord[1:k]
+  end
 end
 
 end # util

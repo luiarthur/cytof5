@@ -123,7 +123,8 @@ Cytof5.Model.logger("\nGenerating priors ...");
                                         mus1_range=[0.0, 10.0],
                                         alpha_prior=Gamma(0.1, 10.0),
                                         yQuantiles=[.1, .25, .4], pBounds=[.05, .8, .05],
-                                        sig2_0=10.0)
+                                        noisyDist=Cauchy())
+                                        # noisyDist=Normal(0.0, sqrt(10)))
 
 # Print model constants
 Cytof5.Model.printConstants(c)
@@ -154,16 +155,17 @@ util.devOff()
 
 
 Cytof5.Model.logger("Fitting Model ...");
-init.sig2 = fill(.3, dat.I) # TODO: remove this?
-@time out, lastState, ll, metrics =
+# init.sig2 = fill(.3, dat.I) # TODO: remove this?
+@time out, lastState, ll, metrics, dden=
   Cytof5.Model.cytof5_fit(init, c, dat,
                           monitors=[[:Z, :lam, :W,
                                      :sig2, :mus,
                                      :alpha, :v,
-                                     :eta],
+                                     :eta, :eps],
                                     [:y_imputed, :gam]],
-                           thins=[1, round(Int, MCMC_ITER / 10)],
-                           fix=[:sig2], # TODO: remove this?
+                           thins=[1, div(MCMC_ITER, 10)],
+                           thin_dden=1,
+                           # fix=[:sig2], # TODO: remove this?
                            nmcmc=MCMC_ITER, nburn=BURN,
                            # computeLPML=true, computeDIC=true,
                            computeLPML=true, computeDIC=false,
@@ -171,7 +173,7 @@ init.sig2 = fill(.3, dat.I) # TODO: remove this?
                            printFreq=10, flushOutput=true)
 
 Cytof5.Model.logger("Saving Data ...");
-@save "$(OUTDIR)/output.jld2" out ll lastState c metrics init
+@save "$(OUTDIR)/output.jld2" out ll lastState c metrics init dden
 @save "$(OUTDIR)/reduced_data/reduced_cb.jld2" deepcopy(cbData)
 
 Cytof5.Model.logger("MCMC Completed.");

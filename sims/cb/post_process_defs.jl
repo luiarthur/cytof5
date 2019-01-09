@@ -29,8 +29,9 @@ function convertConstants(c)
                                 eta_prior=c.eta_prior, sig2_prior=c.sig2_prior,
                                 beta=c.beta, K=c.K, L=c.L,
                                 sig2_range=c.sig2_range,
-                                probFlip_Z=c.probFlip_Z, similarity_Z=x -> x,
-                                sig2_0=c.sig2_0)
+                                # there should be new stuff here ...
+                                probFlip_Z=c.probFlip_Z, similarity_Z=x -> x)
+
 end
 
 # TODO: Write somrthing generic here.
@@ -46,7 +47,7 @@ end
 
 
 
-function post_process(path_to_output, thresh=0.9)
+function post_process(path_to_output, thresh=0.9, min_presence=.05)
   jld_filename = split(path_to_output, "/")[end]
   outdir = join(split(path_to_output, "/")[1:end-1], "/")
   # datapath = "data/reduced_cb.jld2"
@@ -60,16 +61,13 @@ function post_process(path_to_output, thresh=0.9)
   cbData = loadSingleObj(datapath)
   println("Loading Results ...")
 
-  init_is_defined = false
-  try
-    @load path_to_output out ll lastState c init
-    init_is_defined = true
-    println("init_is_defined = $init_is_defined ...")
-  catch
-    println("init_is_defined = $init_is_defined ...")
-  end
+  # FIXME: Not efficient!
+  init_is_defined = "init" in keys(load(path_to_output))
+  println("init_is_defined = $init_is_defined ...")
 
-  if !init_is_defined
+  if init_is_defined
+    @load path_to_output out ll lastState c init dden
+  else
     @load path_to_output out ll lastState c
   end
 
@@ -123,6 +121,44 @@ function post_process(path_to_output, thresh=0.9)
   else
     println("Can't make Z-diffs because init isn't defined ...")
     run(`rm -f $IMGDIR/Z_minus_init.pdf`)
+  end
+
+  for i in 1:I
+    println("Separate graphs for yZ $(i)...")
+    idx_best = R"estimate_ZWi_index($(out[1]), $i)"[1]
+    Zi = out[1][idx_best][:Z]
+    Wi = out[1][idx_best][:W][i,:]
+    lami = out[1][idx_best][:lam][i]
+    ord = sortperm(Wi, rev=true)
+    lami = util.reorder_lami(ord, lami)
+    common_celltypes = util.get_common_celltypes(Wi, thresh=min_presence,
+                                                 filter_by_min_presence=true)
+    println("common celltypes: $common_celltypes")
+    K_trunc = length(common_celltypes)
+
+    util.plotPng("$IMGDIR/y_dat$(i)_only.png")
+    ord_yi = sortperm(lami)
+    util.myImage(cbData[i][ord_yi[1 .<= lami[ord_yi] .<= K_trunc], :],
+                 addL=true, f=yi->util.addCut(lami),
+                 zlim=[-4,4], col=util.blueToRed(9), na="black", xlab="markers",
+                 ylab="cells");
+    # util.myImage(cbData[i][sortperm(lami), :], addL=true, f=yi->util.addCut(lami),
+    #              zlim=[-4,4], col=util.blueToRed(9), na="black", xlab="markers",
+    #              ylab="cells");
+    util.devOff()
+
+    util.plotPdf("$IMGDIR/Z_hat$(i).pdf", w=5, h=10)
+    util.myImage(Zi[:, common_celltypes], addL=false, ylab="markers", yaxt="n",
+                 f=Z->addGridLines(J, K_trunc), xaxt="n", xlab="celltypes");
+
+    perc = string.(round.(Wi[common_celltypes] * 100, digits=2), "%")
+    R"""
+    axis(3, at=1:$K_trunc, label=$(perc), las=1, fg="grey", cex.axis=1)
+    axis(1, at=1:$K_trunc, label=$(common_celltypes), las=1,
+         fg="grey", cex.axis=1)
+    axis(2, at=1:$J, label=1:$J, las=2, fg="grey", cex.axis=1)
+    """
+    util.devOff()
   end
 
   # Plot alpha
@@ -206,6 +242,13 @@ function post_process(path_to_output, thresh=0.9)
   println("Making sig2...")
   util.plotPdf("$IMGDIR/sig2.pdf")
   util.plotPosts(sig2Post);
+  util.devOff()
+
+  # Posterior of eps
+  println("Making eps...")
+  epsPost = hcat(util.getPosterior(:eps, out[1])...)'
+  util.plotPdf("$IMGDIR/eps.pdf")
+  util.plotPosts(epsPost);
   util.devOff()
 
   # Posterior of y_imputed
@@ -364,4 +407,6 @@ function post_process(path_to_output, thresh=0.9)
       write(file, "K_TOP: $K_TOP \n")
     end
   end
+
+
 end

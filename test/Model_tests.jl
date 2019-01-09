@@ -81,7 +81,8 @@ end
 
   K_MCMC = K #10
   L_MCMC = L #5
-  @time c = Cytof5.Model.defaultConstants(y_dat, K_MCMC, L_MCMC)
+  @time c = Cytof5.Model.defaultConstants(y_dat, K_MCMC, L_MCMC,
+                                          noisyDist=Normal(0, sqrt(10)))
   Cytof5.Model.printConstants(c)
   # Plot miss mech
   R"pdf('result/beta.pdf')"
@@ -99,12 +100,15 @@ end
   @time init = Cytof5.Model.smartInit(c, y_dat)
 
   printstyled("Test Model Fitting...\n", color=:yellow)
-  @time out, lastState, ll = Cytof5.Model.cytof5_fit(init, c, y_dat,
-                                                     nmcmc=200, nburn=200,
-                                                     computeLPML=true,
-                                                     computeDIC=true)
+  @time out, lastState, ll, metrics, dden = Cytof5.Model.cytof5_fit(
+    init, c, y_dat,
+    nmcmc=200, nburn=200,
+    computeLPML=true,
+    computeDIC=true,
+    computedden=true)
+  println("Type of dden: $(typeof(dden[end]))")
 
-  println("typeof output: $(typeof(out[1])))")
+  println("Type of output: $(typeof(out[1])))")
   Zpost = [o[:Z] for o in out[1]]
   R"pdf('result/Z_post_mean.pdf')"
   R"image"(1 .- mean(Zpost))

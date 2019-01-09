@@ -32,8 +32,10 @@ function cytof5_fit(init::State, c::Constants, d::Data;
                     monitors=[[:Z, :lam, :W, :v, :sig2, :mus, :alpha, :v, :eta, :eps]],
                     fix::Vector{Symbol}=Vector{Symbol}(),
                     thins::Vector{Int}=[1],
+                    thin_dden::Int=1,
                     printFreq::Int=0, flushOutput::Bool=false,
                     computeDIC::Bool=false, computeLPML::Bool=false,
+                    computedden::Bool=false,
                     use_repulsive::Bool=false, verbose::Int=1)
 
   if verbose >= 1
@@ -124,6 +126,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
       return ll
     end
 
+    # FIXME: Doesn't work for c.noisyDist not Normal
     function convertStateToDicParam(s::State)::DICparam
       p = [[prob_miss(s.y_imputed[i][n, j], c.beta[:, i])
             for n in 1:d.N[i], j in 1:d.J] for i in 1:d.I]
@@ -131,15 +134,22 @@ function cytof5_fit(init::State, c::Constants, d::Data;
       mu = [[s.lam[i][n] > 0 ? s.mus[s.Z[j, s.lam[i][n]]][s.gam[i][n, j]] : 0.0 
              for n in 1:d.N[i], j in 1:d.J] for i in 1:d.I]
 
-      sig = [[s.lam[i][n] > 0 ? sqrt(s.sig2[i]) : sqrt(c.sig2_0) for n in 1:d.N[i]] for i in 1:d.I]
+      sig = [[s.lam[i][n] > 0 ? sqrt(s.sig2[i]) : std(c.noisyDist) for n in 1:d.N[i]] for i in 1:d.I]
 
       return DICparam(p, mu, sig)
     end
   end
 
 
+  dden = Vector{Matrix{Vector{Float64}}}()
+
   function update(s::State, iter::Int, out)
     update_state(s, c, d, tuners, loglike, fix, use_repulsive)
+
+    if computedden && iter > nburn && iter % thin_dden == 0
+      x = [datadensity(i, j, s, c, d) for i in 1:d.I, j in 1:d.J]
+      append!(dden, [[datadensity(i, j, s, c, d) for i in 1:d.I, j in 1:d.J]])
+    end
 
     if computeLPML && iter > nburn
       # Inverse likelihood for each data point
@@ -181,6 +191,8 @@ function cytof5_fit(init::State, c::Constants, d::Data;
                               loglike=loglike, flushOutput=flushOutput,
                               printlnAfterMsg=!(computeDIC || computeLPML))
 
+  mega_out = out, lastState, loglike
+
   if computeDIC || computeLPML
     LPML = computeLPML ? MCMC.computeLPML(cpoStream) : NaN
     Dmean, pD = computeDIC ? MCMC.computeDIC(dicStream, loglikeDIC, paramMeanCompute,
@@ -191,10 +203,15 @@ function cytof5_fit(init::State, c::Constants, d::Data;
     for (k, v) in metrics
       println("$k => $v")
     end
-    return out, lastState, loglike, metrics
-  else
-    return out, lastState, loglike
+
+    mega_out = mega_out ..., metrics
   end
+
+  if computedden
+    mega_out = mega_out ..., dden
+  end
+
+  return mega_out
 end
 
 #precompile(cytof5_fit, (State, Constants, Data, Int, Int, Vector{Vector{Symbol}}, Vector{Int}, Bool, Int, Bool, Bool, Bool))

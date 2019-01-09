@@ -18,7 +18,8 @@ end
   # For repulsive Z
   probFlip_Z::Float64
   similarity_Z::Function
-  sig2_0::Float64
+  noisyDist::ContinuousDistribution
+  y_grid::Vector{Float64}
 end
 
 """
@@ -45,7 +46,9 @@ function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
                           alpha_prior = Gamma(3.0, 0.5),
                           tau0::Float64=0.0, tau1::Float64=0.0,
                           probFlip_Z::Float64=1.0 / (data.J * K),
-                          sig2_0::Float64=10.0,
+                          noisyDist::ContinuousDistribution=Cauchy(),
+                          # noisyDist::ContinuousDistribution=Normal(0.0, sqrt(10.0)),
+                          y_grid::Vector{Float64}=collect(range(-10, stop=4, length=100)),
                           similarity_Z::Function=sim_fn_abs(0))
   # Assert range of sig2 is positive
   @assert 0 <= sig2_range[1] < sig2_range[2]
@@ -76,7 +79,7 @@ function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
                    sig2_prior=sig2_prior, sig2_range=sig2_range,
                    beta=beta, K=K, L=L,
                    probFlip_Z=probFlip_Z, similarity_Z=similarity_Z,
-                   sig2_0=sig2_0, eps_prior=eps_prior)
+                   noisyDist=noisyDist, eps_prior=eps_prior, y_grid=y_grid)
 end
 
 function priorMu(z::Int, l::Int, s::State, c::Constants)

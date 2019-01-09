@@ -10,9 +10,7 @@ function update_y_imputed(i::Int, n::Int, j::Int, s::State, c::Constants, d::Dat
       sig = sqrt(s.sig2[i])
       logPrior = logpdf(Normal(mu, sig), yinj)
     else
-      # sig = sqrt(c.sig2_0)
-      # logPrior = logpdf(Normal(0, sig), yinj)
-      logPrior = logpdf(Cauchy(), yinj)
+      logPrior = logpdf(c.noisyDist, yinj)
     end
     return log(p) + logPrior
   end

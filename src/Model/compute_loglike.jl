@@ -15,8 +15,7 @@ function compute_loglike(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data
       l = s.gam[i][n, j]
       ll += logpdf(Normal(s.mus[z][l], sqrt(s.sig2[i])), d.y[i][n, j])
     else
-      # ll += logpdf(Normal(0, sqrt(c.sig2_0)), d.y[i][n, j])
-      ll += logpdf(Cauchy(), d.y[i][n, j])
+      ll += logpdf(c.noisyDist, d.y[i][n, j])
     end
   end
 
