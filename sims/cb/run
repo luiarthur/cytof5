@@ -18,6 +18,7 @@ BURN=20000
 # K_MCMC="`seq -w 2 20 | shuf`"
 # K_MCMC="`seq -w 2 2 50 | shuf`"
 K_MCMC="30"
+DNOISY="cauchy normal"
 # L0_MCMC="10"
 # L1_MCMC="5"
 L0_MCMC="5"
@@ -79,11 +80,12 @@ simNumber=0
 
 for smartinit in $SMARTINIT; do
   for k_mcmc in $K_MCMC; do
+    for dnoisy in $DNOISY; do
     # Simulation number
     simNumber=$((simNumber + 1)) 
 
     # Experiment name
-    exp_name="K_MCMC${k_mcmc}_L0_MCMC${L0_MCMC}_L1_MCMC${L1_MCMC}_tau0_${TAU0}_tau1_${TAU1}_SEED${SEED}_smartinit${smartinit}_subsample${SUBSAMPLE}$isTest"
+    exp_name="K_MCMC${k_mcmc}_L0_MCMC${L0_MCMC}_L1_MCMC${L1_MCMC}_tau0_${TAU0}_tau1_${TAU1}_SEED${SEED}_smartinit${smartinit}_subsample${SUBSAMPLE}_dnoisy${dnoisy}$isTest"
 
     # Output directory
     outdir="$RESULTS_DIR/$exp_name/"
@@ -97,6 +99,7 @@ for smartinit in $SMARTINIT; do
       --RESULTS_DIR=$RESULTS_DIR --EXP_NAME=$exp_name \
       --MCMC_ITER=$MCMC_ITER --BURN=$BURN --SEED=${SEED} \
       --smartinit=$smartinit \
+      --dnoisy=${dnoisy} \
       --DATA_PATH=${DATA_PATH} \
       ${otherFlags}"
 

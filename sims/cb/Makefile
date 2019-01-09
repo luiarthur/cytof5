@@ -3,7 +3,7 @@
 .PHONY: genpreprocessGraphs sendPreprocessedGraphs getPreprocessedGraphs getRData sendRData
 
 # Current run name
-DIR_CB_RUN = cb_preprocessed_smartinit_randeps_cauchy
+DIR_CB_RUN = cb_preprocessed_smartinit_randeps
 
 # AWS bucket for preprocessed data
 AWS_BUCKET_CB_PREPROCESSED = s3://cytof-cb-results/cb-preprocessed

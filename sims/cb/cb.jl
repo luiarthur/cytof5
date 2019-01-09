@@ -50,6 +50,9 @@ function parse_cmd()
     "--smartinit"
       arg_type = Bool
       default = true
+    "--dnoisy"
+      arg_type = String
+      default = "cauchy"
 
     "--RESULTS_DIR"
       arg_type = String
@@ -86,6 +89,7 @@ cbDataPath = PARSED_ARGS["DATA_PATH"]
 cbDataPath = PARSED_ARGS["DATA_PATH"]
 subsample = PARSED_ARGS["subsample"]
 SMARTINIT = PARSED_ARGS["smartinit"]
+dnoisy = PARSED_ARGS["dnoisy"] == "cauchy" ? Cauchy() : Normal(0.0, sqrt(10))
 
 Random.seed!(SEED);
 # End of ArgParse
@@ -123,7 +127,7 @@ Cytof5.Model.logger("\nGenerating priors ...");
                                         mus1_range=[0.0, 10.0],
                                         alpha_prior=Gamma(0.1, 10.0),
                                         yQuantiles=[.1, .25, .4], pBounds=[.05, .8, .05],
-                                        noisyDist=Cauchy())
+                                        noisyDist=dnoisy)
                                         # noisyDist=Normal(0.0, sqrt(10)))
 
 # Print model constants
