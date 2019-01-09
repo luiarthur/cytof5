@@ -169,6 +169,7 @@ Cytof5.Model.logger("Fitting Model ...");
                            nmcmc=MCMC_ITER, nburn=BURN,
                            # computeLPML=true, computeDIC=true,
                            computeLPML=true, computeDIC=false,
+                           computedden=true,
                            use_repulsive=USE_REPULSIVE,
                            printFreq=10, flushOutput=true)
 
