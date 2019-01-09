@@ -86,7 +86,7 @@ pullAndProcess:
 	julia pullAndGenResults.jl $(AWS_BUCKET_CB_RUN)
 
 retrievelite:
-	aws s3 sync $(AWS_BUCKET_CB_RUN) $(RESULTS_DIR_CB_RUN) --exclude '*.jld2'
+	aws s3 sync $(AWS_BUCKET_CB_RUN) $(RESULTS_DIR_CB_RUN) --exclude '*.jld2' --exclude '*EXCLUDE_ME*'
 
 
 # Preprocess ###
