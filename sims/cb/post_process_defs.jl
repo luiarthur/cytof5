@@ -148,6 +148,29 @@ function post_process(path_to_output, thresh=0.9, min_presence=.05)
     idx_best = R"estimate_ZWi_index($(out[1]), $i)"[1]
     Zi = out[1][idx_best][:Z]
     Wi = out[1][idx_best][:W][i,:]
+
+    # Point Est for Wi and Zi. txt and pdf.
+    open("$IMGDIR/W_$(i)_hat.txt", "w") do file
+      write(file, "$(join(Wi, "\n"))\n")
+    end
+
+    open("$IMGDIR/W_$(i)_hat_ordered_cumsum.txt", "w") do file
+      ord = sortperm(Wi, rev=true)
+      cs_wi_sorted = cumsum(Wi[ord])
+      write(file, "num_features,k,wi,cumprop\n")
+      for k in 1:K
+        write(file, "$(k),$(ord[k]),$(Wi[ord][k]),$(cs_wi_sorted[k])\n")
+      end
+    end
+
+    open("$IMGDIR/Z_$(i)_hat.txt", "w") do file
+      for j in 1:J
+        zj = join(Zi[j, :], ",")
+        write(file, "$(zj)\n")
+      end
+    end
+
+
     lami = out[1][idx_best][:lam][i]
     ord = sortperm(Wi, rev=true)
     lami = util.reorder_lami(ord, lami)
@@ -210,10 +233,7 @@ function post_process(path_to_output, thresh=0.9, min_presence=.05)
   R"par(mfrow=c(1, 1), mar=rcommon::mar.default())"
   util.devOff()
 
-  # util.plotPdf("$IMGDIR/W_mean.pdf")
-  # util.myImage(W_mean, xlab="Features", ylab="Samples", col=R"greys(10)", addL=true, zlim=[0,.3]);
-  # util.devOff()
-
+ 
   # Missing Mechanism
   println("Making beta  ...")
   open("$IMGDIR/beta.txt", "w") do file
