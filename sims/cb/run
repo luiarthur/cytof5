@@ -30,7 +30,7 @@ SEED=0
 SUBSAMPLE="0.1"
 isTest=""
 otherFlags=""
-SMARTINIT="true false"
+SMARTINIT="true"
 
 if [[ $@ == **--test** ]]
 then
