@@ -81,47 +81,48 @@ simNumber=0
 for smartinit in $SMARTINIT; do
   for k_mcmc in $K_MCMC; do
     for dnoisy in $DNOISY; do
-    # Simulation number
-    simNumber=$((simNumber + 1)) 
+      # Simulation number
+      simNumber=$((simNumber + 1)) 
 
-    # Experiment name
-    exp_name="K_MCMC${k_mcmc}_L0_MCMC${L0_MCMC}_L1_MCMC${L1_MCMC}_tau0_${TAU0}_tau1_${TAU1}_SEED${SEED}_smartinit${smartinit}_subsample${SUBSAMPLE}_dnoisy${dnoisy}$isTest"
+      # Experiment name
+      exp_name="K_MCMC${k_mcmc}_L0_MCMC${L0_MCMC}_L1_MCMC${L1_MCMC}_tau0_${TAU0}_tau1_${TAU1}_SEED${SEED}_smartinit${smartinit}_subsample${SUBSAMPLE}_dnoisy${dnoisy}$isTest"
 
-    # Output directory
-    outdir="$RESULTS_DIR/$exp_name/"
-    mkdir -p $outdir
+      # Output directory
+      outdir="$RESULTS_DIR/$exp_name/"
+      mkdir -p $outdir
 
-    # Julia Command to run
-    jlCmd="julia cb.jl --K_MCMC=${k_mcmc} \
-      --L0_MCMC=${L0_MCMC} --L1_MCMC=${L1_MCMC} \
-      --subsample=$SUBSAMPLE \
-      --tau0=$TAU0 --tau1=$TAU1 \
-      --RESULTS_DIR=$RESULTS_DIR --EXP_NAME=$exp_name \
-      --MCMC_ITER=$MCMC_ITER --BURN=$BURN --SEED=${SEED} \
-      --smartinit=$smartinit \
-      --dnoisy=${dnoisy} \
-      --DATA_PATH=${DATA_PATH} \
-      ${otherFlags}"
+      # Julia Command to run
+      jlCmd="julia cb.jl --K_MCMC=${k_mcmc} \
+        --L0_MCMC=${L0_MCMC} --L1_MCMC=${L1_MCMC} \
+        --subsample=$SUBSAMPLE \
+        --tau0=$TAU0 --tau1=$TAU1 \
+        --RESULTS_DIR=$RESULTS_DIR --EXP_NAME=$exp_name \
+        --MCMC_ITER=$MCMC_ITER --BURN=$BURN --SEED=${SEED} \
+        --smartinit=$smartinit \
+        --dnoisy=${dnoisy} \
+        --DATA_PATH=${DATA_PATH} \
+        ${otherFlags}"
 
-    # Sync results to S3
-    syncToS3="aws s3 sync $outdir $AWS_BUCKET/$exp_name --exclude '*.nfs*'"
+      # Sync results to S3
+      syncToS3="aws s3 sync $outdir $AWS_BUCKET/$exp_name --exclude '*.nfs*'"
 
-    # Remove output files to save space on cluster
-    rmOutput="rm -rf ${outdir}"
+      # Remove output files to save space on cluster
+      rmOutput="rm -rf ${outdir}"
 
 
-    if [[ $@ == **--testlocal** ]] || [[ $@ == **--testplots** ]]
-    then
-      echo $jlCmd
-      $jlCmd > ${outdir}/log.txt && julia genResults.jl $RESULTS_DIR
-    else
-      cmd="$jlCmd > ${outdir}/log.txt && $syncToS3 && $rmOutput"
-      echo $cmd
-      sem -j $MAX_CORES $cmd
-    fi
+      if [[ $@ == **--testlocal** ]] || [[ $@ == **--testplots** ]]
+      then
+        echo $jlCmd
+        $jlCmd > ${outdir}/log.txt && julia genResults.jl $RESULTS_DIR
+      else
+        cmd="$jlCmd > ${outdir}/log.txt && $syncToS3 && $rmOutput"
+        echo $cmd
+        sem -j $MAX_CORES $cmd
+      fi
 
-    echo "Results for simulation $simNumber -> $outdir"
+      echo "Results for simulation $simNumber -> $outdir"
 
-    sleep $STAGGER_TIME
+      sleep $STAGGER_TIME
+    done
   done
 done
