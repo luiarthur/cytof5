@@ -155,6 +155,9 @@ util.devOff()
 
 
 Cytof5.Model.logger("Fitting Model ...");
+
+nsamps_to_thin(nsamps::Int, nmcmc::Int) = max(1, div(nmcmc, nsamps))
+
 # init.sig2 = fill(.3, dat.I) # TODO: remove this?
 @time out, lastState, ll, metrics, dden=
   Cytof5.Model.cytof5_fit(init, c, dat,
@@ -163,17 +166,18 @@ Cytof5.Model.logger("Fitting Model ...");
                                      :alpha, :v,
                                      :eta, :eps],
                                     [:y_imputed, :gam]],
-                           thins=[1, div(MCMC_ITER, 10)],
-                           thin_dden=1,
-                           # fix=[:sig2], # TODO: remove this?
-                           nmcmc=MCMC_ITER, nburn=BURN,
-                           # computeLPML=true, computeDIC=true,
-                           computeLPML=true, computeDIC=false,
-                           computedden=true,
-                           use_repulsive=USE_REPULSIVE,
-                           printFreq=10, flushOutput=true)
+                          thins=[1, nsamps_to_thin(10, MCMC_ITER)],
+                          # fix=[:sig2], # TODO: remove this?
+                          nmcmc=MCMC_ITER, nburn=BURN,
+                          # computeLPML=true, computeDIC=true,
+                          computeLPML=true, computeDIC=false,
+                          computedden=true, thin_dden=nsamps_to_thin(100, MCMC_ITER),
+                          #computedden=true, thin_dden=1,
+                          use_repulsive=USE_REPULSIVE,
+                          printFreq=10, flushOutput=true)
 
 Cytof5.Model.logger("Saving Data ...");
+println("length of dden: $(length(dden))")
 @save "$(OUTDIR)/output.jld2" out ll lastState c metrics init dden
 @save "$(OUTDIR)/reduced_data/reduced_cb.jld2" deepcopy(cbData)
 
