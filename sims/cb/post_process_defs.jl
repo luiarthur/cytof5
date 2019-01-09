@@ -47,7 +47,7 @@ end
 
 
 
-function post_process(path_to_output, thresh=0.9, min_presence=.05)
+function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .05])
   jld_filename = split(path_to_output, "/")[end]
   outdir = join(split(path_to_output, "/")[1:end-1], "/")
   # datapath = "data/reduced_cb.jld2"
@@ -154,18 +154,18 @@ function post_process(path_to_output, thresh=0.9, min_presence=.05)
       write(file, "$(join(Wi, "\n"))\n")
     end
 
-    open("$IMGDIR/W_$(i)_hat_ordered_cumsum.txt", "w") do file
+    open("$IMGDIR/W$(i)_hat_ordered_cumsum.txt", "w") do file
       ord = sortperm(Wi, rev=true)
       cs_wi_sorted = cumsum(Wi[ord])
       write(file, "num_features,k,wi,cumprop\n")
-      for k in 1:K
+      for k in 1:K_MCMC
         write(file, "$(k),$(ord[k]),$(Wi[ord][k]),$(cs_wi_sorted[k])\n")
       end
     end
 
-    open("$IMGDIR/Z_$(i)_hat.txt", "w") do file
+    open("$IMGDIR/Z$(i)_hat.txt", "w") do file
       for j in 1:J
-        zj = join(Zi[j, :], ",")
+        zj = join(Int.(Zi[j, :]), ",")
         write(file, "$(zj)\n")
       end
     end
@@ -174,34 +174,37 @@ function post_process(path_to_output, thresh=0.9, min_presence=.05)
     lami = out[1][idx_best][:lam][i]
     ord = sortperm(Wi, rev=true)
     lami = util.reorder_lami(ord, lami)
-    common_celltypes = util.get_common_celltypes(Wi, thresh=min_presence,
-                                                 filter_by_min_presence=true)
-    println("common celltypes: $common_celltypes")
-    K_trunc = length(common_celltypes)
 
-    util.plotPng("$IMGDIR/y_dat$(i)_only.png")
-    ord_yi = sortperm(lami)
-    util.myImage(cbData[i][ord_yi[1 .<= lami[ord_yi] .<= K_trunc], :],
-                 addL=true, f=yi->util.addCut(lami),
-                 zlim=[-4,4], col=util.blueToRed(9), na="black", xlab="markers",
-                 ylab="cells");
-    # util.myImage(cbData[i][sortperm(lami), :], addL=true, f=yi->util.addCut(lami),
-    #              zlim=[-4,4], col=util.blueToRed(9), na="black", xlab="markers",
-    #              ylab="cells");
-    util.devOff()
+    for min_presence in min_presences
+      common_celltypes = util.get_common_celltypes(Wi, thresh=min_presence,
+                                                   filter_by_min_presence=true)
+      println("common celltypes (min_presence > $min_presence): $common_celltypes")
+      K_trunc = length(common_celltypes)
 
-    util.plotPdf("$IMGDIR/Z_hat$(i).pdf", w=5, h=10)
-    util.myImage(Zi[:, common_celltypes], addL=false, ylab="markers", yaxt="n",
-                 f=Z->addGridLines(J, K_trunc), xaxt="n", xlab="celltypes");
+      util.plotPng("$IMGDIR/y_dat$(i)_only_minpresence$(min_presence).png")
+      ord_yi = sortperm(lami)
+      util.myImage(cbData[i][ord_yi[1 .<= lami[ord_yi] .<= K_trunc], :],
+                   addL=true, f=yi->util.addCut(lami),
+                   zlim=[-4,4], col=util.blueToRed(9), na="black", xlab="markers",
+                   ylab="cells");
+      # util.myImage(cbData[i][sortperm(lami), :], addL=true, f=yi->util.addCut(lami),
+      #              zlim=[-4,4], col=util.blueToRed(9), na="black", xlab="markers",
+      #              ylab="cells");
+      util.devOff()
 
-    perc = string.(round.(Wi[common_celltypes] * 100, digits=2), "%")
-    R"""
-    axis(3, at=1:$K_trunc, label=$(perc), las=1, fg="grey", cex.axis=1)
-    axis(1, at=1:$K_trunc, label=$(common_celltypes), las=1,
-         fg="grey", cex.axis=1)
-    axis(2, at=1:$J, label=1:$J, las=2, fg="grey", cex.axis=1)
-    """
-    util.devOff()
+      util.plotPdf("$IMGDIR/Z_hat$(i)_minpresence$(min_presence).pdf", w=5, h=10)
+      util.myImage(Zi[:, common_celltypes], addL=false, ylab="markers", yaxt="n",
+                   f=Z->addGridLines(J, K_trunc), xaxt="n", xlab="celltypes");
+
+      perc = string.(round.(Wi[common_celltypes] * 100, digits=2), "%")
+      R"""
+      axis(3, at=1:$K_trunc, label=$(perc), las=1, fg="grey", cex.axis=1)
+      axis(1, at=1:$K_trunc, label=$(common_celltypes), las=1,
+           fg="grey", cex.axis=1)
+      axis(2, at=1:$J, label=1:$J, las=2, fg="grey", cex.axis=1)
+      """
+      util.devOff()
+    end
   end
 
   # Plot alpha
