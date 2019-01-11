@@ -128,8 +128,8 @@ Cytof5.Model.logger("\nGenerating priors ...");
                                         alpha_prior=Gamma(0.1, 10.0),
                                         yQuantiles=[.1, .25, .4], pBounds=[.05, .8, .05],
                                         # TODO: CHECK
-                                        similarity_Z=sim_fn_abs(Inf),
-                                        probFlip_Z=1.0 / (dat.J * K_MCMC),
+                                        similarity_Z=Cytof5.Model.sim_fn_abs(10000),
+                                        probFlip_Z=2.0 / (dat.J * K_MCMC),
                                         #
                                         noisyDist=dnoisy)
 
@@ -181,6 +181,7 @@ nsamps_to_thin(nsamps::Int, nmcmc::Int) = max(1, div(nmcmc, nsamps))
                           computedden=true, thin_dden=nsamps_to_thin(100, MCMC_ITER),
                           #computedden=true, thin_dden=1,
                           use_repulsive=USE_REPULSIVE,
+                          joint_update_Z=true, # TODO CHECK
                           printFreq=10, flushOutput=true)
 
 Cytof5.Model.logger("Saving Data ...");

@@ -58,7 +58,7 @@ return default similarity function for repFAM
 """
 function gen_similarity_fn(bit_vec_length::Int, thresh_probs=(.01, .5), nsims::Int=100)
   psi = default_psi(bit_vec_length, thresh_probs=thresh_probs, nsims=nsims)
-  return (z1::Vector{Int}, z2::Vector{Int}) -> exp(-sum(abs.(z1 - z2)) ^ psi.alpha / psi.phi)
+  return (z1::Vector{Bool}, z2::Vector{Bool}) -> exp(-sum(abs.(z1 - z2)) ^ psi.alpha / psi.phi)
 end
 
 """
@@ -66,7 +66,7 @@ return default similarity function for repFAM, given probability of repeats
 """
 function gen_similarity_fn(; repeats=(1,3), thresh_probs=(.01, .8))
   psi = solve_rep_param(d=repeats, p=thresh_probs)
-  return (z1::Vector{Int}, z2::Vector{Int}) -> exp(-sum(abs.(z1 - z2)) ^ psi.alpha / psi.phi)
+  return (z1::Vector{Bool}, z2::Vector{Bool}) -> exp(-sum(abs.(z1 - z2)) ^ psi.alpha / psi.phi)
 end
 
 
@@ -75,7 +75,7 @@ Generate a function of threshold, which returns similarity of one if distance
 between two vectors < threshold, and zero otherwise.
 """
 function sim_fn_abs(threshold::Int)::Function
-  return (z1::Vector{Int}, z2::Vector{Int}) -> sum(abs.(z1 - z2)) <= threshold ? 1.0 : 0.0
+  return (z1::Vector{Bool}, z2::Vector{Bool}) -> sum(abs.(z1 - z2)) <= threshold ? 1.0 : 0.0
 end
 
 #= Test

@@ -4,15 +4,15 @@
 `z` is required to be 0 or 1.
 With probability `probFlip`, change z to 1 or 0.
 """
-function flip_bit(z::Int, probFlip::Float64)::Int
-  return probFlip > rand() ? Int(!Bool(z)) : z
+function flip_bit(z::Bool, probFlip::Float64)::Bool
+  return probFlip > rand() ? !z : z
 end
 
 """
 default similarity function used in computing log probability of Z_repulsive.
 = sum(abs.(z1 .- z2))
 """
-similarity_default(z1::Vector{Int}, z2::Vector{Int})::Float64 = exp(-sum(abs.(z1 .- z2)))
+similarity_default(z1::Vector{Bool}, z2::Vector{Bool})::Float64 = exp(-sum(abs.(z1 .- z2)))
 
 """
 log probability of Z ~ repFam_K(v, C), WITHOUT NORMALIZING CONSTANT
@@ -22,7 +22,7 @@ and similarity(z_{k1}, z_{k2}) computes the similarity of binary vectors z_{k1} 
 We require similarity(⋅, ⋅) ∈ (0, 1). And when z_{k1} == z_{k2} exactly, similarity = 1.
 Similarly, when distance between z_{k1} and z_{k2} approaches ∞, similarity = 0.
 """
-function logprob_Z_repulsive(Z::Matrix{Int}, v::Vector{Float64}, similarity::Function)::Float64
+function logprob_Z_repulsive(Z::Matrix{Bool}, v::Vector{Float64}, similarity::Function)::Float64
   J, K = size(Z)
 
   # IBP component
@@ -40,7 +40,7 @@ end
 
 function update_Z_repulsive(s::State, c::Constants, d::Data, tuners::Tuners)
   #cand_Z = flip_bit.(s.Z, MCMC.logit(tuners.Z.value, a=0.0, b=1.0))
-  cand_Z = flip_bit.(s.Z, c.probFlip_Z)
+  cand_Z = Matrix{Bool}(flip_bit.(s.Z, c.probFlip_Z))
 
   curr_Z = s.Z
 
@@ -51,8 +51,11 @@ function update_Z_repulsive(s::State, c::Constants, d::Data, tuners::Tuners)
     for i in 1:d.I
       for j in 1:d.J
         for n in 1:d.N[i]
-          z = Z[j, s.lam[i][n]]
-          ll += log(dmixture(z, i, n, j, s, c, d))
+          k = s.lam[i][n]
+          if k > 0
+            z = Z[j, k]
+            ll += log(dmixture(z, i, n, j, s, c, d))
+          end
         end
       end
     end
@@ -62,6 +65,7 @@ function update_Z_repulsive(s::State, c::Constants, d::Data, tuners::Tuners)
 
   accept = log_fc(cand_Z) - log_fc(curr_Z) > log(rand())
   if accept
+    println("Joint-update of Z resulted in a move.")
     s.Z .= cand_Z
   end
 
