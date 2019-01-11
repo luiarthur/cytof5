@@ -127,8 +127,11 @@ Cytof5.Model.logger("\nGenerating priors ...");
                                         mus1_range=[0.0, 10.0],
                                         alpha_prior=Gamma(0.1, 10.0),
                                         yQuantiles=[.1, .25, .4], pBounds=[.05, .8, .05],
+                                        # TODO: CHECK
+                                        similarity_Z=sim_fn_abs(Inf),
+                                        probFlip_Z=1.0 / (dat.J * K_MCMC),
+                                        #
                                         noisyDist=dnoisy)
-                                        # noisyDist=Normal(0.0, sqrt(10)))
 
 # Print model constants
 Cytof5.Model.printConstants(c)

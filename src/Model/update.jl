@@ -14,7 +14,8 @@ include("update_y_imputed.jl")
 include("compute_loglike.jl") # TODO
 
 function update_state(s::State, c::Constants, d::Data, tuners::Tuners,
-                      ll::Vector{Float64}, fix::Vector{Symbol}, use_repulsive::Bool)
+                      ll::Vector{Float64}, fix::Vector{Symbol},
+                      use_repulsive::Bool, joint_update_Z::Bool)
   # Note: `@doIf` is defined in "util.jl"
 
   # Return true if sym not is not fixed
@@ -40,6 +41,7 @@ function update_state(s::State, c::Constants, d::Data, tuners::Tuners,
 
   # Metropolis.
   @doIf isRandom(:y_imputed)  update_y_imputed(s, c, d, tuners) 
+  @doIf joint_update_Z        update_Z_repulsive(s, c, d, tuners)
 
   # Compute loglikelihood.
   append!(ll, compute_loglike(s, c, d))

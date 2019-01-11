@@ -36,7 +36,8 @@ function cytof5_fit(init::State, c::Constants, d::Data;
                     printFreq::Int=0, flushOutput::Bool=false,
                     computeDIC::Bool=false, computeLPML::Bool=false,
                     computedden::Bool=false,
-                    use_repulsive::Bool=false, verbose::Int=1)
+                    use_repulsive::Bool=false, joint_update_Z::Bool=false,
+                    verbose::Int=1)
 
   if verbose >= 1
     fixed_vars_str = join(fix, ", ")
@@ -144,7 +145,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
   dden = Vector{Matrix{Vector{Float64}}}()
 
   function update(s::State, iter::Int, out)
-    update_state(s, c, d, tuners, loglike, fix, use_repulsive)
+    update_state(s, c, d, tuners, loglike, fix, use_repulsive, joint_update_Z)
 
     if computedden && iter > nburn && (iter - nburn) % thin_dden == 0
       x = [datadensity(i, j, s, c, d) for i in 1:d.I, j in 1:d.J]
