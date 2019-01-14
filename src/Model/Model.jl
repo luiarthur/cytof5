@@ -148,8 +148,8 @@ function cytof5_fit(init::State, c::Constants, d::Data;
     update_state(s, c, d, tuners, loglike, fix, use_repulsive, joint_update_Z)
 
     if computedden && iter > nburn && (iter - nburn) % thin_dden == 0
-      x = [datadensity(i, j, s, c, d) for i in 1:d.I, j in 1:d.J]
-      append!(dden, [[datadensity(i, j, s, c, d) for i in 1:d.I, j in 1:d.J]])
+      append!(dden,
+              [[datadensity(i, j, s, c, d) for i in 1:d.I, j in 1:d.J]])
     end
 
     if computeLPML && iter > nburn
