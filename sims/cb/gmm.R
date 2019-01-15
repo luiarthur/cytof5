@@ -1,6 +1,6 @@
+library(cytof3)
 library(rcommon)
 library(nimble)
-library(cytof3)
 set.seed(1)
 
 # Nimble Model
