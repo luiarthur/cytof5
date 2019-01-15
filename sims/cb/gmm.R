@@ -7,7 +7,7 @@ set.seed(1)
 model.code <- nimbleCode({
   # Missing mechanism parameters
   b0 ~ dnorm(0, sd=5)
-  b1 ~ dgamma(1, rate=1)
+  b1 ~ dgamma(1, 1)
 
   for (i in 1:I) {
     W[i, 1:K] ~ ddirch(a_W[1:K])
