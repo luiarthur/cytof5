@@ -1,13 +1,13 @@
 library(rcommon)
 library(nimble)
-# library(cytof3)
+library(cytof3)
 set.seed(1)
 
 # Nimble Model
 model.code <- nimbleCode({
   # Missing mechanism parameters
-  b0 ~ dnorm(0, var=25)
-  b1 ~ dgamma(1, 1)
+  b0 ~ dnorm(0, sd=5)
+  b1 ~ dgamma(1, rate=1)
 
   for (i in 1:I) {
     W[i, 1:K] ~ ddirch(a_W[1:K])
@@ -34,11 +34,10 @@ model.code <- nimbleCode({
 
 # Read and preprocess
 y = readRDS('data/cytof_cb.rds')
-subsamp_prop = .004
-# subsamp_prop = .01
+subsamp_prop = .01
 y = lapply(y, function(yi) {
   Ni = NROW(yi)
-  yi[sample(1:Ni, as.integer(Ni * subsamp_prop)), 1:4]
+  yi[sample(1:Ni, as.integer(Ni * subsamp_prop)), ]
 })
 
 Y = Reduce(rbind, y)
@@ -88,7 +87,31 @@ cmodel = compileNimble(model.mcmc, project=model)
 
 # Run
 print("Run Model ...")
-# samps = runMCMC(cmodel, summary=TRUE, niter=1000, nburnin=5000)
-samps = runMCMC(cmodel, summary=TRUE, niter=100, nburnin=500)
+nburnin = 10000
+niter = nburnin + 1000
+samps = runMCMC(cmodel, summary=TRUE, niter=niter, nburnin=nburnin)
+# samps = runMCMC(cmodel, summary=TRUE, niter=500+100, nburnin=500)
 
 
+### Summary ###
+get_param = function(name, out_samples) {
+  which(sapply(colnames(out_samples), function(cn) grepl(name, cn)))
+}
+
+# lam.cols = get_param('lam', samps$samples)
+# lam_post= samps$samples[, lam.cols]
+# 
+# sig2.cols = get_param('sig2', samps$samples)
+# sig2_post = samps$samples[, sig2.cols]
+# plotPosts(sig2_post)
+# 
+# mu.cols = get_param('mu', samps$samples)
+# mu_post = samps$samples[, mu.cols[1]]
+# plotPost(mu_post)
+# 
+# b0_post = samps$samples[, 'b0']
+# b1_post = samps$samples[, 'b1']
+# plotPosts(cbind(b0_post, b1_post))
+# 
+# # Plot posterior density
+# 
