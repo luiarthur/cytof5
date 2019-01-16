@@ -17,7 +17,7 @@ model.code <- nimbleCode({
     # mixture component parameters drawn from base measures
     for (j in 1:J) {
       mu[j, k] ~ dnorm(0, 1)
-      sig2[j, k] ~ dinvgamma(.1, .1)
+      sig2[j, k] ~ dinvgamma(3, 2)
     }
   }
 
@@ -154,14 +154,15 @@ dev.off()
 
 # Plot posterior density
 dden_obs = function(state, i, j, ygrid=YGRID) {
-  lam = state[lam.cols]
-  lam = lam[Q[idxGroup == i, j] == 0]
+  lami = state[lam.cols][idxGroup == i]
+  mij = Q[idxGroup == i, j]
+  lami = lami[mij == 0]
   sig2 = state[sig2.cols]
   mu = matrix(state[mu.cols], J, K)
   b0 = state['b0']
   b1 = state['b1']
   
-  sapply(ygrid, function(yg) mean(dnorm(yg, mu[j, lam], sqrt(sig2[lam]))))
+  sapply(ygrid, function(yg) mean(dnorm(yg, mu[j, lami], sqrt(sig2[lami]))))
 }
 
 for (i in 1:I) for (j in 1:J) {
