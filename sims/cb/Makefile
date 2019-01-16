@@ -109,4 +109,11 @@ getRData:
 sendRData:
 	aws s3 sync data/ s3://cytof-cb-data/
 
+# Send nimble gmm results
+sendNimbleGmm:
+	aws s3 sync results/gmm/ s3://cytof-cb-results/numble-gmm/
+
+# Send nimble gmm results
+getNimbleGmm:
+	aws s3 sync s3://cytof-cb-results/numble-gmm/ results/gmm/ 
 

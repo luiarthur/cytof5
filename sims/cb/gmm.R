@@ -94,24 +94,35 @@ samps = runMCMC(cmodel, summary=TRUE, niter=niter, nburnin=nburnin)
 
 
 ### Summary ###
+RESULTS_DIR = 'results/gmm/'
+'%+%' <- function(a, b) paste0(a, b)
+
+saveRDS(samps, RESULTS_DIR %+% 'mcmc.rds')
+
 get_param = function(name, out_samples) {
   which(sapply(colnames(out_samples), function(cn) grepl(name, cn)))
 }
 
-# lam.cols = get_param('lam', samps$samples)
-# lam_post= samps$samples[, lam.cols]
-# 
-# sig2.cols = get_param('sig2', samps$samples)
-# sig2_post = samps$samples[, sig2.cols]
-# plotPosts(sig2_post)
-# 
-# mu.cols = get_param('mu', samps$samples)
-# mu_post = samps$samples[, mu.cols[1]]
-# plotPost(mu_post)
-# 
-# b0_post = samps$samples[, 'b0']
-# b1_post = samps$samples[, 'b1']
-# plotPosts(cbind(b0_post, b1_post))
-# 
-# # Plot posterior density
-# 
+lam.cols = get_param('lam', samps$samples)
+lam_post= samps$samples[, lam.cols]
+
+sig2.cols = get_param('sig2', samps$samples)
+sig2_post = samps$samples[, sig2.cols]
+pdf(RESULTS_DIR %+% 'sig2.pdf')
+plotPosts(sig2_post)
+dev.off()
+
+mu.cols = get_param('mu', samps$samples)
+mu_post = samps$samples[, mu.cols[1]]
+pdf(RESULTS_DIR %+% 'mu.pdf')
+plotPost(mu_post)
+dev.off()
+
+b0_post = samps$samples[, 'b0']
+b1_post = samps$samples[, 'b1']
+pdf(RESULTS_DIR %+% 'beta.pdf')
+plotPosts(cbind(b0_post, b1_post))
+dev.off()
+
+# Plot posterior density
+
