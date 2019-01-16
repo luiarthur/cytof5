@@ -48,7 +48,7 @@ Nsum = sum(N)
 I = length(y)
 idxGroup = unlist(sapply(1:I, function(i) rep(i, N[i])))
 Q = is.na(Y) * 1
-K = 5
+K = 10
 Y.init = Y
 Y.init[ which(is.na(Y))] <- -3
 Y.init[-which(is.na(Y))] <- NA
@@ -98,6 +98,7 @@ RESULTS_DIR = 'results/gmm/'
 '%+%' <- function(a, b) paste0(a, b)
 
 saveRDS(samps, RESULTS_DIR %+% 'mcmc.rds')
+samps = readRDS(RESULTS_DIR %+% 'mcmc.rds')
 
 get_param = function(name, out_samples) {
   which(sapply(colnames(out_samples), function(cn) grepl(name, cn)))
@@ -118,11 +119,59 @@ pdf(RESULTS_DIR %+% 'mu.pdf')
 plotPost(mu_post)
 dev.off()
 
+pdf(RESULTS_DIR %+% 'W.pdf')
+par(mfrow=c(I, 1))
+for (i in 1:I) {
+  W.cols = get_param('W\\[' %+% i %+% '\\, ', samps$samples)
+  Wi_post = samps$samples[, W.cols]
+  boxplot(Wi_post, col='steelblue', pch=20, cex=.5, main='i: ' %+% i)
+}
+par(mfrow=c(1, 1))
+dev.off()
+
 b0_post = samps$samples[, 'b0']
 b1_post = samps$samples[, 'b1']
 pdf(RESULTS_DIR %+% 'beta.pdf')
 plotPosts(cbind(b0_post, b1_post))
 dev.off()
 
-# Plot posterior density
+## grid of y values
+YGRID = seq(-6, 6, l=30)
 
+pdf(RESULTS_DIR %+% 'prob_miss.pdf')
+prob_miss = function(state) {
+  1 / (1 + exp(-(state['b0'] - state['b1'] * YGRID)))
+}
+pm = apply(samps$samples, 1, prob_miss)
+pm_mean = rowMeans(pm)
+plot(YGRID, pm_mean, type='l')
+pm_ci = apply(pm, 1, quantile, c(.025, .975))
+color.btwn(YGRID, pm_ci[1, ], pm_ci[2, ], from=min(YGRID), to=max(YGRID), 
+           col=rgba('blue', .1))
+dev.off()
+
+
+# Plot posterior density
+dden_obs = function(state, i, j, ygrid=YGRID) {
+  lam = state[lam.cols]
+  lam = lam[Q[idxGroup == i, j] == 0]
+  sig2 = state[sig2.cols]
+  mu = matrix(state[mu.cols], J, K)
+  b0 = state['b0']
+  b1 = state['b1']
+  
+  sapply(ygrid, function(yg) mean(dnorm(yg, mu[j, lam], sqrt(sig2[lam]))))
+}
+
+for (i in 1:I) for (j in 1:J) {
+  print('i:' %+% i %+% ' | j: ' %+% j)
+  pdf(RESULTS_DIR %+% 'dden_i' %+% i %+% '_j' %+% j %+% '.pdf')
+  dden_ij = apply(samps$samples, 1, dden_obs, i, j)
+  dden_mean = rowMeans(dden_ij)
+  dden_ci = apply(dden_ij, 1, quantile, c(.025, .975))
+  plot(density(y[[i]][, j], na.rm=TRUE), type='l', xlim=range(YGRID), main='')
+  lines(YGRID, dden_mean, lwd=3, col='steelblue')
+  color.btwn(YGRID, dden_ci[1, ], dden_ci[2, ], from=min(YGRID), to=max(YGRID), 
+             col=rgba('blue', .1))
+  dev.off()
+}
