@@ -98,7 +98,7 @@ RESULTS_DIR = 'results/gmm/'
 '%+%' <- function(a, b) paste0(a, b)
 
 saveRDS(samps, RESULTS_DIR %+% 'mcmc.rds')
-samps = readRDS(RESULTS_DIR %+% 'mcmc.rds')
+# samps = readRDS(RESULTS_DIR %+% 'mcmc.rds')
 
 get_param = function(name, out_samples) {
   which(sapply(colnames(out_samples), function(cn) grepl(name, cn)))
