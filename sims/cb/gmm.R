@@ -6,8 +6,8 @@ set.seed(1)
 # Nimble Model
 model.code <- nimbleCode({
   # Missing mechanism parameters
-  b0 ~ dnorm(0, sd=5)
-  b1 ~ dgamma(1, 1)
+  b0 ~ dunif(-50, -10)
+  b1 ~ dunif(-50, -10)
 
   for (i in 1:I) {
     W[i, 1:K] ~ ddirch(a_W[1:K])
@@ -15,19 +15,20 @@ model.code <- nimbleCode({
 
   for (k in 1:K) {
     # mixture component parameters drawn from base measures
-    # for (j in 1:J) { mu[j, k] ~ dnorm(0, 1) }
-    mu[1:J, k] ~ dmnorm(zeroVec[1:J], R[1:J, 1:J])
-    sig2[k] ~ dinvgamma(.1, .1)
+    for (j in 1:J) {
+      mu[j, k] ~ dnorm(0, 1)
+      sig2[j, k] ~ dinvgamma(.1, .1)
+    }
   }
 
   for (n in 1:Nsum) {
     lam[n] ~ dcat(W[idxGroup[n], 1:K])
     for (j in 1:J) {
       # Sampling Density
-      Y[n, j] ~ dnorm(mu[j, lam[n]], var=sig2[lam[n]])
+      Y[n, j] ~ dnorm(mu[j, lam[n]], var=sig2[j, lam[n]])
       # Missing mechanism
       Q[n, j] ~ dbern(p[n, j])
-      logit(p[n, j]) <- b0 - b1 * Y[n, j]
+      logit(p[n, j]) <- b0 + b1 * Y[n, j]
     }
   }
 })
@@ -61,8 +62,8 @@ model.consts = list(Nsum=Nsum, J=J, idxGroup=idxGroup, K=K,
                     a_W=rep(1/K, K), I=I,
                     zeroVec=rep(0, J), R=diag(J))
 model.inits = list(Y=Y.init, lam=sample(1:K, Nsum, replace=TRUE),
-                   mu=matrix(rnorm(J*K), J, K), sig2=rep(1, K),
-                   b0=-2, b1=2, W=matrix(1/K, I, K),
+                   mu=matrix(rnorm(J*K), J, K), sig2=matrix(1, J, K),
+                   b0=-2, b1=-2, W=matrix(1/K, I, K),
                    p=matrix(.5, Nsum, J))
 model = nimbleModel(model.code,
                     data=model.data,
@@ -89,8 +90,7 @@ cmodel = compileNimble(model.mcmc, project=model)
 print("Run Model ...")
 nburnin = 10000
 niter = nburnin + 1000
-samps = runMCMC(cmodel, summary=TRUE, niter=niter, nburnin=nburnin)
-# samps = runMCMC(cmodel, summary=TRUE, niter=500+100, nburnin=500)
+system.time(samps <- runMCMC(cmodel, summary=TRUE, niter=niter, nburnin=nburnin))
 
 
 ### Summary ###
@@ -110,13 +110,13 @@ lam_post= samps$samples[, lam.cols]
 sig2.cols = get_param('sig2', samps$samples)
 sig2_post = samps$samples[, sig2.cols]
 pdf(RESULTS_DIR %+% 'sig2.pdf')
-plotPosts(sig2_post)
+plotPosts(sig2_post[, 1:5])
 dev.off()
 
 mu.cols = get_param('mu', samps$samples)
-mu_post = samps$samples[, mu.cols[1]]
+mu_post = samps$samples[, mu.cols]
 pdf(RESULTS_DIR %+% 'mu.pdf')
-plotPost(mu_post)
+plotPosts(mu_post[, 1:5])
 dev.off()
 
 pdf(RESULTS_DIR %+% 'W.pdf')
@@ -137,10 +137,11 @@ dev.off()
 
 ## grid of y values
 YGRID = seq(-6, 6, l=30)
+sigmoid = function(x) 1 / (1 + exp(-x))
 
 pdf(RESULTS_DIR %+% 'prob_miss.pdf')
 prob_miss = function(state) {
-  1 / (1 + exp(-(state['b0'] - state['b1'] * YGRID)))
+  sigmoid(state['b0'] + state['b1'] * YGRID)
 }
 pm = apply(samps$samples, 1, prob_miss)
 pm_mean = rowMeans(pm)
