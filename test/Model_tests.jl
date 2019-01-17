@@ -105,7 +105,8 @@ end
     nmcmc=200, nburn=200,
     computeLPML=true,
     computeDIC=true,
-    computedden=true)
+    computedden=true,
+    joint_update_Z=true)
   println("Type of dden: $(typeof(dden[end]))")
 
   println("Type of output: $(typeof(out[1])))")

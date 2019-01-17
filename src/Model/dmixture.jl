@@ -10,6 +10,10 @@ function logdnoisy(i::Integer, n::Integer,
   return sum(logpdf.(c.noisyDist, s.y_imputed[i][n, :]))
 end
 
+function dnoisy(i::Integer, n::Integer, s::State, c::Constants, d::Data)::Float64
+  exp(logdnoisy(i, n, s, c, d))
+end
+
 function datadensity(i::Integer, n::Integer, j::Integer,
                      s::State, c::Constants, d::Data)::Vector{Float64}
   out = zeros(length(c.y_grid))
@@ -35,6 +39,33 @@ function datadensity(i::Integer, j::Integer,
   for n in 1:d.N[i]
     if d.m[i][n, j] == 0
       out += datadensity(i, n, j, s, c, d) / n_obs
+    end
+  end
+
+  return out
+end
+
+
+# For updating Z marginalizing over lambda and gamma ############
+function dmix_nolamgam(Z::Matrix{Bool}, i::Integer, n::Integer,
+                       s::State, c::Constants, d::Data)::Float64
+
+  # Get the density over all markers
+  dyin_not_noisy = 0.0
+  for k in 1:c.K
+    dvec = prod(dmixture(Z[j, k], i, n, j, s, c, d) for j in 1:d.J)
+    dyin_not_noisy += s.W[i, k] * dvec
+  end
+
+  return s.eps[i] * dnoisy(i, n, s, c, d) + (1 - s.eps[i]) * dyin_not_noisy
+end
+
+function log_dmix_nolamgam(Z::Matrix{Bool}, s::State, c::Constants, d::Data)::Float64
+  out = 0.0
+
+  for i in 1:d.I
+    for n in 1:d.N[i]
+      out += log(dmix_nolamgam(Z, i, n, s, c, d))
     end
   end
 

@@ -1,6 +1,7 @@
 include("dmixture.jl")
 include("update_Z.jl")
 include("update_Z_repulsive.jl")
+include("update_Z_v2.jl")
 include("update_mus.jl")
 include("update_alpha.jl")
 include("update_v.jl")
@@ -25,13 +26,19 @@ function update_state(s::State, c::Constants, d::Data, tuners::Tuners,
   @doIf isRandom(:Z) if use_repulsive
     update_Z_repulsive(s, c, d, tuners)
   else
-    update_Z(s, c, d)
+    if joint_update_Z
+      update_Z_v2(s, c, d, tuners)
+    else
+      # Do regular updates
+      update_Z(s, c, d)
+    end
   end
+
   @doIf isRandom(:v)          update_v(s, c, d)
   @doIf isRandom(:alpha)      update_alpha(s, c, d)
   @doIf isRandom(:lam)        update_lam(s, c, d)
-  @doIf isRandom(:eps)        update_eps(s, c, d) 
   @doIf isRandom(:W)          update_W(s, c, d)
+  @doIf isRandom(:eps)        update_eps(s, c, d) 
 
   @doIf isRandom(:gam)        update_gam(s, c, d) # must be done between updating Z and mus
   @doIf isRandom(:eta)        update_eta(s, c, d)
@@ -41,7 +48,6 @@ function update_state(s::State, c::Constants, d::Data, tuners::Tuners,
 
   # Metropolis.
   @doIf isRandom(:y_imputed)  update_y_imputed(s, c, d, tuners) 
-  @doIf joint_update_Z        update_Z_repulsive(s, c, d, tuners)
 
   # Compute loglikelihood.
   append!(ll, compute_loglike(s, c, d))
