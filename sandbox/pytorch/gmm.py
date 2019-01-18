@@ -26,10 +26,13 @@ y_data = torch.tensor(data['y'])
 N = len(y_data)
 
 # Create random Tensors for weights.
-mu = torch.randn(J, device=device, dtype=dtype, requires_grad=True)
-log_sig2 = torch.zeros(J, device=device, dtype=dtype, requires_grad=True)
+mu = torch.randn(J, device=device, dtype=dtype) * 10
+mu.requires_grad=True
+log_sig2 = torch.empty(J, device=device, dtype=dtype).fill_(-4)
+log_sig2.requires_grad=True
 logit_w = torch.empty(J, device=device, dtype=dtype).fill_(1 / J)
 logit_w.requires_grad=True
+eps = 1E-8
 
 # logpdf of Normal
 def lpdf_normal(x, m, v):
@@ -53,41 +56,51 @@ def loglike(yi, m, log_s2, logit_w):
 
 learning_rate = 1e-5
 optimizer = torch.optim.Adam([mu, log_sig2, logit_w], lr=learning_rate)
+ll_out = [-math.inf, ]
 
 for t in range(10000):
     # zero out the gradient
-    # optimizer.zero_grad()
-    # time.sleep(1)
+    optimizer.zero_grad()
 
     # Forward pass
     ll = torch.stack([loglike(yi, mu, log_sig2, logit_w) for yi in y_data]).sum()
-    lp_logsig2 = lpdf_loginvgamma_kernel(log_sig2, 3, 2).sum()
+    ll_out.append(ll.item())
+    lp_logsig2 = lpdf_loginvgamma_kernel(log_sig2, 1000, 10).sum()
     lp_logit_w = 0 # TODO
     lp = lp_logsig2 + lp_logit_w
-    #
+
     # Compute and print loss using operations on Tensors.
     log_post = ll + lp
     loss = -(log_post) / N
+    ll_diff = ll_out[-1] - ll_out[-2]
+
+    if ll_diff / N < eps:
+        break
+    else:
+        print('ll mean improvement: {}'.format(ll_diff / N))
+
     print("{}: loglike: {}".format(t, ll.item() / N))
     print('mu: {}'.format(mu.tolist()))
     print('sig2: {}'.format(torch.exp(log_sig2).tolist()))
     print('w: {}'.format(torch.softmax(logit_w, 0).tolist()))
-    #
+
     # Use autograd to compute the backward pass. 
     loss.backward()
 
     # Update weights
     optimizer.step()
 
-    # Update weights using gradient descent
-    #with torch.no_grad():
-    #    mu -= mu.grad * learning_rate
-    #    log_sig2 -= log_sig2.grad * learning_rate
-    #    logit_w -= logit_w.grad * learning_rate
-    #    #
-    #    # Manually zero the gradients after updating weights
-    #    mu.grad.zero_()
-    #    log_sig2.grad.zero_()
-    #    logit_w.grad.zero_()
+    # SAME AS ABOVE.
+    #
+    # Update weights using gradient descent.
+    # with torch.no_grad():
+    #     mu -= mu.grad * learning_rate
+    #     log_sig2 -= log_sig2.grad * learning_rate
+    #     logit_w -= logit_w.grad * learning_rate
+    #
+    #     # Manually zero the gradients after updating weights
+    #     mu.grad.zero_()
+    #     log_sig2.grad.zero_()
+    #     logit_w.grad.zero_()
   
 
