@@ -5,11 +5,11 @@ def genData(seed:int=1):
     np.random.seed(seed)
 
     # Number of elements in group
-    N = [n * 100 for n in [3, 1, 2]]
+    N = [n * 100 for n in [3, 5, 2]]
     Nsum = sum(N)
     J = len(N)
-    mu = [2, 4, -1]
-    sd = [.3, .5, .3]
+    mu = [3, 7, -1]
+    sd = [.1, .2, .1]
     assert len(mu) == len(sd) == len(N)
 
     # Create group id's as one list
