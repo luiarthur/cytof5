@@ -32,7 +32,6 @@ log_sig2 = torch.empty(J, device=device, dtype=dtype).fill_(-4)
 log_sig2.requires_grad=True
 logit_w = torch.empty(J, device=device, dtype=dtype).fill_(1 / J)
 logit_w.requires_grad=True
-eps = 1E-8
 
 # logpdf of Normal
 def lpdf_normal(x, m, v):
@@ -54,7 +53,8 @@ def loglike(yi, m, log_s2, logit_w):
 
 # loglike(y_data[0], mu, log_sig2, logit_w)
 
-learning_rate = 1e-5
+learning_rate = 1e-3
+eps = 1E-8
 optimizer = torch.optim.Adam([mu, log_sig2, logit_w], lr=learning_rate)
 ll_out = [-math.inf, ]
 
