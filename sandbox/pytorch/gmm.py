@@ -58,7 +58,7 @@ learning_rate = 1e-5
 optimizer = torch.optim.Adam([mu, log_sig2, logit_w], lr=learning_rate)
 ll_out = [-math.inf, ]
 
-for t in range(10000):
+for t in range(100000):
     # zero out the gradient
     optimizer.zero_grad()
 
