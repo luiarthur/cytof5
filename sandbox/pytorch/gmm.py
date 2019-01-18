@@ -28,7 +28,8 @@ N = len(y_data)
 # Create random Tensors for weights.
 mu = torch.randn(J, device=device, dtype=dtype, requires_grad=True)
 log_sig2 = torch.zeros(J, device=device, dtype=dtype, requires_grad=True)
-logit_w = torch.randn(J, device=device, dtype=dtype, requires_grad=True)
+logit_w = torch.empty(J, device=device, dtype=dtype).fill_(1 / J)
+logit_w.requires_grad=True
 
 # logpdf of Normal
 def lpdf_normal(x, m, v):
@@ -42,13 +43,20 @@ def lpdf_loginvgamma_kernel(x, a, b):
 
 def loglike(yi, m, log_s2, logit_w):
     sig2 = torch.exp(log_s2)
-    w = torch.softmax(logit_w, 0)
-    return torch.log(w.dot(pdf_normal(yi, mu, sig2)))
+    log_w = torch.log_softmax(logit_w, 0)
+    return torch.logsumexp(log_w + lpdf_normal(yi, mu, sig2), 0)
+    # which is equivalent to and more numerically stable to:
+    # w = torch.softmax(logit_w, 0)
+    # return torch.log(w.dot(pdf_normal(yi, mu, sig2)))
 
-# optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+# loglike(y_data[0], mu, log_sig2, logit_w)
 
-learning_rate = 1e-3
+learning_rate = 1e-5
+optimizer = torch.optim.Adam([mu, log_sig2, logit_w], lr=learning_rate)
+
 for t in range(10000):
+    # zero out the gradient
+    # optimizer.zero_grad()
     # time.sleep(1)
 
     # Forward pass
@@ -67,16 +75,19 @@ for t in range(10000):
     #
     # Use autograd to compute the backward pass. 
     loss.backward()
-    #
-    # Update weights using gradient descent
-    with torch.no_grad():
-        mu -= mu.grad * learning_rate
-        log_sig2 -= log_sig2.grad * learning_rate
-        logit_w -= logit_w.grad * learning_rate
-        #
-        # Manually zero the gradients after updating weights
-        mu.grad.zero_()
-        log_sig2.grad.zero_()
-        logit_w.grad.zero_()
 
+    # Update weights
+    optimizer.step()
+
+    # Update weights using gradient descent
+    #with torch.no_grad():
+    #    mu -= mu.grad * learning_rate
+    #    log_sig2 -= log_sig2.grad * learning_rate
+    #    logit_w -= logit_w.grad * learning_rate
+    #    #
+    #    # Manually zero the gradients after updating weights
+    #    mu.grad.zero_()
+    #    log_sig2.grad.zero_()
+    #    logit_w.grad.zero_()
+  
 
