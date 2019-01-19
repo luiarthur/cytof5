@@ -94,7 +94,6 @@ def hmc(log_post, state, L=50, eps=1e-4, prop_sd=1.0, dtype=torch.float64):
     grad_on(state)
     if log_acc_prob > torch.log(torch.rand(1)).item():
         print("ACCEPT!")
-        return q
-    else:
-        return state
+        for (sj, qj) in zip(state, q):
+            sj.data = qj.data
 
