@@ -47,9 +47,9 @@ def lpdf_loginvgamma_kernel(x, a, b):
     return -a * x - b * torch.exp(-x)
 
 def loglike(yi, m, log_s2, logit_w):
-    sig2 = torch.exp(log_s2)
+    s2 = torch.exp(log_s2)
     log_w = torch.log_softmax(logit_w, 0)
-    return torch.logsumexp(log_w + lpdf_normal(yi, mu, sig2), 0)
+    return torch.logsumexp(log_w + lpdf_normal(yi, m, s2), 0)
     # which is equivalent to and more numerically stable to:
     # w = torch.softmax(logit_w, 0)
     # return torch.log(w.dot(pdf_normal(yi, mu, sig2)))
