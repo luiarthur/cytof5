@@ -62,7 +62,7 @@ def fit(y, J, max_iter, eps=1e-8, learning_rate=1e-3, momentum=.9, use_sgd=False
     def set_lr(lr):
         optimizer.param_groups[0]['lr'] = lr
 
-    period = 10
+    period = 5
 
     for t in range(max_iter):
         # zero out the gradient
@@ -106,4 +106,4 @@ def fit(y, J, max_iter, eps=1e-8, learning_rate=1e-3, momentum=.9, use_sgd=False
 
 if __name__ == '__main__':
     data = genData()
-    out = fit(torch.tensor(data['y']), J=3, max_iter=100000, learning_rate=1e-3)
+    out = fit(torch.tensor(data['y']), J=3, max_iter=100000, learning_rate=1e-3, seed=1)
