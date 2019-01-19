@@ -49,7 +49,7 @@ def fit(y, J, nmcmc=1000, nburn=10, learning_rate=1e-3, L=50, prop_sd=1.0, seed=
         return ll + lp
 
     # Initialize parameters.
-    mu = torch.randn(J, device=device, dtype=dtype) # * 10
+    mu = torch.randn(J, device=device, dtype=dtype) * 10
     mu.requires_grad = True
 
     log_sig2 = torch.empty(J, device=device, dtype=dtype).fill_(-3)
@@ -59,16 +59,15 @@ def fit(y, J, nmcmc=1000, nburn=10, learning_rate=1e-3, L=50, prop_sd=1.0, seed=
     logit_w.requires_grad = True
 
     state = [mu, log_sig2, logit_w]
-    log_post_history = [log_post(state).item() / N]
+    log_post_history = [log_post(state).item()]
     out = []
 
     for t in range(nmcmc + nburn):
         now = datetime.datetime.now()
-        print('{} | iteration: {} / {} | normalized logpost: {}'.format(now, t + 1, nmcmc + nburn, log_post_history[-1]))
+        print('{} | iteration: {} / {} | normalized logpost: {}'.format(now, t + 1, nmcmc + nburn, log_post_history[-1] / N))
 
         hmc(log_post, state=state, log_post_history=log_post_history,
             L=L, eps=learning_rate, prop_sd=prop_sd) 
-        log_post_history[-1] /= N
 
         if t >= nburn:
             out.append(copy.deepcopy(state))
@@ -86,5 +85,5 @@ if __name__ == '__main__':
     data = genData(seed=1, nfactor=100)
     y = torch.tensor(data['y'])
 
-    out = fit(y, J=3, L=50, learning_rate=1e-3, nmcmc=100, nburn=100)
+    out = fit(y, J=3, L=50, learning_rate=1e-4, nmcmc=100, nburn=100)
 
