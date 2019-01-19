@@ -1,6 +1,8 @@
 import torch
 import time
 import math
+import copy
+import datetime
 
 from hmc import hmc
 import sys
@@ -20,7 +22,7 @@ def loglike(yi, m, log_s2, logit_w):
     return torch.logsumexp(log_w + lpdf_normal(yi, m, s2), 0)
 
 
-def fit(y, J, max_iter=1000, learning_rate=1e-3, L=50, prop_sd=1.0, seed=1):
+def fit(y, J, nmcmc=1000, nburn=10, learning_rate=1e-3, L=50, prop_sd=1.0, seed=1):
     # Set random seed for reproducibility
     torch.manual_seed(seed)
 
@@ -40,7 +42,7 @@ def fit(y, J, max_iter=1000, learning_rate=1e-3, L=50, prop_sd=1.0, seed=1):
         ll = torch.stack([loglike(yi, m, log_s2, lw) for yi in y]).sum()
 
         # log prior
-        lp_logsig2 = lpdf_loginvgamma_kernel(log_s2, 1000, 10).sum()
+        lp_logsig2 = lpdf_loginvgamma_kernel(log_s2, 3, 2).sum()
         lp_mu = -(m ** 2 / 2).sum()
         lp_w = 0
         lp = lp_logsig2 + lp_mu + lp_w
@@ -58,23 +60,32 @@ def fit(y, J, max_iter=1000, learning_rate=1e-3, L=50, prop_sd=1.0, seed=1):
     logit_w.requires_grad = True
 
     state = [mu, log_sig2, logit_w]
+    log_post_history = [log_post(state).item() / N]
+    out = []
 
-    lpost = []
-    for t in range(max_iter):
-        lpost.append(log_post(state).item())
-        print('iteration: {} / {} -- logpost: {}'.format(t, max_iter, lpost[-1]))
-        hmc(log_post, state=state, L=L, eps=learning_rate, prop_sd=prop_sd) 
+    for t in range(nmcmc + nburn):
+        now = datetime.datetime.now()
+        print('{} | iteration: {} / {} | normalized logpost: {}'.format(now, t + 1, nmcmc, log_post_history[-1]))
+
+        hmc(log_post, state=state, log_post_history=log_post_history,
+            L=L, eps=learning_rate, prop_sd=prop_sd) 
+        log_post_history[-1] /= N
+
+        if t >= nburn:
+            out.append(copy.deepcopy(state))
 
         print('mu: {}'.format(mu.tolist()))
         print('sig2: {}'.format(torch.exp(log_sig2).tolist()))
         print('w: {}'.format(torch.softmax(logit_w, 0).tolist()))
 
-    return {'params': params, 'll': ll}
+        print()
+
+    return {'chain': out, 'logpost_hist': log_post_history}
   
 
 if __name__ == '__main__':
     data = genData()
     y = torch.tensor(data['y'])
 
-    out = fit(y, J=3, L=50, learning_rate=1e-3)
+    out = fit(y, J=3, L=50, learning_rate=1e-3, nmcmc=100, nburn=100)
 

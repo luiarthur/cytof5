@@ -5,7 +5,7 @@ HMC example
 import math
 import torch
 
-def hmc(log_post, state, L=50, eps=1e-4, prop_sd=1.0, dtype=torch.float64):
+def hmc(log_post, state, log_post_history, L=50, eps=1e-4, prop_sd=1.0, dtype=torch.float64, verbose=0):
     """
     one step of an hmc
 
@@ -55,7 +55,7 @@ def hmc(log_post, state, L=50, eps=1e-4, prop_sd=1.0, dtype=torch.float64):
             pj.data.sub_(eps * qj.grad.data / 2)
 
     for i in range(L):
-        print('\r{} / {}'.format(i, L), end='')
+        print('\rLeapfrog step: {} / {}'.format(i + 1, L), end='')
         compute_gradients(q)
 
         with torch.no_grad():
@@ -89,11 +89,16 @@ def hmc(log_post, state, L=50, eps=1e-4, prop_sd=1.0, dtype=torch.float64):
 
     # Compute acceptance prob
     log_acc_prob = curr_U + curr_K - prop_U - prop_K
-    print('log acceptance prob: {}'.format(log_acc_prob))
+    if verbose >= 1:
+        print('log acceptance prob: {}'.format(log_acc_prob))
 
     grad_on(state)
     if log_acc_prob > torch.log(torch.rand(1)).item():
-        print("ACCEPT!")
+        # Accept
         for (sj, qj) in zip(state, q):
             sj.data = qj.data
-
+        log_post_history.append(-prop_U)
+    elif verbose >= 1:
+        # Reject
+        log_post_history.append(-curr_U)
+        print("REJECTED.")
