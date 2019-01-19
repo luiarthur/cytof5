@@ -1,11 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def genData(seed:int=1):
+def genData(seed:int=1, nfactor=100):
     np.random.seed(seed)
 
     # Number of elements in group
-    N = [n * 100 for n in [3, 5, 2]]
+    N = [n * nfactor for n in [3, 5, 2]]
     Nsum = sum(N)
     J = len(N)
     mu = [3, 7, -1]

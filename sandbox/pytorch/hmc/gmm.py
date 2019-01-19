@@ -10,16 +10,15 @@ sys.path.append('..')
 from gmm_data_gen import genData
 
 # logpdf of Normal
-def lpdf_normal(x, m, v):
-    return -(x - m) ** 2 / (2 * v) - 0.5 * torch.log(2 * math.pi * v)
+def lpdf_normal(x, m, log_v):
+    return -(x - m) ** 2 / (2 * torch.exp(log_v)) - 0.5 * math.log(2 * math.pi) - 0.5 * log_v
 
 def lpdf_loginvgamma_kernel(x, a, b):
     return -a * x - b * torch.exp(-x)
 
 def loglike(yi, m, log_s2, logit_w):
-    s2 = torch.exp(log_s2)
     log_w = torch.log_softmax(logit_w, 0)
-    return torch.logsumexp(log_w + lpdf_normal(yi, m, s2), 0)
+    return torch.logsumexp(log_w + lpdf_normal(yi, m, log_s2), 0)
 
 
 def fit(y, J, nmcmc=1000, nburn=10, learning_rate=1e-3, L=50, prop_sd=1.0, seed=1):
@@ -65,7 +64,7 @@ def fit(y, J, nmcmc=1000, nburn=10, learning_rate=1e-3, L=50, prop_sd=1.0, seed=
 
     for t in range(nmcmc + nburn):
         now = datetime.datetime.now()
-        print('{} | iteration: {} / {} | normalized logpost: {}'.format(now, t + 1, nmcmc, log_post_history[-1]))
+        print('{} | iteration: {} / {} | normalized logpost: {}'.format(now, t + 1, nmcmc + nburn, log_post_history[-1]))
 
         hmc(log_post, state=state, log_post_history=log_post_history,
             L=L, eps=learning_rate, prop_sd=prop_sd) 
@@ -84,7 +83,7 @@ def fit(y, J, nmcmc=1000, nburn=10, learning_rate=1e-3, L=50, prop_sd=1.0, seed=
   
 
 if __name__ == '__main__':
-    data = genData()
+    data = genData(seed=1, nfactor=100)
     y = torch.tensor(data['y'])
 
     out = fit(y, J=3, L=50, learning_rate=1e-3, nmcmc=100, nburn=100)
