@@ -3,12 +3,23 @@ import time
 import math
 import copy
 import datetime
+import matplotlib.pyplot as plt 
+import numpy as np
 
 from hmc import hmc
 import sys
 sys.path.append('..')
 from gmm_data_gen import genData
 
+def sample_groups(state, y):
+    m, log_s2, lw = state
+    lam = []
+    for yi in y:
+        logprobs = lw + lpdf_normal(yi, m, log_s2)
+        p = torch.exp(logprobs - logprobs.max())
+        lam.append(torch.multinomial(p, 1).item())
+    return lam
+     
 # logpdf of Normal
 def lpdf_normal(x, m, log_v):
     return -(x - m) ** 2 / (2 * torch.exp(log_v)) - 0.5 * math.log(2 * math.pi) - 0.5 * log_v
@@ -21,7 +32,7 @@ def loglike(yi, m, log_s2, logit_w):
     return torch.logsumexp(log_w + lpdf_normal(yi, m, log_s2), 0)
 
 
-def fit(y, J, nmcmc=1000, nburn=10, learning_rate=1e-3, L=50, prop_sd=1.0, seed=1):
+def fit(y, J, nmcmc=1000, nburn=10, learning_rate=1e-3, L=50, prop_sd=1.0, seed=1, minibatch_size:int=0):
     # Set random seed for reproducibility
     torch.manual_seed(seed)
 
@@ -36,9 +47,15 @@ def fit(y, J, nmcmc=1000, nburn=10, learning_rate=1e-3, L=50, prop_sd=1.0, seed=
 
     def log_post(state):
         m, log_s2, lw = state
-
+        
+        if 0 < minibatch_size < N:
+            idx = torch.randperm(N)[:minibatch_size]
+            y_minibatch = y[idx]
+        else:
+            y_minibatch = y
+        
         # log likelihood
-        ll = torch.stack([loglike(yi, m, log_s2, lw) for yi in y]).sum()
+        ll = torch.stack([loglike(yi, m, log_s2, lw) for yi in y_minibatch]).mean() * N
 
         # log prior
         lp_logsig2 = lpdf_loginvgamma_kernel(log_s2, 3, 2).sum()
@@ -49,10 +66,10 @@ def fit(y, J, nmcmc=1000, nburn=10, learning_rate=1e-3, L=50, prop_sd=1.0, seed=
         return ll + lp
 
     # Initialize parameters.
-    mu = torch.randn(J, device=device, dtype=dtype) * 10
+    mu = torch.randn(J, device=device, dtype=dtype) # * 10
     mu.requires_grad = True
 
-    log_sig2 = torch.empty(J, device=device, dtype=dtype).fill_(-3)
+    log_sig2 = torch.empty(J, device=device, dtype=dtype).fill_(0)
     log_sig2.requires_grad = True
 
     logit_w = torch.empty(J, device=device, dtype=dtype).fill_(1 / J)
@@ -85,5 +102,19 @@ if __name__ == '__main__':
     data = genData(seed=1, nfactor=100)
     y = torch.tensor(data['y'])
 
-    out = fit(y, J=3, L=50, learning_rate=1e-4, nmcmc=100, nburn=100)
+    out = fit(y, J=3, L=100, learning_rate=1e-4, nmcmc=100, nburn=1000,
+              minibatch_size=50, seed=1)
+
+    ll = out['logpost_hist']
+
+    # Retrieve labels
+    labels = []
+    for i in range(len(out['chain'])):
+        state = out['chain'][i]
+        labels.append( sample_groups(state, y) )
+        print('\r{}/{}'.format(i, len(out['chain'])), end='')
+    
+    labels = np.array(labels)
+    labels.mean(axis=0).round()
+
 

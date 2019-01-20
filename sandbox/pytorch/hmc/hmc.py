@@ -89,7 +89,7 @@ def hmc(log_post, state, log_post_history, L=50, eps=1e-4, prop_sd=1.0, dtype=to
 
     # Compute acceptance prob
     log_acc_prob = curr_U + curr_K - prop_U - prop_K
-    if verbose >= 1:
+    if verbose >= 2:
         print('log acceptance prob: {}'.format(log_acc_prob))
 
     grad_on(state)
@@ -98,7 +98,8 @@ def hmc(log_post, state, log_post_history, L=50, eps=1e-4, prop_sd=1.0, dtype=to
         for (sj, qj) in zip(state, q):
             sj.data = qj.data
         log_post_history.append(-prop_U)
-    elif verbose >= 1:
-        # Reject
+    else:
         log_post_history.append(-curr_U)
-        print("REJECTED.")
+        if verbose >= 1:
+            # Reject
+            print("REJECTED.")
