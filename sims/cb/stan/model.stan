@@ -69,8 +69,7 @@ model {
 
         for (l in 1:L0) {
           if (m[n, j] == 1) { // if missing
-            // x0 += eta0[i, j][l] * normal_cdf(y[n, j], mu0[l], sigma[i]);
-            x0 += eta0[i, j][l] * normal_cdf(y[n, j], -5, sigma[i]);
+            x0 += eta0[i, j][l] * normal_cdf(y[n, j], mu0[l], sigma[i]);
           } else {
             x0 += eta0[i, j][l] * exp(normal_lpdf(y[n, j] | mu0[l], sigma[i]));
           }
@@ -79,8 +78,7 @@ model {
 
         for (l in 1:L1) {
           if (m[n, j] == 1) { // if missing
-            // x1 += eta1[i, j][l] * normal_cdf(y[n, j], mu1[l], sigma[i]);
-            x1 += eta1[i, j][l] * normal_cdf(y[n, j], -5, sigma[i]);
+            x1 += eta1[i, j][l] * normal_cdf(y[n, j], mu1[l], sigma[i]);
           } else {
             x1 += eta1[i, j][l] * exp(normal_lpdf(y[n, j] | mu1[l], sigma[i]));
           }
