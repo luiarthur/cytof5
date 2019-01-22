@@ -16,7 +16,7 @@
 [3]: https://arxiv.org/pdf/1402.4102.pdf
 [4]: https://pytorch.org/
 [5]: https://arxiv.org/pdf/1601.00670.pdf
-[6]: https://arxiv.org/pdf/1506.03431.pdf
+[6]: http://www.jmlr.org/papers/volume18/16-107/16-107.pdf
 [7]: https://mc-stan.org/
 [8]: https://mc-stan.org/users/documentation/
 [9]: https://mc-stan.org/docs/2_18/stan-users-guide/index.html
