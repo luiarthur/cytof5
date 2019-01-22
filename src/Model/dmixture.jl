@@ -10,7 +10,7 @@ function logdmixture(z::Integer, i::Integer, n::Integer, j::Integer,
   sd = sqrt(s.sig2[i])
   logdvec = log.(s.eta[z][i, j, :])
   logdvec += logpdf.(Normal.(s.mus[z], sd), s.y_imputed[i][n, j])
-  return logsumexp(logdvec)
+  return MCMC.logsumexp(logdvec)
 end
 
 
@@ -74,15 +74,16 @@ function log_dmix_nolamgam(Z::Matrix{Bool}, i::Integer, n::Integer,
                            s::State, c::Constants, d::Data)::Float64
 
   # Get the density over all markers
-  log_dyin_not_noisy = log.(s.W[i, k])
+  log_dyin_not_noisy = log.(s.W[i, :])
 
   for k in 1:c.K
     logdvec = sum(logdmixture(Z[j, k], i, n, j, s, c, d) for j in 1:d.J)
     log_dyin_not_noisy[k] += logdvec
   end
 
-  return logsumexp([log(s.eps[i]) + logdnoisy(i, n, s, c, d),
-                    log(1 - s.eps[i]) + logsumexp(dyin_not_noisy)])
+  return MCMC.logsumexp([log(s.eps[i]) + logdnoisy(i, n, s, c, d),
+                         log(1 - s.eps[i]) +
+                         MCMC.logsumexp(log_dyin_not_noisy)])
 end
 
 
@@ -93,6 +94,43 @@ function log_dmix_nolamgam(Z::Matrix{Bool}, s::State, c::Constants, d::Data)::Fl
     for n in 1:d.N[i]
       # out += log(dmix_nolamgam(Z, i, n, s, c, d))
       out += log_dmix_nolamgam(Z, i, n, s, c, d)
+    end
+  end
+
+  return out
+end
+
+#####################################################################
+function log_dmix_nolamgam(Z::Matrix{Bool}, i::Integer, n::Integer,
+                           A::Vector{Vector{Float64}},
+                           B0::Vector{Matrix{Float64}},
+                           B1::Vector{Matrix{Float64}},
+                           s::State, c::Constants, d::Data)::Float64
+
+  # Get the density over all markers
+  log_dyin_not_noisy = log.(s.W[i, :])
+
+  for k in 1:c.K
+    logdvec = sum(Z[j, k] == 0 ? B0[i][n, j] : B1[i][n, j] for j in 1:d.J)
+    log_dyin_not_noisy[k] += logdvec
+  end
+
+  return MCMC.logsumexp([log(s.eps[i]) + A[i][n],
+                        log(1 - s.eps[i]) +
+                        MCMC.logsumexp(log_dyin_not_noisy)])
+end
+
+
+function log_dmix_nolamgam(Z::Matrix{Bool},
+                           A::Vector{Vector{Float64}},
+                           B0::Vector{Matrix{Float64}},
+                           B1::Vector{Matrix{Float64}},
+                           s::State, c::Constants, d::Data)::Float64
+  out = 0.0
+
+  for i in 1:d.I
+    for n in 1:d.N[i]
+      out += log_dmix_nolamgam(Z, i, n, A, B0, B1, s, c, d)
     end
   end
 
