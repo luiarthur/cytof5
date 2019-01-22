@@ -74,7 +74,7 @@ model {
             x0 += eta0[i, j][l] * exp(normal_lpdf(y[n, j] | mu0[l], sigma[i]));
           }
         }
-        x0 *= v[k];
+        x0 *= (1 - v[k]);
 
         for (l in 1:L1) {
           if (m[n, j] == 1) { // if missing
@@ -83,7 +83,7 @@ model {
             x1 += eta1[i, j][l] * exp(normal_lpdf(y[n, j] | mu1[l], sigma[i]));
           }
         }
-        x1 *= (1 - v[k]);
+        x1 *= v[k];
 
         B += (x0 + x1) * W[i][k];
       }
