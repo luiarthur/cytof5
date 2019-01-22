@@ -4,8 +4,8 @@ library(rcommon)
 # compiled_stan_model = "compiled_stan_model.rds"
 # stan_model = "model.stan" # full model
 
-compiled_stan_model = "compiled_stan_model2.rds"
-stan_model = "model2.stan" # no eps, no missing
+compiled_stan_model = "compiled_stan_model3.rds"
+stan_model = "model3.stan" # no eps, no missing
 
 if (file.exists(compiled_stan_model)) {
   cat("Reading previously-compiled STAN model...", "\n")
@@ -35,7 +35,7 @@ I = length(y)
 
 m = matrix(0, Nsum, J)
 m[is.na(Y)] <- 1
-Y[is.na(Y)] <- -6
+Y[is.na(Y)] <- rnorm(sum(m), -6, sd=.1)
 group = unlist(sapply(1:I, function(i) rep(i, N[i])))
 data = list(J=J, I=I, K=10, N=Nsum, group=group, L0=5, L1=3,
             m=m, y=Y)
@@ -43,8 +43,10 @@ data$a_W = rep(1/data$K, data$K)
 data$a_eta0 = rep(1/data$L0, data$L0)
 data$a_eta1 = rep(1/data$L1, data$L1)
 
-init = list(mu0=sort(runif(data$L0, -3, -2)),
-            mu1=sort(runif(data$L1, 2, 3)),
+init = list(#mu0=sort(runif(data$L0, -3, -2)),
+            #mu1=sort(runif(data$L1, 2, 3)),
+            mu0=matrix(runif(data$J * data$K, -3, -2), data$J, data$K),
+            mu1=matrix(runif(data$J * data$K, 2, 3), data$J, data$K),
             sigma=rep(.1, data$I),
             alpha=1,
             v=rep(1/data$K, data$K))
