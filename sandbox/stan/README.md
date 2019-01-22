@@ -3,6 +3,7 @@
 - [HMC paper][1]
 - [HMC Concept][2]
 - [Stochastic Gradient HMC][3]
+- [Stochastic Gradient wht Langevin Dynamics][11]
 - [pytorch][4]
 - [Variational Inference][5]
 - [ADVI][6]
@@ -21,3 +22,4 @@
 [8]: https://mc-stan.org/users/documentation/
 [9]: https://mc-stan.org/docs/2_18/stan-users-guide/index.html
 [10]: https://mc-stan.org/docs/2_18/functions-reference/index.html#overview
+[11]: http://people.ee.duke.edu/~lcarin/398_icmlpaper.pdf
