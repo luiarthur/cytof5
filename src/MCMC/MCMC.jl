@@ -125,5 +125,10 @@ function wsample_logprob(logProbs::Vector{T}) where {T <: Number}
   return Distributions.wsample(p)
 end
 
+function logsumexp(logx::Vector{T}) where {T <: Number}
+  mx = maximum(logx)
+  return log(sum(exp.(logx .- mx))) + mx
+end
+
 end # MCMC
 
