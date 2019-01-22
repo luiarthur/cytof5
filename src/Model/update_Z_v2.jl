@@ -1,11 +1,14 @@
 function update_Z_v2(s::State, c::Constants, d::Data, tuners::Tuners)
   # if 0.5 > rand()
-  if true
+  if 0.1 > rand()
     # update Z marginalizing over lam and gam
     update_Z_marg_lamgam(s, c, d)
   else
     # update Z jointly per marker, marginalizing over lam and gam
-    update_Z_byrow(s, c, d, tuners)
+    # update_Z_byrow(s, c, d, tuners)
+    #
+    # update Z v1
+    update_Z(s::State, c::Constants, d::Data)
   end
 end
 
