@@ -8,7 +8,7 @@ function update_Z_v2(s::State, c::Constants, d::Data, tuners::Tuners)
     # update_Z_byrow(s, c, d, tuners)
     #
     # update Z v1
-    update_Z(s::State, c::Constants, d::Data)
+    update_Z(s, c, d)
   end
 end
 
