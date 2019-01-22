@@ -14,7 +14,7 @@
 
 [1]: https://arxiv.org/pdf/1206.1901.pdf
 [2]: https://arxiv.org/pdf/1701.02434.pdf
-[3]: https://arxiv.org/pdf/1402.4102.pdf
+[3]: http://proceedings.mlr.press/v32/cheni14.pdf
 [4]: https://pytorch.org/
 [5]: https://arxiv.org/pdf/1601.00670.pdf
 [6]: http://www.jmlr.org/papers/volume18/16-107/16-107.pdf
