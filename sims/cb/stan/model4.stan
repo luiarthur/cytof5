@@ -3,16 +3,16 @@ data {
   int I;
   int K;
   int N;
-  int group[N]; 
+  int<lower=1> group[N]; 
   real y[N, J];
   int<lower=0, upper=1> m[N, J];
-  vector[K] a_W;
+  vector<lower=0>[K] a_W;
 }
 
 parameters {
   simplex[K] W[I];
-  matrix[J, K] mu0;
-  matrix[J, K] mu1;
+  matrix<lower=-10, upper=0>[J, K] mu0;
+  matrix<lower=0, upper=10>[J, K] mu1;
   vector<lower=0>[I] sigma;
   real<lower=0> alpha;
   vector<lower=0, upper=1>[K] v;
@@ -31,7 +31,6 @@ model {
 
   alpha ~ gamma(1, 1);
   v ~ beta(alpha / K, 1);
-  print(v)
 
   for (n in 1:N) {
     int i = group[n];
@@ -46,7 +45,6 @@ model {
                                              log(v[k]) + normal_lpdf(y[n, j] | mu1[j, k], sigma[i]));
       }
     }
-
     target += log_sum_exp(ll);
   }
 }

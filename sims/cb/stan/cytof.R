@@ -49,8 +49,8 @@ data$a_eta1 = rep(1/data$L1, data$L1)
 
 init = list(#mu0=sort(runif(data$L0, -3, -2)),
             #mu1=sort(runif(data$L1, 2, 3)),
-            mu0=matrix(runif(data$J * data$K, -3, -2), data$J, data$K),
-            mu1=matrix(runif(data$J * data$K, 2, 3), data$J, data$K),
+            mu0=matrix(0, data$J, data$K),
+            mu1=matrix(0, data$J, data$K),
             sigma=rep(.1, data$I),
             alpha=1,
             v=rep(1/data$K, data$K))
