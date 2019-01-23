@@ -102,7 +102,7 @@ if __name__ == '__main__':
     data = genData(seed=1, nfactor=30)
     y = torch.tensor(data['y'])
 
-    out = fit(y, J=5, L=100, learning_rate=1e-4, nmcmc=100, nburn=1000,
+    out = fit(y, J=5, L=100, learning_rate=1e-4, nmcmc=100, nburn=2000,
               minibatch_size=100, seed=3)
 
     ll = out['logpost_hist']
