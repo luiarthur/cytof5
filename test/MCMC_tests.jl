@@ -149,3 +149,8 @@ end
   end
 end
 
+@testset "Test logsumexp" begin
+  x = randn(10)
+  @test MCMC.logsumexp(x) == log(sum(exp.(x)))
+end
+

@@ -1,9 +1,19 @@
 # Literature
 
+If I want to read the fewest number of papers to catch up, I would
+read (1) NUTS, and (2) ADVI.
+
+Currently, the lowest hanging fruits to implement would be:
+- SGLD
+- ADVI
+
+# Papers
+
 - [HMC paper][1]
+- [HMC NUTS][12]
 - [HMC Concept][2]
 - [Stochastic Gradient HMC][3]
-- [Stochastic Gradient wht Langevin Dynamics][11]
+- [Stochastic Gradient with Langevin Dynamics (SGLD)][11]
 - [pytorch][4]
 - [Variational Inference][5]
 - [ADVI][6]
@@ -11,6 +21,7 @@
     - [Documentation][8]
     - [User guide][9]
     - [Functions reference][10]
+- [Stochastic Gradient Descent as Approximate Bayesian Inference][13]
 
 [1]: https://arxiv.org/pdf/1206.1901.pdf
 [2]: https://arxiv.org/pdf/1701.02434.pdf
@@ -23,3 +34,5 @@
 [9]: https://mc-stan.org/docs/2_18/stan-users-guide/index.html
 [10]: https://mc-stan.org/docs/2_18/functions-reference/index.html#overview
 [11]: http://people.ee.duke.edu/~lcarin/398_icmlpaper.pdf
+[12]: http://www.jmlr.org/papers/volume15/hoffman14a/hoffman14a.pdf
+[13]: https://arxiv.org/pdf/1704.04289.pdf

@@ -4,8 +4,12 @@ library(rcommon)
 # compiled_stan_model = "compiled_stan_model.rds"
 # stan_model = "model.stan" # full model
 
-compiled_stan_model = "compiled_stan_model3.rds"
-stan_model = "model3.stan" # no eps, no missing
+# Worked for VI one time!
+# compiled_stan_model = "compiled_stan_model3.rds"
+# stan_model = "model3.stan" # no eps, no missing
+
+compiled_stan_model = "compiled_stan_model4.rds"
+stan_model = "model4.stan" # no eps, no missing
 
 if (file.exists(compiled_stan_model)) {
   cat("Reading previously-compiled STAN model...", "\n")
@@ -35,7 +39,7 @@ I = length(y)
 
 m = matrix(0, Nsum, J)
 m[is.na(Y)] <- 1
-Y[is.na(Y)] <- rnorm(sum(m), -6, sd=.1)
+Y[is.na(Y)] <- 0
 group = unlist(sapply(1:I, function(i) rep(i, N[i])))
 data = list(J=J, I=I, K=10, N=Nsum, group=group, L0=5, L1=3,
             m=m, y=Y)
@@ -56,7 +60,7 @@ if (use_vb) {
   out <- vb(cmodel, data=data, init=init)
 } else {
   cat("Using HMC...", '\n')
-  out <- stan(file='model.stan', data=data, init=list(init),
+  out <- stan(file=stan_model, data=data, init=list(init),
               iter=2000, warmup=1000, chains=1)
 }
 
