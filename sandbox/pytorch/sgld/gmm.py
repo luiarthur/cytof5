@@ -32,7 +32,7 @@ def loglike(yi, m, log_s2, logit_w):
     return torch.logsumexp(log_w + lpdf_normal(yi, m, log_s2), 0)
 
 
-def fit(y, J, nmcmc=1000, nburn=10, learning_rate=1e-3, L=50, prop_sd=1.0, seed=1, minibatch_size:int=0):
+def fit(y, J, nmcmc=1000, nburn=10, lr=1e-3, seed=1, minibatch_size:int=0):
     # Set random seed for reproducibility
     torch.manual_seed(seed)
 
@@ -84,7 +84,7 @@ def fit(y, J, nmcmc=1000, nburn=10, learning_rate=1e-3, L=50, prop_sd=1.0, seed=
         print('{} | iteration: {} / {} | normalized logpost: {}'.format(now, t + 1, nmcmc + nburn, log_post_history[-1] / N))
 
         sgld(log_post, state=state, log_post_history=log_post_history,
-             eps=learning_rate * max(1e-6, 1 - t / (nmcmc + nburn)))
+             eps=lr * max(1e-6, 1 - t / (nmcmc + nburn)))
 
         if t >= nburn:
             out.append(copy.deepcopy(state))
@@ -102,7 +102,7 @@ if __name__ == '__main__':
     data = genData(seed=1, nfactor=30)
     y = torch.tensor(data['y'])
 
-    out = fit(y, J=5, L=100, learning_rate=1e-4, nmcmc=100, nburn=2000,
+    out = fit(y, J=5, lr=1e-4, nmcmc=100, nburn=2000,
               minibatch_size=100, seed=3)
 
     ll = out['logpost_hist']
