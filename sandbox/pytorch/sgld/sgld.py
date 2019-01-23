@@ -35,5 +35,5 @@ def sgld(log_post, state, log_post_history, eps=1e-4, dtype=torch.float64, verbo
     with torch.no_grad():
         for s in state:
             eta = torch.randn(s.size(), dtype=dtype) * eps
-            s.data.sub_(s.grad.data * eps / 2 + eta) # FIXME: add or subtract?
+            s.data.sub_(s.grad.data * eps / 2 + eta)
 
