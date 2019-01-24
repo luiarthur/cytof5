@@ -22,6 +22,8 @@ Currently, the lowest hanging fruits to implement would be:
     - [User guide][9]
     - [Functions reference][10]
 - [Stochastic Gradient Descent as Approximate Bayesian Inference][13]
+- [AutoGrad][14]
+- [Scorch - a scala autograd library][15]
 
 [1]: https://arxiv.org/pdf/1206.1901.pdf
 [2]: https://arxiv.org/pdf/1701.02434.pdf
@@ -36,3 +38,5 @@ Currently, the lowest hanging fruits to implement would be:
 [11]: http://people.ee.duke.edu/~lcarin/398_icmlpaper.pdf
 [12]: http://www.jmlr.org/papers/volume15/hoffman14a/hoffman14a.pdf
 [13]: https://arxiv.org/pdf/1704.04289.pdf
+[14]: https://arxiv.org/pdf/1502.05767.pdf
+[15]: https://github.com/botkop/scorch
