@@ -8,7 +8,9 @@ test:
 	python3 setup.py test
 
 clean:
-	@echo "TODO"
+	rm -rf vb.egg-info
+	rm -rf .eggs
+	rm -rf vb/__pycache__
 
 install:
-	@echo "TODO"
+	python3 -m pip install . --user

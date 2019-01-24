@@ -9,3 +9,5 @@
 
 # cache files
 __pycache__
+
+*.eggs/
