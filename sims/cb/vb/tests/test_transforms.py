@@ -33,13 +33,26 @@ class Test_Transformations(unittest.TestCase):
         self.approx(z, -4.6055508, eps=1e-6)
         
     def test_lpdf_logitx(self):
-        # TODO
-        pass
+        beta = torch.distributions.beta.Beta(2, 3)
+        x = torch.tensor(.6)
+        z = trans.lpdf_logitx(trans.logit(x), beta.log_prob,
+                              a=torch.tensor(0.), b=torch.tensor(1.))
+        print(z)
+        self.approx(z, -1.285616793366446, eps=1e-6)
 
-    def test_lpdf_logitx(self):
-        # TODO
-        pass
-
+    def test_lpdf_real_dirichlet(self):
+        # This tests if the dirichlet in the two-dimensional case
+        # (which is essentially a beta) works properly.
+        # TODO: Higher dimensional cases are harder to check, but should
+        # be done eventually.
+        alpha = torch.tensor([2., 3.])
+        dirichlet = torch.distributions.dirichlet.Dirichlet(alpha)
+        p = torch.tensor([.6, .4])
+        r = trans.invsoftmax(p)
+        z = trans.lpdf_real_dirichlet(r, dirichlet.log_prob)
+        print(z)
+        self.approx(z, -1.285616793366446, eps=1e-6)
+ 
 
 if __name__ == '__main__':
     unittest.main()

@@ -6,8 +6,7 @@ def logit(p, a=0.0, b=1.0):
     for scalar parameters with bounded support (no gaps)
     basically a logit transform
     """
-    p_scaled = (p - a) / (b - a)
-    return torch.log(p_scaled) - torch.log(1.0 - p_scaled)
+    return torch.log(p - a) - torch.log(b - p)
 
 def invsoftmax(p):
     """
@@ -29,27 +28,30 @@ def lpdf_logx(logx, lpdf_x):
     return lpdf_x(x) + logx
 
 def lpdf_logitx(logitx, lpdf_x, a=0.0, b=1.0):
-    x = invlogit(logitx, a, b)
-    return lpdf_x(x) + torch.log(b - a) + logitx - 2 * torch.log(1 + torch.exp(logitx))
+    x = invlogit(logitx, a, b) 
+    p = (x - a) / (b - a)
+    return lpdf_x(x) + torch.log(b - a) + torch.log(p) + torch.log(1 - p)
 
 def lpdf_real_dirichlet(r, lpdf_p):
     """
     Remember to perform: r -= r.max() when before zeroing out the gradient
     """
-    K = p.size().numel
-    J = torch.empty([K, K])
-    p = real_to_simplex(r) 
 
-    sum_x = torch.exp(x).sum()
-    for i in range(K):
+    # The rank is the dim(r) - 1, since the remaining parameter
+    # must be one minus the sum of the other parameters.
+    rank = r.size().numel() - 1
+    J = torch.empty([rank, rank], dtype=torch.float64)
+    p = torch.softmax(r, 0) 
+
+    for i in range(rank):
         for j in range(i + 1):
             if i == j:
                 # J[i, j] = torch.exp(x[i]) * (sum_x - torch.exp(x[j])) / (sum_x ** 2)
-                J[i, j] = p[i] * (1 - p[i])
+                J[i, i] = p[i] * (1 - p[i])
             else:
                 # tmp = torch.exp(x[i] + x[j]) / (sum_x ** 2)
                 tmp = -p[i] * p[j]
                 J[i, j] = tmp
                 J[j, i] = tmp
 
-    return lpdf_p(p) + torch.abs(torch.logdet(J))
+    return lpdf_p(p) + torch.logdet(J)
