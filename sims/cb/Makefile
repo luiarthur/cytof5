@@ -3,7 +3,7 @@
 .PHONY: genpreprocessGraphs sendPreprocessedGraphs getPreprocessedGraphs getRData sendRData
 
 # Current run name
-DIR_CB_RUN = cb_preprocessed_smartinit_randeps_zmarg
+DIR_CB_RUN = cb_preprocessed_smartinit_randeps_zmarg_gap
 # Current run dir
 RESULTS_DIR_CB_RUN = results/$(DIR_CB_RUN)/
 # Current AWS bucket

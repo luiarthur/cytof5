@@ -12,8 +12,10 @@ MAX_CORES=27
 STAGGER_TIME=100
 
 # Experiment settings
+# MCMC_ITER=1000
+# BURN=20000
 MCMC_ITER=1000
-BURN=20000
+BURN=2000
 # K_MCMC="15"
 # K_MCMC="`seq -w 2 20 | shuf`"
 # K_MCMC="`seq -w 2 2 50 | shuf`"
@@ -27,7 +29,8 @@ TAU0="10.0"
 TAU1="10.0"
 DATA_PATH="data/cytof_cb_with_nan.jld2"
 SEED=0
-SUBSAMPLE="0.1"
+# SUBSAMPLE="0.1"
+SUBSAMPLE="0.05"
 isTest=""
 otherFlags=""
 SMARTINIT="true"
