@@ -6,9 +6,6 @@ import datetime
 import matplotlib.pyplot as plt 
 import numpy as np
 
-import sys
-sys.path.append('..')
-
 # Define data type
 dtype = torch.float64
 
