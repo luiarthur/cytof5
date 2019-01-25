@@ -42,14 +42,7 @@ def fit(y, x, niters=1000, nsamps=10, lr=1e-3, minibatch_size:int=0, seed=1,
     if minibatch_size <= 0 or minibatch_size > N:
         minibatch_size = N
 
-    # zero all the gradients
-    def zero_grads(params):
-        for param in params:
-            if param.grad is not None:
-                param.grad.zero_()
-
-    def sample_elbo_once(state):
-        # FIXME: The minibatch should be the same when computing the mean elbo
+    def compute_elbo(state):
         if 0 < minibatch_size < N:
             # idx = torch.randperm(N)[:minibatch_size]
             idx = np.random.choice(N, minibatch_size, replace=False)
@@ -59,18 +52,15 @@ def fit(y, x, niters=1000, nsamps=10, lr=1e-3, minibatch_size:int=0, seed=1,
             y_minibatch = y
             x_minibatch = x
         
-        # log likelihood
-        J = len(state)
-        eta = [torch.distributions.Normal(0, 1).sample() for j in range(J)]
-        b = torch.stack([eta[j] * state[j][1] + state[j][0] for j in range(J)])
-        ll = N * loglike(y_minibatch, x_minibatch, b) / minibatch_size
-        out_elbo = ll + log_prior(b) - log_q(b, state)
-        zero_grads(state)
-        loss = -out_elbo
-        loss.backward()
-        out_grad = [s.grad for s in state]
-        return (out_elbo, out_grad)
+        def compute_one_elbo():
+            J = len(state)
+            eta = [torch.distributions.Normal(0, 1).sample() for j in range(J)]
+            b = torch.stack([eta[j] * state[j][1] + state[j][0] for j in range(J)])
+            ll = N * loglike(y_minibatch, x_minibatch, b) / minibatch_size
+            out = ll + log_prior(b) - log_q(b, state)
+            return out
 
+        return torch.stack([compute_one_elbo() for i in range(nsamps)]).mean()
 
     # Initialize parameters.
     def create_vp():
@@ -83,28 +73,22 @@ def fit(y, x, niters=1000, nsamps=10, lr=1e-3, minibatch_size:int=0, seed=1,
     else:
         state = [create_vp() for i in range(2)]
 
+    optimizer = torch.optim.Adam(state, lr=lr)
     elbo_history = []
     lr_history = [lr]
 
     for t in range(niters):
-        elbo_mean = 0.0
-        grad_means = [torch.zeros(s.size(), dtype=dtype) for s in state]
+        elbo_mean = compute_elbo(state)
+        loss = -elbo_mean
+        optimizer.zero_grad()
+        loss.backward(retain_graph=True)
+        optimizer.step()
 
-        for i in range(nsamps):
-            e, g = sample_elbo_once(state)
-            elbo_mean += e.item() / nsamps
-            for (gm, g) in zip(grad_means, g):
-                gm += g / nsamps
-
-        elbo_history.append(elbo_mean)
+        elbo_history.append(elbo_mean.item())
         now = datetime.datetime.now()
         print('{} | iteration: {} / {} | elbo: {}'.format(now,
               t + 1, niters, elbo_history[-1]))
         print('state: {}'.format([s.tolist() for s in state]))
-
-        with torch.no_grad():
-            for (s, gm) in zip(state, grad_means):
-                s.data.sub_(gm * lr)
 
         if t > 0 and abs(elbo_history[-1] / elbo_history[-2] - 1) < eps:
             break
@@ -126,7 +110,7 @@ if __name__ == '__main__':
     x = torch.tensor(x)
     y = torch.tensor(y)
 
-    out = fit(y, x, lr=1e-3, minibatch_size=500, niters=1000,
+    out = fit(y, x, lr=1e-1, minibatch_size=500, niters=1000,
               nsamps=10, seed=1, eps=1e-8, init=None)
     plt.plot(out['elbo']); plt.show()
 
