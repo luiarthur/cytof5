@@ -1,6 +1,5 @@
 # References: https://chrisorm.github.io/VI-MC-PYT.html
 import torch
-import time
 import math
 import copy
 import datetime
@@ -32,7 +31,7 @@ def log_q(b, v):
                 torch.exp(v[j][1])).log_prob(b[j]) for j in range(len(b))])
 
 def fit(y, x, niters=1000, nsamps=10, lr=1e-3, minibatch_size:int=0, seed=1,
-        eps=1e-8, init=None):
+        eps=1e-8, init=None, print_freq:int=10, verbose:int=1):
     # Set random seed for reproducibility
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -42,7 +41,7 @@ def fit(y, x, niters=1000, nsamps=10, lr=1e-3, minibatch_size:int=0, seed=1,
     if minibatch_size <= 0 or minibatch_size > N:
         minibatch_size = N
 
-    def compute_elbo(state):
+    def compute_elbo_mean(state):
         if 0 < minibatch_size < N:
             # idx = torch.randperm(N)[:minibatch_size]
             idx = np.random.choice(N, minibatch_size, replace=False)
@@ -52,7 +51,7 @@ def fit(y, x, niters=1000, nsamps=10, lr=1e-3, minibatch_size:int=0, seed=1,
             y_minibatch = y
             x_minibatch = x
         
-        def compute_one_elbo():
+        def compute_elbo():
             J = len(state)
             eta = [torch.distributions.Normal(0, 1).sample() for j in range(J)]
             b = torch.stack([eta[j] * torch.exp(state[j][1]) + state[j][0]
@@ -61,7 +60,7 @@ def fit(y, x, niters=1000, nsamps=10, lr=1e-3, minibatch_size:int=0, seed=1,
             out = ll + log_prior(b) - log_q(b, state)
             return out
 
-        return torch.stack([compute_one_elbo() for i in range(nsamps)]).mean()
+        return torch.stack([compute_elbo() for i in range(nsamps)]).mean()
 
     # Initialize parameters.
     def create_vp():
@@ -78,17 +77,21 @@ def fit(y, x, niters=1000, nsamps=10, lr=1e-3, minibatch_size:int=0, seed=1,
     elbo_history = []
 
     for t in range(niters):
-        elbo_mean = compute_elbo(state)
+        elbo_mean = compute_elbo_mean(state)
         loss = -elbo_mean
         optimizer.zero_grad()
         loss.backward(retain_graph=True)
         optimizer.step()
 
         elbo_history.append(elbo_mean.item())
-        now = datetime.datetime.now()
-        print('{} | iteration: {} / {} | elbo: {}'.format(now,
-              t + 1, niters, elbo_history[-1]))
-        print('state: {}'.format([s.tolist() for s in state]))
+
+        if print_freq > 0 and (t + 1) % print_freq == 0:
+            now = datetime.datetime.now().replace(microsecond=0)
+            if verbose > 0:
+                print('{} | iteration: {}/{} | elbo mean: {}'.format(now,
+                      t + 1, niters, elbo_history[-1]))
+            if verbose > 1:
+                print('state: {}'.format([s.tolist() for s in state]))
 
         if t > 0 and abs(elbo_history[-1] / elbo_history[-2] - 1) < eps:
             print("Convergence suspected. Ending SGD early.")
@@ -116,8 +119,12 @@ if __name__ == '__main__':
             f.write('{}, {}\n'.format(y[i], x[i]))
 
     out = fit(y, x, lr=1e-2, minibatch_size=500, niters=5000,
-              nsamps=10, seed=2, eps=1e-6, init=None)
-    plt.plot(out['elbo']); plt.show()
+              nsamps=10, seed=2, eps=1e-6, init=None, print_freq=50)
+
+    # ELBO
+    elbo = np.array(out['elbo'])
+    plt.plot(elbo); plt.show()
+    plt.plot(np.abs(elbo[101:] / elbo[100:-1] - 1)); plt.show()
 
     # Posterior Distributions
     b_vp = [s.tolist() for s in out['state']]
