@@ -1,3 +1,4 @@
+# References: https://chrisorm.github.io/VI-MC-PYT.html
 import torch
 import time
 import math
@@ -48,6 +49,7 @@ def fit(y, x, niters=1000, nsamps=10, lr=1e-3, minibatch_size:int=0, seed=1,
                 param.grad.zero_()
 
     def sample_elbo_once(state):
+        # FIXME: The minibatch should be the same when computing the mean elbo
         if 0 < minibatch_size < N:
             # idx = torch.randperm(N)[:minibatch_size]
             idx = np.random.choice(N, minibatch_size, replace=False)
@@ -62,7 +64,7 @@ def fit(y, x, niters=1000, nsamps=10, lr=1e-3, minibatch_size:int=0, seed=1,
         eta = [torch.distributions.Normal(0, 1).sample() for j in range(J)]
         b = torch.stack([eta[j] * state[j][1] + state[j][0] for j in range(J)])
         ll = N * loglike(y_minibatch, x_minibatch, b) / minibatch_size
-        out_elbo = ll + log_prior(b) + log_q(b, state)
+        out_elbo = ll + log_prior(b) - log_q(b, state)
         zero_grads(state)
         loss = -out_elbo
         loss.backward()
