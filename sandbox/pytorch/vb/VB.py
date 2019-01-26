@@ -89,12 +89,12 @@ class VB(abc.ABC):
         lq = self.log_q(real_params, v)
         return ll + lprior - lq
 
-    def compute_elbo_mean(data, v, minibatch_info):
+    def compute_elbo_mean(self, data, v, nmc, minibatch_info):
         mini_data = self.subsample_data(data, minibatch_info)
         return torch.stack([self.compute_elbo(v, mini_data, minibatch_info)
                             for i in range(nmc)]).mean()
         
-    def fit(data, niters:int=1000, nmc:int=10, lr=1e-3, minibatch_info=None, seed:int=1,
+    def fit(self, data, niters:int=1000, nmc:int=10, lr=1e-3, minibatch_info=None, seed:int=1,
             eps=1e-8, init=None, print_freq:int=10, verbose:int=1):
 
         if init is not None:
@@ -102,11 +102,13 @@ class VB(abc.ABC):
         else:
             v = self.init_v()
 
-        optimizer = torch.optim.Adam(v, lr=lr)
+        print("HERE")
+        # print(v.values())
+        optimizer = torch.optim.Adam(v.values(), lr=lr)
         elbo = []
 
         for t in range(niters):
-            elbo_mean = self.compute_elbo_mean(data, v, minibatch_info)
+            elbo_mean = self.compute_elbo_mean(data, v, nmc, minibatch_info)
             loss = -elbo_mean
             optimizer.zero_grad()
             loss.backward(retain_graph=True)
@@ -126,5 +128,5 @@ class VB(abc.ABC):
                 print("Convergence suspected. Ending optimizer early.")
                 break
 
-        return {'v': v, 'elbo': elbo_history}
+        return {'v': v, 'elbo': elbo}
 
