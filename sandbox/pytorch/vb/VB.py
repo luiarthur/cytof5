@@ -102,8 +102,6 @@ class VB(abc.ABC):
         else:
             v = self.init_v()
 
-        print("HERE")
-        # print(v.values())
         optimizer = torch.optim.Adam(v.values(), lr=lr)
         elbo = []
 

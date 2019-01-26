@@ -17,6 +17,11 @@ device = torch.device("cpu")
 dtype = torch.float64
 
 class model(VB.VB):
+    def __init__(self, priors=None, dtype=torch.float64, device="cpu"):
+        self.dtype = dtype
+        self.device = device
+        self.priors = priors
+
     def init_v(self):
         v = {'b0': None, 'b1': None}
         for k in v:
@@ -48,7 +53,10 @@ class model(VB.VB):
 
 
     def log_prior(self, real_params):
-        return 0.0
+        if self.priors is None:
+            return 0.0
+        else:
+            return NotImplemented
 
     def loglike(self, params, data, minibatch_info=None):
         p = torch.sigmoid(params['b0'] + params['b1'] * data['x'])
@@ -79,9 +87,9 @@ if __name__ == '__main__':
     x = torch.tensor(x)
     y = torch.tensor(y)
     data = {'x': x, 'y': y}
-    mod = model()
+    mod = model(priors=None)
     out = mod.fit(data, lr=1e-2,
-                  minibatch_info={'N': N, 'n': 100},
+                  # minibatch_info={'N': N, 'n': 100},
                   niters=5000, nmc=10, seed=2, eps=1e-6, init=None,
                   print_freq=50)
 
@@ -92,8 +100,8 @@ if __name__ == '__main__':
 
     # Posterior Distributions
     vp = out['v']
-print('b0 mu: {}, sd: {}'.format(vp['b0'][0], torch.exp(vp['b0'][1])))
-print('b1 mu: {}, sd: {}'.format(vp['b1'][0], torch.exp(vp['b1'][1])))
+    print('b0 mu: {}, sd: {}'.format(vp['b0'][0], torch.exp(vp['b0'][1])))
+    print('b1 mu: {}, sd: {}'.format(vp['b1'][0], torch.exp(vp['b1'][1])))
 
     # R:
     # Coefficients:
