@@ -7,7 +7,7 @@ I = length(y)
 Y = Reduce(rbind, y)
 J = NCOL(Y)
 
-THRESH = seq(.1, .5, by=.1)
+THRESH = seq(.1, 1, by=.1)
 for (thresh in THRESH) {
   M = matrix(NA, I, J)
   for (i in 1:I) for (j in 1:J) {
