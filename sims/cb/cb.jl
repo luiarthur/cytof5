@@ -132,6 +132,8 @@ Cytof5.Model.logger("\nGenerating priors ...");
                                         probFlip_Z=2.0 / (dat.J * K_MCMC),
                                         #
                                         noisyDist=dnoisy)
+# c.eta_prior[0] = Dirichlet(L_MCMC[0], 1.0)
+# c.eta_prior[1] = Dirichlet(L_MCMC[1], 1.0)
 
 # Print model constants
 Cytof5.Model.printConstants(c)
