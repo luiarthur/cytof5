@@ -61,6 +61,8 @@ repFamTest:
 run:
 	./run $(RESULTS_DIR_CB_RUN) $(AWS_BUCKET_CB_RUN)
 
+runAndProcess: run pullAndProcess
+
 postProcess:
 	julia genResults.jl $(RESULTS_DIR_CB_RUN)
 	aws s3 sync $(RESULTS_DIR_CB_RUN) $(AWS_BUCKET_CB_RUN) --exclude '*.nfs*'
