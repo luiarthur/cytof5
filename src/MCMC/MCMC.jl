@@ -130,5 +130,11 @@ function logsumexp(logx::Vector{T}) where {T <: Number}
   return log(sum(exp.(logx .- mx))) + mx
 end
 
+function logsumexp(logx::T...) where {T <: Number}
+  mx = maximum(logx)
+  return log(sum(exp.(logx .- mx))) + mx
+end
+
+
 end # MCMC
 

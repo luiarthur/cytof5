@@ -152,5 +152,6 @@ end
 @testset "Test logsumexp" begin
   x = randn(10)
   @test MCMC.logsumexp(x) == log(sum(exp.(x)))
+  @test MCMC.logsumexp(x[1:3]) == MCMC.logsumexp(x[1], x[2], x[3])
 end
 

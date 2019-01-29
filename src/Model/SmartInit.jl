@@ -116,8 +116,10 @@ function smartInit(c::Constants, d::Data; iterMax::Int=10,
     max_mus1 = maximum(maximum.(y_imputed))
   end
 
-  mus = Dict(false => rangev(min_mus0, max_mus0, length=L[0]), 
-             true  => rangev(min_mus1, max_mus1, length=L[1]))
+  # mus = Dict(false => rangev(min_mus0, max_mus0, length=L[0]), 
+  #            true  => rangev(min_mus1, max_mus1, length=L[1]))
+  mus = Dict(false => sort(rand(Uniform(min_mus0, max_mus0), L[0])), 
+             true  => sort(rand(Uniform(min_mus1, max_mus1), L[1])))
 
   # Get gam
   gam = [zeros(Int8, N[i], J) for i in 1:I]

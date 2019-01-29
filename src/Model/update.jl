@@ -43,7 +43,10 @@ function update_state(s::State, c::Constants, d::Data, tuners::Tuners,
   @doIf isRandom(:gam)        update_gam(s, c, d) # must be done between updating Z and mus
   @doIf isRandom(:eta)        update_eta(s, c, d)
 
-  @doIf isRandom(:mus)        update_mus(s, c, d)
+  # Metropolis.
+  @doIf isRandom(:mus)        update_mus(s, c, d, tuners)
+  
+  # Gibbs.
   @doIf isRandom(:sig2)       update_sig2(s, c, d) 
 
   # Metropolis.

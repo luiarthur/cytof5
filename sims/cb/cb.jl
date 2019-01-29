@@ -89,7 +89,7 @@ cbDataPath = PARSED_ARGS["DATA_PATH"]
 cbDataPath = PARSED_ARGS["DATA_PATH"]
 subsample = PARSED_ARGS["subsample"]
 SMARTINIT = PARSED_ARGS["smartinit"]
-dnoisy = PARSED_ARGS["dnoisy"] == "normal" ? Normal(0.0, sqrt(10)) : Cauchy()
+dnoisy = PARSED_ARGS["dnoisy"] == "normal" ? Normal(0.0, .5) : Cauchy()
 
 Random.seed!(SEED);
 # End of ArgParse
@@ -132,8 +132,8 @@ Cytof5.Model.logger("\nGenerating priors ...");
                                         probFlip_Z=2.0 / (dat.J * K_MCMC),
                                         #
                                         noisyDist=dnoisy)
-c.eta_prior[0] = Dirichlet(L_MCMC[0], 1.0)
-c.eta_prior[1] = Dirichlet(L_MCMC[1], 1.0)
+# c.eta_prior[0] = Dirichlet(L_MCMC[0], 1.0)
+# c.eta_prior[1] = Dirichlet(L_MCMC[1], 1.0)
 
 # Print model constants
 Cytof5.Model.printConstants(c)

@@ -1,38 +1,44 @@
-function update_mus(s::State, c::Constants, d::Data)
-  sumYOverSig2 = Dict(z => zeros(c.L[z]) for z in 0:1)
-  cardinality = Dict(z => zeros(Int, d.I, c.L[z]) for z in 0:1)
-  for i in 1:d.I
-    for j in 1:d.J
+function update_mus(s::State, c::Constants, d::Data, tuners::Tuners)
+  for z in 0:1
+    for l in 1:c.L[z]
+      update_mus(z, l, s, c, d, tuners)
+    end
+  end
+end
+
+function update_mus(z::Int, l::Int, s::State, c::Constants, d::Data, tuners::Tuners)
+  (priorM, priorS, lower, upper) = params(priorMu(z, l, s, c))
+
+  function lp(mus::Float64)::Float64
+    out = -(mus - priorM) ^ 2 / (2 * priorS ^ 2)
+
+    if z == 0 && l > 1
+      m0_min = c.mus_prior[0].lower
+      out -= MCMC.logsumexp(logpdf(Normal(priorM, priorS), mus),
+                            -logpdf(Normal(priorM, priorS), m0_min))
+    elseif z == 1 && l < c.L[1]
+      m1_max = c.mus_prior[1].upper
+      out -= MCMC.logsumexp(logpdf(Normal(priorM, priorS), m1_max),
+                            -logpdf(Normal(priorM, priorS), mus))
+    end
+
+    return out
+  end
+
+  function ll(mus::Float64)::Float64
+    out = 0.0
+    for i in 1:d.I
       for n in 1:d.N[i]
-        k = s.lam[i][n]
-        if k > 0
-          l = s.gam[i][n, j]
-          z = s.Z[j, k]
-          sumYOverSig2[z][l] += s.y_imputed[i][n, j] / s.sig2[i]
-          cardinality[z][i, l] += 1
+        for j in 1:d.J
+          if s.gam[i][n, j] == l && s.lam[i][n] > 0 
+            out += logpdf(Normal(mus, sqrt(s.sig2[i])), s.y_imputed[i][n, j])
+          end
         end
       end
     end
+    return out
   end
 
-  for z in 0:1
-    for l in 1:c.L[z]
-      # Note that priorMu and priorSig are NOT the prior mean and std. They are PARAMETERS in 
-      # the truncated normal!
-      (priorM, priorS, newLower, newUpper) = params(priorMu(z, l, s, c))
-      priorS2 = priorS ^ 2
-      #priorVar = var(priorMu(z, l, s, c))
-      #priorMean = mean(priorMu(z, l, s, c))
-      newDenom = (1 + priorS2 * sum(cardinality[z][:, l] ./ s.sig2))
-      #if priorVar < 0
-      #  printstyled("WARNING: mus priorVar is negative: $(priorVar)\n", color=:yellow)
-      #  priorVar = 1E-10
-      #end
-      newM = (priorM + priorS2 * sumYOverSig2[z][l]) / newDenom
-      newS = sqrt(priorS2 / newDenom)
-      #newLower = minimum(priorMu(z, l, s, c))
-      #newUpper = maximum(priorMu(z, l, s, c))
-      s.mus[z][l] = rand(TruncatedNormal(newM, newS, newLower, newUpper))
-    end
-  end
+  s.mus[z][l] = MCMC.metLogitAdaptive(s.mus[z][l], ll, lp, tuners.mus[z][l],
+                                      a=lower, b=upper)
 end
