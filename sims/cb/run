@@ -14,8 +14,8 @@ STAGGER_TIME=100
 # Experiment settings
 # MCMC_ITER=1000
 # BURN=20000
-MCMC_ITER=1000
-BURN=2000
+MCMC_ITER=6000
+BURN=3000
 # K_MCMC="15"
 # K_MCMC="`seq -w 2 20 | shuf`"
 # K_MCMC="`seq -w 2 2 50 | shuf`"

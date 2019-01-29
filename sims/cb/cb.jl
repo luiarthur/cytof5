@@ -179,12 +179,12 @@ nsamps_to_thin(nsamps::Int, nmcmc::Int) = max(1, div(nmcmc, nsamps))
                                      :alpha, :v,
                                      :eta, :eps],
                                     [:y_imputed, :gam]],
-                          thins=[1, nsamps_to_thin(10, MCMC_ITER)],
+                          thins=[2, nsamps_to_thin(10, MCMC_ITER)],
                           # fix=[:sig2], # TODO: remove this?
                           nmcmc=MCMC_ITER, nburn=BURN,
                           # computeLPML=true, computeDIC=true,
                           computeLPML=true, computeDIC=false,
-                          computedden=true, thin_dden=nsamps_to_thin(100, MCMC_ITER),
+                          computedden=true, thin_dden=nsamps_to_thin(200, MCMC_ITER),
                           #computedden=true, thin_dden=1,
                           use_repulsive=USE_REPULSIVE,
                           joint_update_Z=true, # TODO CHECK
