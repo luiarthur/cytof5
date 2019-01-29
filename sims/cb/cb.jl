@@ -53,6 +53,9 @@ function parse_cmd()
     "--dnoisy"
       arg_type = String
       default = "cauchy"
+    "--noisy_scale"
+      arg_type = Float64
+      default = 10.0
 
     "--RESULTS_DIR"
       arg_type = String
@@ -89,7 +92,8 @@ cbDataPath = PARSED_ARGS["DATA_PATH"]
 cbDataPath = PARSED_ARGS["DATA_PATH"]
 subsample = PARSED_ARGS["subsample"]
 SMARTINIT = PARSED_ARGS["smartinit"]
-dnoisy = PARSED_ARGS["dnoisy"] == "normal" ? Normal(0.0, .5) : Cauchy()
+noisy_scale = PARSED_ARGS["noisy_scale"]
+dnoisy = PARSED_ARGS["dnoisy"] == "normal" ? Normal(0.0, noisy_scale) : Cauchy(0.0, noisy_scale)
 
 Random.seed!(SEED);
 # End of ArgParse
