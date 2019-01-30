@@ -2,12 +2,18 @@ import torch
 from torch.distributions import Normal
 
 class VarParam():
-    def __init__(self, size):
-        m = torch.randn(size)
+    def __init__(self, size, init_m=None, init_log_s=None):
+        if init_m is None:
+            m = torch.randn(size)
+        else:
+            m = torch.ones(size) * init_m
         m.requires_grad=True
         self.m = m
 
-        log_s = torch.randn(size)
+        if init_log_s is None:
+            log_s = torch.randn(size)
+        else:
+            log_s = torch.ones(size) * init_log_s
         log_s.requires_grad=True
         self.log_s= log_s
 

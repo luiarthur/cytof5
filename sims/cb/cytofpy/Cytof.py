@@ -49,6 +49,7 @@ class Cytof(advi.Model):
         self.I = None
         self.J = None
         self.N = None
+        self.debug = False
 
         if K is None:
             self.K = 10
@@ -106,13 +107,13 @@ class Cytof(advi.Model):
             mu1_prior = Uniform(0, 15)
 
         if W_prior is None:
-            W_prior = Dirichlet(torch.ones(self.K))
+            W_prior = Dirichlet(torch.ones(self.K) / self.K)
 
         if eta0_prior is None:
-            eta0_prior = Dirichlet(torch.ones(self.L[0]) * 10)
+            eta0_prior = Dirichlet(torch.ones(self.L[0]))
 
         if eta1_prior is None:
-            eta1_prior = Dirichlet(torch.ones(self.L[1]) * 10)
+            eta1_prior = Dirichlet(torch.ones(self.L[1]))
 
         self.priors = {'mu0': mu0_prior, 'mu1': mu1_prior, 'sig': sig_prior,
                        'eta0': eta0_prior, 'eta1': eta1_prior,
@@ -123,11 +124,13 @@ class Cytof(advi.Model):
         return {'mu0': VarParam((1, 1, self.L[0], 1)),
                 'mu1': VarParam((1, 1, self.L[1], 1)),
                 'sig': VarParam(self.I),
-                'W': VarParam((self.I, self.K - 1)),
+                'W': VarParam((self.I, self.K - 1), init_m=0.0, init_log_s=-1.0),
                 'v': VarParam((1, 1, self.K)),
                 'alpha': VarParam(1),
-                'eta0': VarParam((self.I, self.J, self.L[0] - 1, 1)),
-                'eta1': VarParam((self.I, self.J, self.L[1] - 1, 1)),
+                'eta0': VarParam((self.I, self.J, self.L[0] - 1, 1),
+                                 init_m=0.0, init_log_s=-1.0),
+                'eta1': VarParam((self.I, self.J, self.L[1] - 1, 1),
+                                 init_m=0.0, init_log_s=-1.0),
                 'eps': VarParam(self.I),
                 'iota': VarParam(1)}
 
@@ -155,7 +158,8 @@ class Cytof(advi.Model):
         for key in vp:
             if key != 'iota' and key != 'eps':
                 out += vp[key].log_prob(real_params[key]).sum()
-        print('log_q: {}'.format(out))
+        if self.debug:
+            print('log_q: {}'.format(out))
         return out / self.Nsum
 
     def log_prior(self, real_params):
@@ -191,7 +195,7 @@ class Cytof(advi.Model):
                     tmp = lpdf_realDirichlet(real_params[etaz][i, j, :, 0].squeeze(),
                                              self.sbt_eta[z],
                                              self.priors[etaz].concentration)
-                    print('i: {}, j:{}, lp_eta: {}'.format(i, j, tmp))
+                    # print('i: {}, j:{}, lp_eta: {}'.format(i, j, tmp))
                     lp_eta += tmp
                     # lp_eta += 0.0 # FIXME. nan
 
@@ -203,14 +207,15 @@ class Cytof(advi.Model):
         lp_iota = 0.0
 
         lp = lp_mu + lp_sig + lp_W + lp_v + lp_alpha + lp_eta + lp_eps + lp_iota
-        print('log_prior:       {}'.format(lp))
-        print('log_prior mu:    {}'.format(lp_mu))
-        print('log_prior sig:   {}'.format(lp_sig))
-        print('log_prior W:     {}'.format(lp_W))
-        print('log_prior v:     {}'.format(lp_v))
-        print('log_prior alpha: {}'.format(lp_alpha))
-        print('log_prior eta:   {}'.format(lp_eta))
-        print('log_prior eps:   {}'.format(lp_eps))
+        if self.debug:
+            print('log_prior:       {}'.format(lp))
+            print('log_prior mu:    {}'.format(lp_mu))
+            print('log_prior sig:   {}'.format(lp_sig))
+            print('log_prior W:     {}'.format(lp_W))
+            print('log_prior v:     {}'.format(lp_v))
+            print('log_prior alpha: {}'.format(lp_alpha))
+            print('log_prior eta:   {}'.format(lp_eta))
+            print('log_prior eps:   {}'.format(lp_eps))
         return lp / self.Nsum
 
     def loglike(self, real_params, data, minibatch_info=None):
@@ -249,7 +254,8 @@ class Cytof(advi.Model):
             #     n = int(minibatch_info['prop'] * self.N[i])
             #     ll += self.N[i] * lli / n
 
-        print('log_like: {}'.format(ll))
+        if self.debug:
+            print('log_like: {}'.format(ll))
         return ll
 
     def to_real_space(self, params):
