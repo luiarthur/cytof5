@@ -127,8 +127,8 @@ Cytof5.Model.logger("\nGenerating priors ...");
                                         # sig2_prior=InverseGamma(sig2_a, sig2_b),
                                         # sig2_range=[0.0, 10.0],
                                         sig2_prior=InverseGamma(3.0, 2.0),
-                                        mus0_range=[-15.0, -1.0],
-                                        mus1_range=[1.0, 10.0],
+                                        mus0_range=[-15.0, -0.0],
+                                        mus1_range=[0.0, 10.0],
                                         alpha_prior=Gamma(0.1, 10.0),
                                         yQuantiles=[.1, .25, .4], pBounds=[.05, .8, .05],
                                         # TODO: CHECK
