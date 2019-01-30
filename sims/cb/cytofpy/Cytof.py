@@ -37,6 +37,7 @@ def lpdf_realDirichlet(real_x, sbt, a):
     simplex_x = sbt(real_x)
     return lpdf(simplex_x) + sbt.log_abs_det_jacobian(real_x, simplex_x)
 
+
 class Cytof(advi.Model):
     def __init__(self, data, priors=None, K=None, L=None, dtype=torch.float64, device="cpu"):
         """
@@ -105,13 +106,13 @@ class Cytof(advi.Model):
             mu1_prior = Uniform(0, 15)
 
         if W_prior is None:
-            W_prior = Dirichlet(torch.ones(self.K) / K)
+            W_prior = Dirichlet(torch.ones(self.K))
 
         if eta0_prior is None:
-            eta0_prior = Dirichlet(torch.ones(self.L[0]))
+            eta0_prior = Dirichlet(torch.ones(self.L[0]) * 10)
 
         if eta1_prior is None:
-            eta1_prior = Dirichlet(torch.ones(self.L[1]))
+            eta1_prior = Dirichlet(torch.ones(self.L[1]) * 10)
 
         self.priors = {'mu0': mu0_prior, 'mu1': mu1_prior, 'sig': sig_prior,
                        'eta0': eta0_prior, 'eta1': eta1_prior,
@@ -152,10 +153,10 @@ class Cytof(advi.Model):
     def log_q(self, real_params, vp):
         out = 0.0
         for key in vp:
-            if key != 'iota':
+            if key != 'iota' and key != 'eps':
                 out += vp[key].log_prob(real_params[key]).sum()
         print('log_q: {}'.format(out))
-        return out
+        return out / self.Nsum
 
     def log_prior(self, real_params):
         # FIXME. These should be ordered.
@@ -187,12 +188,12 @@ class Cytof(advi.Model):
             etaz = 'eta0' if z == 0 else 'eta1'
             for i in range(self.I):
                 for j in range(self.J):
-                    tmp = lpdf_realDirichlet(real_params[etaz][i, j, :, 0],
+                    tmp = lpdf_realDirichlet(real_params[etaz][i, j, :, 0].squeeze(),
                                              self.sbt_eta[z],
                                              self.priors[etaz].concentration)
-                    # print('i: {}, j:{}, lp_eta: {}'.format(i, j, tmp))
-                    # lp_eta += tmp
-                    lp_eta += 0.0 # FIXME. nan
+                    print('i: {}, j:{}, lp_eta: {}'.format(i, j, tmp))
+                    lp_eta += tmp
+                    # lp_eta += 0.0 # FIXME. nan
 
         # lp_eps = lpdf_logitBeta(real_params['eps'].squeeze(),
         #                         self.priors['eps'].concentration0,
@@ -203,14 +204,14 @@ class Cytof(advi.Model):
 
         lp = lp_mu + lp_sig + lp_W + lp_v + lp_alpha + lp_eta + lp_eps + lp_iota
         print('log_prior:       {}'.format(lp))
-        # print('log_prior mu:    {}'.format(lp_mu))
-        # print('log_prior sig:   {}'.format(lp_sig))
-        # print('log_prior W:     {}'.format(lp_W))
-        # print('log_prior v:     {}'.format(lp_v))
-        # print('log_prior alpha: {}'.format(lp_alpha))
-        # print('log_prior eta:   {}'.format(lp_eta))
-        # print('log_prior eps:   {}'.format(lp_eps))
-        return lp
+        print('log_prior mu:    {}'.format(lp_mu))
+        print('log_prior sig:   {}'.format(lp_sig))
+        print('log_prior W:     {}'.format(lp_W))
+        print('log_prior v:     {}'.format(lp_v))
+        print('log_prior alpha: {}'.format(lp_alpha))
+        print('log_prior eta:   {}'.format(lp_eta))
+        print('log_prior eps:   {}'.format(lp_eps))
+        return lp / self.Nsum
 
     def loglike(self, real_params, data, minibatch_info=None):
         params = self.to_param_space(real_params)
@@ -218,13 +219,14 @@ class Cytof(advi.Model):
         
         # FIXME: Check this!
         for i in range(self.I):
+            # Ni x J x Lz x K
             d0 = Normal(params['mu0'], params['sig'][i]).log_prob(data['y'][i])
             d0 += torch.log(params['eta0'][i:i+1, :, :, :])
             d1 = Normal(params['mu1'], params['sig'][i]).log_prob(data['y'][i])
             d1 += torch.log(params['eta1'][i:i+1, :, :, :])
             
-            a0 = torch.logsumexp(d1, 2) # Ni x J x K
-            a1 = torch.logsumexp(d0, 2) # Ni x J x K
+            a0 = torch.logsumexp(d0, 2) # Ni x J x K
+            a1 = torch.logsumexp(d1, 2) # Ni x J x K
 
             # Ni x J x K
             c0 = torch.logsumexp(torch.stack([
@@ -234,15 +236,18 @@ class Cytof(advi.Model):
             c = c0.sum(1)
 
             f = c + torch.log(params['W'][i:i+1, :])
-            lli = torch.logsumexp(f, 1).sum()
+            # lli = torch.logsumexp(f, 1).sum()
+            lli = torch.logsumexp(f, 1).mean() * (self.N[i] / self.Nsum)
 
-            print(lli)
+            ll += lli
 
-            if minibatch_info is None:
-                ll += lli
-            else:
-                n = int(minibatch_info['prop'] * self.N[i])
-                ll += self.N[i] * lli / n
+            # print(lli)
+
+            # if minibatch_info is None:
+            #     ll += lli
+            # else:
+            #     n = int(minibatch_info['prop'] * self.N[i])
+            #     ll += self.N[i] * lli / n
 
         print('log_like: {}'.format(ll))
         return ll
@@ -262,7 +267,8 @@ class Cytof(advi.Model):
                 'mu1': mu1,
                 #
                 'sig': torch.log(params['sig']),
-                'W': [self.sbt_W.inv(params['W'][i]) for i in range(self.I)],
+                'W': torch.stack([self.sbt_W.inv(params['W'][i, :])
+                                  for i in range(self.I)]),
                 'v': logit(params['v']),
                 'alpha': torch.log(params['alpha']),
                 'eta0': eta0,
@@ -297,6 +303,8 @@ class Cytof(advi.Model):
 
     def msg(self, t, vp):
         pass
+        # for key in vp:
+        #     print('{}: {}'.format(key, vp[key].m))
 
 
     def fit(self, data, niters:int=1000, nmc:int=2, lr:float=1e-2,
