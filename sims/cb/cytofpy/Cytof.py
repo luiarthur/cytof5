@@ -383,8 +383,7 @@ class Cytof(advi.Model):
             optimizer.step()
 
             if fixed_grad:
-                print('Adding previous elbo to history because of nan in elbo.')
-                elbo.append(elbo[-1] * (1 - eps))
+                print('Throwing elbo from history because of nan in gradients.')
             else:
                 elbo.append(elbo_mean.item())
 
