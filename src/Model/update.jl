@@ -45,6 +45,7 @@ function update_state(s::State, c::Constants, d::Data, tuners::Tuners,
 
   # Metropolis.
   @doIf isRandom(:mus)        update_mus(s, c, d, tuners)
+  println(s.mus)
   
   # Gibbs.
   @doIf isRandom(:sig2)       update_sig2(s, c, d) 

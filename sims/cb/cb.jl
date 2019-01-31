@@ -170,6 +170,7 @@ util.devOff()
 Cytof5.Model.logger("Fitting Model ...");
 
 nsamps_to_thin(nsamps::Int, nmcmc::Int) = max(1, div(nmcmc, nsamps))
+print(init.mus)
 
 # init.sig2 = fill(.3, dat.I) # TODO: remove this?
 @time out, lastState, ll, metrics, dden=
