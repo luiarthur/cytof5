@@ -6,6 +6,7 @@ from torch.distributions import Bernoulli
 from torch.distributions import Beta
 from torch.distributions import Normal
 from torch.distributions import Uniform
+from torch.distributions import Gamma
 from torch.distributions.log_normal import LogNormal
 
 def simdata(N=[300, 100, 200], J=25, K=10, L0=5, L1=5, alpha=10):
@@ -23,7 +24,7 @@ def simdata(N=[300, 100, 200], J=25, K=10, L0=5, L1=5, alpha=10):
 
     mu0 = Uniform(-5, 0).sample((L0, ))
     mu1 = Uniform(0, 5).sample((L1, ))
-    sig = LogNormal(-1, .1).sample((I, ))
+    sig = Gamma(1, 3).sample((I, ))
 
     Z = Bernoulli(v).sample((J, )).reshape(J, K)
 
@@ -60,4 +61,4 @@ def simdata(N=[300, 100, 200], J=25, K=10, L0=5, L1=5, alpha=10):
 
     return {'data': data, 'params': params}
 
-data = simdata()
+# data = simdata()

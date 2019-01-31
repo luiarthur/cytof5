@@ -85,7 +85,8 @@ class Cytof(advi.Model):
             data['y'][i] = data['y'][i].reshape(self.N[i], self.J, 1, 1)
     
     def gen_default_priors(self, data, K, L,
-                           sig_prior=LogNormal(-2., 1.),
+                           # sig_prior=LogNormal(-2., 1.),
+                           sig_prior=Gamma(1, 10),
                            alpha_prior=Gamma(1., 1.),
                            mu0_prior=None,
                            mu1_prior=None,
@@ -124,7 +125,7 @@ class Cytof(advi.Model):
     def init_vp(self): 
         return {'mu0': VarParam((1, 1, self.L[0], 1)),
                 'mu1': VarParam((1, 1, self.L[1], 1)),
-                'sig': VarParam(self.I),
+                'sig': VarParam(self.I, init_m=-2, init_log_s=-2),
                 'W': VarParam((self.I, self.K - 1), init_m=0.0, init_log_s=-1.0),
                 'v': VarParam((1, 1, self.K)),
                 'alpha': VarParam(1),
@@ -172,12 +173,12 @@ class Cytof(advi.Model):
             muz_max = self.priors[muz].high
             lp_mu += lpdf_logitUniform(real_params[muz].squeeze(), muz_min, muz_max).sum()
 
-        lp_sig = lpdf_logLogNormal(real_params['sig'].squeeze(),
-                                   self.priors['sig'].loc,
-                                   self.priors['sig'].scale).sum()
+        lp_sig = lpdf_logGamma(real_params['sig'].squeeze(),
+                               self.priors['sig'].concentration,
+                               self.priors['sig'].rate).sum()
         lp_W = 0.0
         for i in range(self.I):
-            lp_W += lpdf_realDirichlet(real_params['W'][i, :],
+            lp_W += lpdf_realDirichlet(real_params['W'][i, :].squeeze(),
                                        self.sbt_W,
                                        self.priors['W'].concentration)
 
@@ -381,11 +382,11 @@ class Cytof(advi.Model):
                             fixed_grad = True
 
             optimizer.step()
+            elbo.append(elbo_mean.item())
 
-            if fixed_grad:
-                print('Throwing elbo from history because of nan in gradients.')
-            else:
-                elbo.append(elbo_mean.item())
+            # if fixed_grad:
+            #     print('Throwing elbo from history because of nan in gradients.')
+            # else:
 
             if print_freq > 0 and (t + 1) % print_freq == 0:
                 now = datetime.datetime.now().replace(microsecond=0)
@@ -403,8 +404,9 @@ class Cytof(advi.Model):
                 break
 
             if math.isnan(elbo[-1]):
-                print("nan detected! Exiting optimizer early.")
-                break
+                if len(elbo) == 1 or math.isnan(elbo[-2]):
+                    print("ELBO is becoming nan. Terminating optimizer early.")
+                    break
 
         return {'vp': vp, 'elbo': elbo}
 
