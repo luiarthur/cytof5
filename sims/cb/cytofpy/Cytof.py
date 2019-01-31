@@ -68,6 +68,7 @@ class Cytof(advi.Model):
         if priors is None:
             self.gen_default_priors(data=data, K=self.K, L=self.L)
         else:
+            self.__cache_model_constants__(data, K, L)
             self.priors = priors
 
     def __cache_model_constants__(self, data, K, L):
@@ -147,9 +148,9 @@ class Cytof(advi.Model):
         return mini_data
 
     def sample_real_params(self, vp):
-        real_params = {'iota': None}
+        real_params = {}
         for key in vp:
-            if key != 'iota':
+            if key != 'iota' and key != 'eps':
                 real_params[key] = vp[key].sample()
         return real_params
 
@@ -220,6 +221,9 @@ class Cytof(advi.Model):
 
     def loglike(self, real_params, data, minibatch_info=None):
         params = self.to_param_space(real_params)
+        if self.debug:
+            print(params)
+
         ll = 0.0
         
         # FIXME: Check this!
@@ -279,7 +283,7 @@ class Cytof(advi.Model):
                 'alpha': torch.log(params['alpha']),
                 'eta0': eta0,
                 'eta1': eta1,
-                'eps': torch.logit(params['eps']),
+                'eps': None, #torch.logit(params['eps']),
                 'iota': None}
 
     def to_param_space(self, real_params):
@@ -304,7 +308,7 @@ class Cytof(advi.Model):
                 'alpha': torch.exp(real_params['alpha']),
                 'eta0': eta0,
                 'eta1': eta1,
-                'eps': torch.sigmoid(real_params['eps']),
+                'eps': None, #torch.sigmoid(real_params['eps']),
                 'iota': None}
 
     def msg(self, t, vp):
@@ -345,7 +349,6 @@ class Cytof(advi.Model):
         assert(lr > 0)
         assert(eps >= 0)
 
-
         if init is not None:
             vp = copy.deepcopy(init)
         else:
@@ -360,8 +363,30 @@ class Cytof(advi.Model):
             loss = -elbo_mean
             optimizer.zero_grad()
             loss.backward(retain_graph=True)
+
+            fixed_grad = False
+            with torch.no_grad():
+                for key in vp:
+                    if key != 'iota' and key != 'eps':
+                        grad_m_isnan = torch.isnan(vp[key].m.grad)
+                        if grad_m_isnan.sum() > 0:
+                            print("WARNING: Setting a nan gradient to zero!")
+                            vp[key].m.grad[grad_m_isnan] = 0.0
+                            fixed_grad = True
+
+                        grad_log_s_isnan = torch.isnan(vp[key].log_s.grad)
+                        if grad_log_s_isnan.sum() > 0:
+                            print("WARNING: Setting a nan gradient to zero!")
+                            vp[key].log_s.grad[grad_log_s_isnan] = 0.0
+                            fixed_grad = True
+
             optimizer.step()
-            elbo.append(elbo_mean.item())
+
+            if fixed_grad:
+                print('Adding previous elbo to history because of nan in elbo.')
+                elbo.append(elbo[-1] * (1 - eps))
+            else:
+                elbo.append(elbo_mean.item())
 
             if print_freq > 0 and (t + 1) % print_freq == 0:
                 now = datetime.datetime.now().replace(microsecond=0)
