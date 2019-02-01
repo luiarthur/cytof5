@@ -1,5 +1,5 @@
 .PHONY: send retrieve retrievelite litecp 
-.PHONY: run pullAndProcess postProcess repFamTest test testlocal testplots metrics 
+.PHONY: run pullAndProcess postProcess repFamTest test testlocal testplots metrics runAndProcess
 .PHONY: genpreprocessGraphs sendPreprocessedGraphs getPreprocessedGraphs getRData sendRData
 
 # Current run name
