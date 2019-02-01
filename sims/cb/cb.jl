@@ -178,7 +178,7 @@ print(init.mus)
                           monitors=[[:Z, :lam, :W,
                                      :sig2, :mus,
                                      :alpha, :v,
-                                     :eta, :eps],
+                                     :eta, :eps, :iota],
                                     [:y_imputed, :gam]],
                           thins=[2, nsamps_to_thin(10, MCMC_ITER)],
                           # fix=[:sig2], # TODO: remove this?
