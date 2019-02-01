@@ -141,6 +141,11 @@ distribution, then sample from the full conditionals of $\lambda$ using samples
 from the variational distribution. However, since the variational distributions
 are independent, the variance of $\lambda$ will be underestimated.
 
+Another **challenging aspect** of the current model involves designing a
+variational distribution for $\mu^\star$, as it is currently ordered.
+I would like to first attempt not placing any ordering on $\mu*$, while
+thinking about possible ways to handle ordering.
+
 ## Current Model
 
 ## Old Models
