@@ -20,6 +20,7 @@ end
   similarity_Z::Function
   noisyDist::ContinuousDistribution
   y_grid::Vector{Float64}
+  iota_prior::Gamma
 end
 
 """
@@ -41,9 +42,10 @@ function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
                           pBounds=[.01, .8, .05], yQuantiles=[0.01, .1, .25],
                           sig2_prior=InverseGamma(3.0, 2 / 3),
                           sig2_range=[0.0, Inf],
-                          mus0_range=[-10.0, 0.0],
-                          mus1_range=[0.0, 10.0],
+                          mus0_range=[-20, 0.0],
+                          mus1_range=[0.0, 20],
                           alpha_prior = Gamma(3.0, 0.5),
+                          iota_prior=Gamma(5.0, 0.1), # shape and scale
                           tau0::Float64=0.0, tau1::Float64=0.0,
                           probFlip_Z::Float64=1.0 / (data.J * K),
                           noisyDist::ContinuousDistribution=Cauchy(),
@@ -79,16 +81,25 @@ function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
                    sig2_prior=sig2_prior, sig2_range=sig2_range,
                    beta=beta, K=K, L=L,
                    probFlip_Z=probFlip_Z, similarity_Z=similarity_Z,
-                   noisyDist=noisyDist, eps_prior=eps_prior, y_grid=y_grid)
+                   noisyDist=noisyDist, eps_prior=eps_prior, y_grid=y_grid,
+                   iota_prior=iota_prior)
 end
 
 function priorMu(z::Int, l::Int, s::State, c::Constants)
   L = c.L
 
   if l == 1
-    lower, upper = minimum(c.mus_prior[z]), s.mus[z][l+1]
+    if z == 1 # z==1 & l==1 => for mu[1][1]
+      lower, upper = s.iota, s.mus[z][l+1]
+    else # z==0 & l==1 => for mu[0][1]
+      lower, upper = minimum(c.mus_prior[z]), s.mus[z][l+1]
+    end
   elseif l == L[z]
-    lower, upper = s.mus[z][l-1], maximum(c.mus_prior[z])
+    if z == 1 # z == 1 & l == L[1] => for mu[1][end]
+      lower, upper = s.mus[z][l-1], maximum(c.mus_prior[z])
+    else # z == 0 & l == L[0] => for mu[0][end]
+      lower, upper = s.mus[z][l-1], -s.iota
+    end
   else
     lower, upper = s.mus[z][l-1], s.mus[z][l+1]
   end
@@ -96,6 +107,7 @@ function priorMu(z::Int, l::Int, s::State, c::Constants)
   # Note that priorM and priorS are NOT the prior mean and std. They are PARAMETERS in 
   # the truncated normal!
   (priorM, priorS, _, _) = params(c.mus_prior[z])
+  # println("z: $z, l: $l | pm: $priorM, ps: $priorS, low: $lower, upp: $upper")
   #priorMean = mean(c.mus_prior[z])
   #priorSd = std(c.mus_prior[z])
   return TruncatedNormal(priorM, priorS, lower, upper)

@@ -108,9 +108,13 @@ function smartInit(c::Constants, d::Data; iterMax::Int=10,
   if isinf(min_mus0)
     min_mus0 = minimum(minimum.(y_imputed))
   end
-  min_mus1 = minimum(c.mus_prior[1])
 
-  max_mus0 = maximum(c.mus_prior[0])
+  # min_mus1 = minimum(c.mus_prior[1])
+  # max_mus0 = maximum(c.mus_prior[0])
+  iota = rand(c.iota_prior)
+  min_mus1 = iota
+  max_mus0 = -iota
+
   max_mus1 = maximum(c.mus_prior[1])
   if isinf(max_mus1)
     max_mus1 = maximum(maximum.(y_imputed))
@@ -164,7 +168,7 @@ function smartInit(c::Constants, d::Data; iterMax::Int=10,
   eps = mean.(c.eps_prior)
 
   return State(Z=Z, mus=mus, alpha=alpha, v=v, W=W, sig2=sig2, eta=eta,
-               lam=lam, gam=gam, y_imputed=y_imputed, eps=eps)
+               lam=lam, gam=gam, y_imputed=y_imputed, eps=eps, iota=iota)
 end
 
 

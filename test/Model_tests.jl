@@ -23,6 +23,7 @@ using JLD2, FileIO
               lam=[ones(Int8, N[i]) for i in 1:I],
               gam=[ones(Int8, N[i], J) for i in 1:I],
               y_imputed=[randn(Float16, N[i], J) for i in 1:I],
+              iota=Float16(1.0),
               eps=[Float16(.05) for i in 1:I])
   @test true
 
@@ -102,7 +103,7 @@ end
   printstyled("Test Model Fitting...\n", color=:yellow)
   @time out, lastState, ll, metrics, dden = Cytof5.Model.cytof5_fit(
     init, c, y_dat,
-    nmcmc=200, nburn=200,
+    nmcmc=200, nburn=1000,
     computeLPML=true,
     computeDIC=true,
     computedden=true,

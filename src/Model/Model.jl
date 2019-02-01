@@ -78,7 +78,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
 
   tuners = Tuners(y_imputed=y_tuner, # yinj, for inj s.t. yinj is missing
                   Z=MCMC.TuningParam(MCMC.sigmoid(c.probFlip_Z, a=0.0, b=1.0)),
-                  mus=mus_tuner)
+                  mus=mus_tuner, iota=MCMC.TuningParam(1.0))
 
   # Loglike
   loglike = Vector{Float64}()

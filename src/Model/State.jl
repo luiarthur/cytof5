@@ -3,6 +3,7 @@ const Cube = Array{T, 3} where T
 @namedargs mutable struct State{F <: AbstractFloat}
   Z::Matrix{Bool} # Dim: J x K. Z[j,k] ∈ {0, 1}. true => 1, false => 0
   mus::Dict{Bool, Vector{F}}
+  iota::F
   alpha::F
   v::Vector{F}
   W::Matrix{F}
@@ -34,6 +35,7 @@ function compress(state::State)
                  lam=Vector{Vector{Int8}}(state.lam),
                  gam=Vector{Matrix{Int8}}(state.gam),
                  eps=Float32.(state.eps),
+                 iota=Float32.(state.iota),
                  y_imputed=Vector{Matrix{Float32}}(state.y_imputed))
   end
 end

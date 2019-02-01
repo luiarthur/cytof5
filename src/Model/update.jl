@@ -2,6 +2,7 @@ include("dmixture.jl")
 include("update_Z.jl")
 include("update_Z_repulsive.jl")
 include("update_Z_v2.jl")
+include("update_iota.jl")
 include("update_mus.jl")
 include("update_alpha.jl")
 include("update_v.jl")
@@ -44,7 +45,8 @@ function update_state(s::State, c::Constants, d::Data, tuners::Tuners,
   @doIf isRandom(:eta)        update_eta(s, c, d)
 
   # Metropolis.
-  @doIf isRandom(:mus)        update_mus(s, c, d, tuners)
+  @doIf isRandom(:iota)       update_iota(s, c, d, tuners)
+  @doIf isRandom(:mus)        update_mus(s, c, d, tuners) # must be done right after updating iota 
   
   # Gibbs.
   @doIf isRandom(:sig2)       update_sig2(s, c, d) 
