@@ -17,18 +17,19 @@ function update_mus(z::Int, l::Int, s::State, c::Constants, d::Data, tuners::Tun
   function lp(mus::Float64)::Float64
     out = logpdf(Normal(priorM, priorS), mus)
 
+    # TODO: Test with CB
     if (z == 0 && l > 1)
       # NOTE: This should be log(cdf(N(pm, ps), mus) - cdf(N(pm, ps), lower))
       #       But this is good enough in practice.
-      out -= logcdf(Normal(priorM, priorS), mus)
-      # out -= MCMC.logsumexp(logcdf(Normal(priorM, priorS), mus),
-      #                       logccdf(Normal(priorM, priorS), lower))
+      # out -= logcdf(Normal(priorM, priorS), mus)
+      out -= MCMC.logsumexp(logcdf(Normal(priorM, priorS), mus),
+                            logccdf(Normal(priorM, priorS), lower))
     elseif (z == 1 && l < c.L[1])
       # NOTE: This should be log(cdf(N(pm, ps), upper) - cdf(N(pm, ps), mus))
       #       But this is good enough in practice.
-      out -= logccdf(Normal(priorM, priorS), mus)
-      # out -= MCMC.logsumexp(logcdf(Normal(priorM, priorS), upper),
-      #                       logccdf(Normal(priorM, priorS), mus))
+      # out -= logccdf(Normal(priorM, priorS), mus)
+      out -= MCMC.logsumexp(logcdf(Normal(priorM, priorS), upper),
+                            logccdf(Normal(priorM, priorS), mus))
     end
 
     return out

@@ -82,7 +82,7 @@ end
 
   K_MCMC = K #10
   L_MCMC = L #5
-  @time c = Cytof5.Model.defaultConstants(y_dat, K_MCMC, L_MCMC,
+  @time c = Cytof5.Model.defaultConstants(y_dat, K_MCMC, L_MCMC, iota_prior=Gamma(1.0, 0.1),
                                           noisyDist=Normal(0, sqrt(10)))
   Cytof5.Model.printConstants(c)
   # Plot miss mech
@@ -99,6 +99,8 @@ end
 
   # @time init = Cytof5.Model.genInitialState(c, y_dat)
   @time init = Cytof5.Model.smartInit(c, y_dat)
+  println("init iota: $(init.iota)")
+  println("init mus: $(init.mus)")
 
   printstyled("Test Model Fitting...\n", color=:yellow)
   @time out, lastState, ll, metrics, dden = Cytof5.Model.cytof5_fit(
@@ -115,6 +117,12 @@ end
   R"pdf('result/Z_post_mean.pdf')"
   R"image"(1 .- mean(Zpost))
   R"dev.off()"
+
+  iota_post = [o[:iota] for o in out[1]]
+  R"pdf('result/iota.pdf')"
+  R"rcommon::plotPost"(iota_post)
+  R"dev.off()"
+
 
   @save "result/out.jld2" out dat ll lastState
 

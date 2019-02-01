@@ -89,16 +89,16 @@ function priorMu(z::Int, l::Int, s::State, c::Constants)
   L = c.L
 
   if l == 1
-    if z == 1 # z==1 & l==1 => for mu[1][1]
-      lower, upper = s.iota, s.mus[z][l+1]
-    else # z==0 & l==1 => for mu[0][1]
-      lower, upper = minimum(c.mus_prior[z]), s.mus[z][l+1]
+    if z == 1 # for mu[z=1][l=1]
+      lower, upper = s.iota, s.mus[1][l+1]
+    else # mu[z=0][l=1]
+      lower, upper = minimum(c.mus_prior[0]), s.mus[0][l+1]
     end
   elseif l == L[z]
-    if z == 1 # z == 1 & l == L[1] => for mu[1][end]
-      lower, upper = s.mus[z][l-1], maximum(c.mus_prior[z])
-    else # z == 0 & l == L[0] => for mu[0][end]
-      lower, upper = s.mus[z][l-1], -s.iota
+    if z == 1 # for mu[1][end]
+      lower, upper = s.mus[1][l-1], maximum(c.mus_prior[1])
+    else # for mu[0][end]
+      lower, upper = s.mus[0][l-1], -s.iota
     end
   else
     lower, upper = s.mus[z][l-1], s.mus[z][l+1]
