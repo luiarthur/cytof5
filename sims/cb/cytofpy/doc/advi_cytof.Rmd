@@ -147,10 +147,17 @@ I would like to first attempt not placing any ordering on $\mu*$, while
 thinking about possible ways to handle ordering.
 
 ## Current Model
-
-## Old Models
+The current sampling distribution is 
+$$\begin{split}
+p(y_{in} \mid \theta) &= \epsilon_i \prod_{j=1}^J \N(y_{inj} \mid 0, s^2) + (1 -
+\epsilon_i) \sum_{k=1}^K w_{ik} \prod_{j=1}^J \sum_{l=1}^{L_{z_{jk}}} \eta_{ij\ell}^{Z_{jk}}
+\N(y_{inj} \mid \mu_{z_{jk}, \ell}^\star, \sigma_i^2), ~\text{for each } (i, n)\\
+m_{inj} \mid y_{inj}, \beta &\sim \text{Bernoulli}((1 + \exp\bc{-(\beta_0 +
+\beta_1 y_{inj})})^{-1}), ~ \text{for each } (i, n, j)\\
+\end{split}$$
 
 ## Minibatches
+Since some of the observations are missing. We need to impute
 
 ## Plan
 

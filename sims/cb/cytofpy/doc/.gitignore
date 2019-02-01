@@ -2,3 +2,5 @@ advi_cytof.pdf
 advi_cytof.tex
 *.utf8.md
 *.knit.md
+*.aux
+*.toc
