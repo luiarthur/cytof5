@@ -214,6 +214,17 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
   util.plotPost(alphaPost, ylab="density", xlab="alpha", main="");
   util.devOff()
 
+  # Plot iota
+  try
+    iotaPost = util.getPosterior(:iota, out[1])
+    println("Making iota ...")
+    util.plotPdf("$(IMGDIR)/iota.pdf")
+    util.plotPost(iotaPost, ylab="density", xlab="iota", main="");
+    util.devOff()
+  catch
+    println("Unable to plot iota.")
+  end
+
   # Plot W
   Wpost = util.getPosterior(:W, out[1])
   W_mean = mean(Wpost)
