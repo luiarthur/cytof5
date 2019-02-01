@@ -43,16 +43,16 @@ variational distribution with hyper-parameters $\phi$. Then the KL divergence
 between the variational distribution and the posterior distribution of the
 parameters is 
 
-$$\KL\p{q(\theta) ~\Vert~ p(\theta\mid\data)} = \E\bk{\log q(\theta) - \log
-p(\theta\mid\data)}$$ where the expectation is with respect to $q(\theta)$.
+$$\KL\p{q(\theta) ~\Vert~ p(\theta\mid\data)} = \E\bk{\log q(\theta; \phi) - \log
+p(\theta\mid\data)}$$ where the expectation is with respect to $\phi$.
 KL divergence is not a symmetric metric, so $\KL(a \Vert b) \neq \KL(b \Vert a)$.
 
 We seek to minimize KL divergence expression above. Note that with some algebra, 
 we will note that minimizing the KL divergence above is equivalent to maximizing 
 another quantity called the evidence lower bound (ELBO) which is computed as
 
-$$\elbo(q) = \E\bk{\log p(\data, \theta) - \log q(\theta)}$$
-where again the expectation is with respect to $q(\theta)$.
+$$\elbo(q) = \E\bk{\log p(\data, \theta) - \log q(\theta; \phi)}$$
+where again the expectation is with respect to $\phi$.
 
 In summary, we can solve for an approximation of the posterior distribution
 by maximizing the ELBO with respect to the variational hyper-parameters.
@@ -62,7 +62,7 @@ A popular choice for the variational distribution is the mean-field variational
 family, where parameters are mutually independent and governed by distinct factors
 in the variational density. That is 
 
-$$q(\theta) = \prod_{j=1}^J q_j(\theta_j)$$
+$$q(\theta; \phi) = \prod_{j=1}^J q_j(\theta_j)$$
 
 Each $q_j$ should be easy to evaluate and sample from.
 
@@ -73,19 +73,79 @@ the hyper-parameters of the variational distribution given the most recent
 updates, in a sequential manner (like in Gibbs sampling), until some convergence
 criteria is met. This can be difficult as models become more complex. In
 particular, when parameters do not meet the regularity conditions, closed
-formed updates are not possible.
+formed updates are not possible. For instance, a simple logistic regression
+becomes difficult in variational inference, as the updates for the coefficients
+cannot be obtained in closed form.
 
 # Automatic Differentiation Variational Inference 
-Another way
+@kucukelbir2017automatic proposed the Automatic Differentiation Variational
+Inference (ADVI) as a way to overcome the problem of manually computing the
+updates in CAVI, and selecting the variational distribution. For simplicity, we
+will first deal with the case where all parameters are continuous. (i.e. there
+are no discrete parameters.)
+
+In ADVI, all continuous parameters are first transformed into the real
+coordinate space. For example, for a parameter $\theta_j \in (0, \infty)$,
+it would first be transformed onto the real line taking the log of the parameter
+so that $\tilde{\theta}_j = \log\theta_j \in \mathbb{R}$. Then, a natural variational
+distribution for the transformed parameter would be $Q_j(\tilde\theta_j) \sim
+\N(m_{\phi_j}, \exp(s_{\phi_j}))$, where $s_{\phi_j} \in \mathbb{R}$. Thus,
+generally for a model where all parameters are continuous,
+$$\elbo(\phi) = \E_\phi\bk{\log p(\data, T^{-1}(\xi)) + \log\abs{\det J(\xi)} -
+q(\xi; \phi)},$$
+where $T(\theta) = \xi \in \mathbb{R}^{\dim(\theta)}$. Note that the Jacobian
+term is present due the transformation of the parameters into the real coordinate
+space.
+
+Now, the ELBO can be maximized by the gradient ascent. That is, the variational
+parameters, which are now unconstrained, are updated using the gradient of the
+ELBO, with respect to the variational parameters iteratively, until some
+convergence criterion is met.
+
+Updating the variational parameters can be done via gradient descent. This
+requires the gradient of the ELBO with respect to the variational parameters.
+That is we require
+$$\nabla_\phi \elbo(\phi) = \nabla_\phi\E_\phi\bk{\log p(\data, T^{-1}(\xi)) +
+\log\abs{\det J(\xi)} - q(\xi; \phi)}.$$
+
+The expectation can be evaluated by Monte Carlo integration. In practice, one
+sample is sufficient. (Though, having more samples will yield a less noisy
+gradient, but at a computational cost.) The gradient can still needs to be
+computed, but can be computed using automatic differentiation
+[@baydin2018automatic] libraries, which typically make use of a data structure
+called a dual number, and source code translation. PyTorch
+[@paszke2017automatic] is a Python library that is capable of handling such
+computations efficiently. 
+
+The learning rate in a gradient descent / ascent needs to be chosen carefully.
+Thus a set of values (e.g. 10, 1, 0.1, ... 0.00001) should be tried, and the
+one that yields the highest ELBO and the most stability in the climbing of the
+ELBO should be used.
+
+# Scalability
+Computing the gradient in gradient descent requires the computation of the ELBO
+using the entire dataset. Using stochastic gradient descent (SGD), a mini-batch
+of size $B$ (much less than the size of the full data set $N$) can be sampled at
+each iteration of the SGD. The likelihood should be scaled by $N / B$. This works
+well in practice provided that the size of the mini-batch is large enough.
 
 
-ADVI [@kucukelbir2017automatic] is amazing.
+# Cytof Implementation
+The implementation essentially requires the expression of ELBO and the learning
+rate. In our model, there are two sets of discrete parameters of interest --
+$Z$ and $\lambda$. What we may do is use the following variational distribution
+$Z_{jk} \sim \text{Bernoulli}(p_{jk})$, where $\text{logit}(p_{jk}) =
+\N(m_{jk}, s_{jk})$. My proposal for $\lambda$ is to sample them after we
+obtain the variational parameters. That is, sample from the final variational
+distribution, then sample from the full conditionals of $\lambda$ using samples
+from the variational distribution. However, since the variational distributions
+are independent, the variance of $\lambda$ will be underestimated.
 
-# Implementation
+## Current Model
 
-## PyTorch
+## Old Models
 
-## Model
+## Minibatches
 
 ## Plan
 
