@@ -1,0 +1,92 @@
+---
+title: "Variational Inference for Cytof"
+# output:
+#   github_document:
+#     pandoc_args: --webtex
+bibliography: bib.bib
+---
+
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\p}[1]{\left(#1\right)}
+\newcommand{\bk}[1]{\left[#1\right]}
+\newcommand{\bc}[1]{ \left\{#1\right\} }
+\newcommand{\abs}[1]{ \left|#1\right| }
+\newcommand{\mat}{ \begin{pmatrix} }
+\newcommand{\tam}{ \end{pmatrix} }
+\newcommand{\suml}{ \sum_{i=1}^n }
+\newcommand{\prodl}{ \prod_{i=1}^n }
+\newcommand{\ds}{ \displaystyle }
+\newcommand{\df}[2]{ \frac{d#1}{d#2} }
+\newcommand{\ddf}[2]{ \frac{d^2#1}{d{#2}^2} }
+\newcommand{\pd}[2]{ \frac{\partial#1}{\partial#2} }
+\newcommand{\pdd}[2]{\frac{\partial^2#1}{\partial{#2}^2} }
+\newcommand{\N}{ \mathcal{N} }
+\newcommand{\E}{ \text{E} }
+\newcommand{\data}{ \text{data} }
+\newcommand{\KL}{\mathrm{KL}}
+\newcommand{\elbo}{\mathrm{ELBO}}
+
+# Variational Inference
+
+In variational inference (VI) [@blei2017variational], a target distribution is
+approximated by a class of simpler distributions called the variational
+distribution. Using optimization, the KL divergence of between the variational
+distributions and the true target is minimized. The resulting optimized
+variational distribution, which is available in closed form, then becomes the
+proposed estimate for the target distribution. A common flavor of VI is the
+mean field approximation, where the parameters in the target take on
+independent variational distributions.
+
+## KL Divergence
+Let $\theta$ be parameters in a Bayesian model. Let $q(\theta; \phi)$ be the
+variational distribution with hyper-parameters $\phi$. Then the KL divergence
+between the variational distribution and the posterior distribution of the
+parameters is 
+
+$$\KL\p{q(\theta) ~\Vert~ p(\theta\mid\data)} = \E\bk{\log q(\theta) - \log
+p(\theta\mid\data)}$$ where the expectation is with respect to $q(\theta)$.
+KL divergence is not a symmetric metric, so $\KL(a \Vert b) \neq \KL(b \Vert a)$.
+
+We seek to minimize KL divergence expression above. Note that with some algebra, 
+we will note that minimizing the KL divergence above is equivalent to maximizing 
+another quantity called the evidence lower bound (ELBO) which is computed as
+
+$$\elbo(q) = \E\bk{\log p(\data, \theta) - \log q(\theta)}$$
+where again the expectation is with respect to $q(\theta)$.
+
+In summary, we can solve for an approximation of the posterior distribution
+by maximizing the ELBO with respect to the variational hyper-parameters.
+
+## The Variational Distribution
+A popular choice for the variational distribution is the mean-field variational
+family, where parameters are mutually independent and governed by distinct factors
+in the variational density. That is 
+
+$$q(\theta) = \prod_{j=1}^J q_j(\theta_j)$$
+
+Each $q_j$ should be easy to evaluate and sample from.
+
+In the mean field family, and under regularity conditions, an optimization
+algorithm called the coordinate ascent variational inference (CAVI) can be
+derived and implemented. This approach involves manually deriving the update to
+the hyper-parameters of the variational distribution given the most recent
+updates, in a sequential manner (like in Gibbs sampling), until some convergence
+criteria is met. This can be difficult as models become more complex. In
+particular, when parameters do not meet the regularity conditions, closed
+formed updates are not possible.
+
+# Automatic Differentiation Variational Inference 
+Another way
+
+
+ADVI [@kucukelbir2017automatic] is amazing.
+
+# Implementation
+
+## PyTorch
+
+## Model
+
+## Plan
+
+# References
