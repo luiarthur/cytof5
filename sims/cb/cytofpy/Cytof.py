@@ -198,6 +198,8 @@ class Cytof(advi.Model):
                                  self.priors['alpha'].rate).sum()
 
         # Actually, Z is binary here. This is correct, but easier to code.
+        # v: 1 x 1 x K
+        # Z: 1 x J x K
         lp_Z = Bernoulli(torch.sigmoid(real_params['v'])).log_prob(real_params['Z']).sum()
 
         lp_eta = 0.0
@@ -256,6 +258,7 @@ class Cytof(advi.Model):
             a1 = torch.logsumexp(d1, 2) # Ni x J x K
 
             # Ni x J x K
+            # Z: 1 x J x K
             c0 = params['Z'] * a1 + (1 - params['Z']) * a0
             # c0 = torch.logsumexp(torch.stack([
             #       a1 + torch.log(params['v']),
