@@ -244,11 +244,14 @@ class Cytof(advi.Model):
         
         # FIXME: Check this!
         for i in range(self.I):
+            # Y: Ni x J x 1 x 1
+            # muz: 1 x 1 x Lz x 1
+            # etaz: I x J x Lz x 1
             # Ni x J x Lz x K
             d0 = Normal(-params['mu0'].cumsum(2), params['sig'][i]).log_prob(data['y'][i])
-            d0 += torch.log(params['eta0'][i:i+1, :, :, :])
+            d0 += params['eta0'][i:i+1, :, :, :].log()
             d1 = Normal(params['mu1'].cumsum(2), params['sig'][i]).log_prob(data['y'][i])
-            d1 += torch.log(params['eta1'][i:i+1, :, :, :])
+            d1 += params['eta1'][i:i+1, :, :, :].log()
             
             a0 = torch.logsumexp(d0, 2) # Ni x J x K
             a1 = torch.logsumexp(d1, 2) # Ni x J x K
@@ -256,26 +259,14 @@ class Cytof(advi.Model):
             # Ni x J x K
             # Z: 1 x J x K
             c0 = params['Z'] * a1 + (1 - params['Z']) * a0
-            # c0 = torch.logsumexp(torch.stack([
-            #       a1 + torch.log(params['v']),
-            #       a0 + torch.log1p(-params['v'])]), 0)
 
             # Ni x K
             c = c0.sum(1)
 
-            f = c + torch.log(params['W'][i:i+1, :])
-            # lli = torch.logsumexp(f, 1).sum()
-            lli = torch.logsumexp(f, 1).mean() * (self.N[i] / self.Nsum)
+            f = c + params['W'][i:i+1, :].log()
+            lli = torch.logsumexp(f, 1).mean(0) * (self.N[i] / self.Nsum)
 
             ll += lli
-
-            # print(lli)
-
-            # if minibatch_info is None:
-            #     ll += lli
-            # else:
-            #     n = int(minibatch_info['prop'] * self.N[i])
-            #     ll += self.N[i] * lli / n
 
         if self.debug:
             print('log_like: {}'.format(ll))
