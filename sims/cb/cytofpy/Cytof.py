@@ -128,12 +128,11 @@ class Cytof(advi.Model):
     def init_vp(self): 
         return {'mu0': VarParam((1, 1, self.L[0], 1)),
                 'mu1': VarParam((1, 1, self.L[1], 1)),
-                'sig': VarParam(self.I, init_m=-2, init_log_s=-2.0),
+                'sig': VarParam(self.I),
                 'W': VarParam((self.I, self.K - 1), init_m=0.0, init_log_s=-1.0),
-                'v': VarParam((1, 1, self.K), init_m=-1.0, init_log_s=-2.0),
+                'v': VarParam((1, 1, self.K), init_m=0.0, init_log_s=-1.0),
                 'alpha': VarParam(1),
-                'H': VarParam((1, self.J, self.K), init_m=0.0, init_log_s=-1.0),
-                # 'Z': VarParamBernoulli((1, self.J, self.K)),
+                'Z': VarParamBernoulli((1, self.J, self.K)),
                 'eta0': VarParam((self.I, self.J, self.L[0] - 1, 1),
                                  init_m=0.0, init_log_s=-1.0),
                 'eta1': VarParam((self.I, self.J, self.L[1] - 1, 1),
@@ -203,11 +202,9 @@ class Cytof(advi.Model):
         # Actually, Z is binary here. This is correct, but easier to code.
         # v: 1 x 1 x K
         # Z: 1 x J x K
-        # H: 1 x J x K
         # lp_Z = Bernoulli(torch.sigmoid(real_params['v'])).log_prob(real_params['Z']).sum()
         b_vec = torch.sigmoid(real_params['v']).cumprod(2)
-        lp_H = Normal(0, 1).log_prob(real_params['H']).sum()
-        # lp_Z = Bernoulli(b_vec).log_prob(real_params['Z']).sum()
+        lp_Z = Bernoulli(b_vec).log_prob(real_params['Z']).sum()
 
         lp_eta = 0.0
         for z in range(2):
@@ -227,17 +224,14 @@ class Cytof(advi.Model):
 
         lp_iota = 0.0
 
-        # lp = lp_mu + lp_sig + lp_W + lp_v + lp_alpha + lp_eta + lp_eps + lp_iota + lp_Z
-        lp = lp_mu + lp_sig + lp_W + lp_v + lp_alpha + lp_eta + lp_eps + lp_iota + lp_H
-
+        lp = lp_mu + lp_sig + lp_W + lp_v + lp_alpha + lp_eta + lp_eps + lp_iota + lp_Z
         if self.debug:
             print('log_prior:       {}'.format(lp))
             print('log_prior mu:    {}'.format(lp_mu))
             print('log_prior sig:   {}'.format(lp_sig))
             print('log_prior W:     {}'.format(lp_W))
             print('log_prior v:     {}'.format(lp_v))
-            # print('log_prior Z:     {}'.format(lp_Z))
-            print('log_prior H:     {}'.format(lp_H))
+            print('log_prior Z:     {}'.format(lp_Z))
             print('log_prior alpha: {}'.format(lp_alpha))
             print('log_prior eta:   {}'.format(lp_eta))
             print('log_prior eps:   {}'.format(lp_eps))
@@ -254,8 +248,6 @@ class Cytof(advi.Model):
         ll = 0.0
         
         # FIXME: Check this!
-        b_vec = params['v'].cumprod(2)
-        Z = (b_vec > Normal(0, 1).cdf(params['H'])).float()
         for i in range(self.I):
             # Ni x J x Lz x K
             d0 = Normal(-params['mu0'].cumsum(2), params['sig'][i]).log_prob(data['y'][i])
@@ -268,8 +260,7 @@ class Cytof(advi.Model):
 
             # Ni x J x K
             # Z: 1 x J x K
-            # c0 = params['Z'] * a1 + (1 - params['Z']) * a0
-            c0 = Z * a1 + (1 - Z) * a0
+            c0 = params['Z'] * a1 + (1 - params['Z']) * a0
             # c0 = torch.logsumexp(torch.stack([
             #       a1 + torch.log(params['v']),
             #       a0 + torch.log1p(-params['v'])]), 0)
@@ -313,8 +304,7 @@ class Cytof(advi.Model):
                 'W': torch.stack([self.sbt_W.inv(params['W'][i, :])
                                   for i in range(self.I)]),
                 'v': logit(params['v']),
-                # 'Z': params['Z'],
-                'H': params['H'],
+                'Z': params['Z'],
                 'alpha': torch.log(params['alpha']),
                 'eta0': eta0,
                 'eta1': eta1,
@@ -336,8 +326,7 @@ class Cytof(advi.Model):
                 'sig': torch.exp(real_params['sig']),
                 'W': self.sbt_W(real_params['W']),
                 'v': torch.sigmoid(real_params['v']),
-                # 'Z': real_params['Z'],
-                'H': real_params['H'],
+                'Z': real_params['Z'],
                 'alpha': torch.exp(real_params['alpha']),
                 'eta0': eta0,
                 'eta1': eta1,
@@ -392,9 +381,8 @@ class Cytof(advi.Model):
         param_names_except_Z = list(filter(lambda x: x != 'Z', param_names))
 
         optimizer = torch.optim.Adam([vp[key].m for key in param_names_except_Z] + 
-                                     [vp[key].log_s for key in param_names_except_Z],
-                                     # [vp['Z'].logit_p],
-                                     lr=lr)
+                                     [vp[key].log_s for key in param_names_except_Z] + 
+                                     [vp['Z'].logit_p], lr=lr)
         elbo = []
         
         best_vp = copy.deepcopy(vp)

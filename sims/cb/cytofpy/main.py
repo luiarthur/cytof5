@@ -149,9 +149,7 @@ if __name__ == '__main__':
     plt.show()
 
     # Plot Z
-    # Z = torch.stack([p['Z'] for p in post]).detach().reshape((B, model.J, model.K)).numpy()
-    Z = torch.stack([p['v'].cumprod(2) > torch.distributions.Normal(0,1).cdf(p['H'])
-                     for p in post]).detach().reshape((B, model.J, model.K)).numpy()
+    Z = torch.stack([p['Z'] for p in post]).detach().reshape((B, model.J, model.K)).numpy()
     plt.imshow(Z.mean(0) > .5, aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
     add_gridlines_Z(Z.mean(0))
     plt.savefig('{}/Z.pdf'.format(path_to_exp_results))
