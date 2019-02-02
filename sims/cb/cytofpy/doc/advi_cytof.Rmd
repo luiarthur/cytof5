@@ -156,18 +156,19 @@ m_{inj} \mid y_{inj}, \beta &\sim \text{Bernoulli}((1 + \exp\bc{-(\beta_0 +
 \beta_1 y_{inj})})^{-1}), ~ \text{for each } (i, n, j)\\
 \end{split}$$
 
-## Minibatches
-Since we need to impute missing values, one approach to handling minibatches
-could be to impute values only in the current minibatch. I suspect initial
-values will have a strong affect on the optimizer, so they should be chosen
-carefully. What we currently do to initialize should be fine. Also, updating
-only some of the missing observations at a time may lead to slower convergence.
-So we should do a full update of all parameters every so often if necessary. This is
-my intuition, I have been looking for supporting papers for imputing missing 
-values in minibatches, but haven't yet found anything.
+## Mini-batches
+We can make this implementation scalable by using stochastic variational
+inference.  That is, at each step of the gradient ascent, instead of using all
+the data to update parameters, we use only a subset of the data, called a
+mini-batch. The likelihood is scaled according to the mini-batch size. A different
+mini-batch is used for each update. Since the observations contain missing values (known
+as local parameters in the VI literature), we can iteratively 
 
-An alternative to imputing missing values could be to treat missing observations
-as censored (perhaps at 0). What are your thoughts?
+1. sub-sample a mini-batch
+2. infer local parameters
+3. update global parameters
+
+until some convergence criterion is met.
 
 ## Plan
 
