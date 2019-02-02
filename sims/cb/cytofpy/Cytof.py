@@ -5,6 +5,7 @@ import numpy as np
 
 import torch
 from torch.distributions import Gamma
+from torch.distributions import Bernoulli
 from torch.distributions import Beta
 from torch.distributions import Normal
 from torch.distributions import Dirichlet
@@ -14,7 +15,7 @@ from torch.distributions.transforms import StickBreakingTransform
 
 import advi
 import advi.transformations as trans
-from VarParam import VarParam
+from VarParam import VarParam, VarParamBernoulli
 
 
 def lpdf_logitBeta(logitx, a, b):
@@ -103,19 +104,21 @@ class Cytof(advi.Model):
 
         # FIXME: these should be an ordered prior of TruncatedNormals
         if mu0_prior is None:
-            mu0_prior = Uniform(-15, 0)
+            # mu0_prior = Uniform(-15, 0)
+            mu0_prior = Gamma(1, 1)
 
         if mu1_prior is None:
-            mu1_prior = Uniform(0, 15)
+            # mu1_prior = Uniform(0, 15)
+            mu1_prior = Gamma(1, 1)
 
         if W_prior is None:
             W_prior = Dirichlet(torch.ones(self.K) / self.K)
 
         if eta0_prior is None:
-            eta0_prior = Dirichlet(torch.ones(self.L[0]))
+            eta0_prior = Dirichlet(torch.ones(self.L[0]) / self.L[0])
 
         if eta1_prior is None:
-            eta1_prior = Dirichlet(torch.ones(self.L[1]))
+            eta1_prior = Dirichlet(torch.ones(self.L[1]) / self.L[1])
 
         self.priors = {'mu0': mu0_prior, 'mu1': mu1_prior, 'sig': sig_prior,
                        'eta0': eta0_prior, 'eta1': eta1_prior,
@@ -129,6 +132,7 @@ class Cytof(advi.Model):
                 'W': VarParam((self.I, self.K - 1), init_m=0.0, init_log_s=-1.0),
                 'v': VarParam((1, 1, self.K)),
                 'alpha': VarParam(1),
+                'Z': VarParamBernoulli((1, self.J, self.K)),
                 'eta0': VarParam((self.I, self.J, self.L[0] - 1, 1),
                                  init_m=0.0, init_log_s=-1.0),
                 'eta1': VarParam((self.I, self.J, self.L[1] - 1, 1),
@@ -169,9 +173,12 @@ class Cytof(advi.Model):
         lp_mu = 0.0
         for z in range(2):
             muz = 'mu0' if z == 0 else 'mu1'
-            muz_min = self.priors[muz].low
-            muz_max = self.priors[muz].high
-            lp_mu += lpdf_logitUniform(real_params[muz].squeeze(), muz_min, muz_max).sum()
+            # muz_min = self.priors[muz].low
+            # muz_max = self.priors[muz].high
+            # lp_mu += lpdf_logitUniform(real_params[muz].squeeze(), muz_min, muz_max).sum()
+            lp_mu += lpdf_logGamma(real_params[muz].squeeze(),
+                                   self.priors[muz].concentration,
+                                   self.priors[muz].rate).sum()
 
         lp_sig = lpdf_logGamma(real_params['sig'].squeeze(),
                                self.priors['sig'].concentration,
@@ -189,6 +196,10 @@ class Cytof(advi.Model):
         lp_alpha = lpdf_logGamma(real_params['alpha'],
                                  self.priors['alpha'].concentration,
                                  self.priors['alpha'].rate).sum()
+
+        # Actually, Z is binary here. This is correct, but easier to code.
+        lp_Z = Bernoulli(torch.sigmoid(real_params['v'])).log_prob(real_params['Z']).sum()
+
         lp_eta = 0.0
         for z in range(2):
             etaz = 'eta0' if z == 0 else 'eta1'
@@ -208,17 +219,21 @@ class Cytof(advi.Model):
 
         lp_iota = 0.0
 
-        lp = lp_mu + lp_sig + lp_W + lp_v + lp_alpha + lp_eta + lp_eps + lp_iota
+        lp = lp_mu + lp_sig + lp_W + lp_v + lp_alpha + lp_eta + lp_eps + lp_iota + lp_Z
         if self.debug:
             print('log_prior:       {}'.format(lp))
             print('log_prior mu:    {}'.format(lp_mu))
             print('log_prior sig:   {}'.format(lp_sig))
             print('log_prior W:     {}'.format(lp_W))
             print('log_prior v:     {}'.format(lp_v))
+            print('log_prior Z:     {}'.format(lp_Z))
             print('log_prior alpha: {}'.format(lp_alpha))
             print('log_prior eta:   {}'.format(lp_eta))
             print('log_prior eps:   {}'.format(lp_eps))
+
+        # TODO: use the priors!
         return lp / self.Nsum
+        # return 0.0
 
     def loglike(self, real_params, data, minibatch_info=None):
         params = self.to_param_space(real_params)
@@ -230,18 +245,22 @@ class Cytof(advi.Model):
         # FIXME: Check this!
         for i in range(self.I):
             # Ni x J x Lz x K
-            d0 = Normal(params['mu0'], params['sig'][i]).log_prob(data['y'][i])
+            # d0 = Normal(params['mu0'], params['sig'][i]).log_prob(data['y'][i])
+            d0 = Normal(-params['mu0'].cumsum(2), params['sig'][i]).log_prob(data['y'][i])
             d0 += torch.log(params['eta0'][i:i+1, :, :, :])
-            d1 = Normal(params['mu1'], params['sig'][i]).log_prob(data['y'][i])
+            # d1 = Normal(params['mu1'], params['sig'][i]).log_prob(data['y'][i])
+            d1 = Normal(params['mu1'].cumsum(2), params['sig'][i]).log_prob(data['y'][i])
             d1 += torch.log(params['eta1'][i:i+1, :, :, :])
             
             a0 = torch.logsumexp(d0, 2) # Ni x J x K
             a1 = torch.logsumexp(d1, 2) # Ni x J x K
 
             # Ni x J x K
-            c0 = torch.logsumexp(torch.stack([
-                  a1 + torch.log(params['v']),
-                  a0 + torch.log1p(-params['v'])]), 0)
+            c0 = params['Z'] * a1 + (1 - params['Z']) * a0
+            # c0 = torch.logsumexp(torch.stack([
+            #       a1 + torch.log(params['v']),
+            #       a0 + torch.log1p(-params['v'])]), 0)
+
             # Ni x K
             c = c0.sum(1)
 
@@ -271,8 +290,10 @@ class Cytof(advi.Model):
                 eta0[i, j, :, 0] = self.sbt_eta[0].inv(params['eta0'][i, j, :, 0])
                 eta1[i, j, :, 0] = self.sbt_eta[1].inv(params['eta1'][i, j, :, 0])
 
-        mu0 = trans.logit(params['mu0'], self.priors['mu0'].low, self.priors['mu0'].high)
-        mu1 = trans.logit(params['mu1'], self.priors['mu1'].low, self.priors['mu1'].high)
+        # mu0 = trans.logit(params['mu0'], self.priors['mu0'].low, self.priors['mu0'].high)
+        # mu1 = trans.logit(params['mu1'], self.priors['mu1'].low, self.priors['mu1'].high)
+        mu0 = trans.log(params['mu0'])
+        mu1 = trans.log(params['mu1'])
         return {# FIXME. This should be truncated ideally.
                 'mu0': mu0,
                 'mu1': mu1,
@@ -281,6 +302,7 @@ class Cytof(advi.Model):
                 'W': torch.stack([self.sbt_W.inv(params['W'][i, :])
                                   for i in range(self.I)]),
                 'v': logit(params['v']),
+                'Z': params['Z'],
                 'alpha': torch.log(params['alpha']),
                 'eta0': eta0,
                 'eta1': eta1,
@@ -295,10 +317,8 @@ class Cytof(advi.Model):
                 eta0[i, j, :, 0] = self.sbt_eta[0](real_params['eta0'][i, j, :, 0])
                 eta1[i, j, :, 0] = self.sbt_eta[1](real_params['eta1'][i, j, :, 0])
 
-        mu0 = trans.invlogit(real_params['mu0'], self.priors['mu0'].low,
-                             self.priors['mu0'].high)
-        mu1 = trans.invlogit(real_params['mu1'], self.priors['mu1'].low,
-                             self.priors['mu1'].high)
+        mu0 = torch.exp(real_params['mu0'])
+        mu1 = torch.exp(real_params['mu1'])
         return {# FIXME. This should be truncated ideally.
                 'mu0': mu0,
                 'mu1': mu1,
@@ -306,6 +326,7 @@ class Cytof(advi.Model):
                 'sig': torch.exp(real_params['sig']),
                 'W': self.sbt_W(real_params['W']),
                 'v': torch.sigmoid(real_params['v']),
+                'Z': real_params['Z'],
                 'alpha': torch.exp(real_params['alpha']),
                 'eta0': eta0,
                 'eta1': eta1,
@@ -354,10 +375,16 @@ class Cytof(advi.Model):
             vp = copy.deepcopy(init)
         else:
             vp = self.init_vp()
+        
+        param_names = vp.keys()
+        param_names_except_Z = list(filter(lambda x: x != 'Z', param_names))
 
-        optimizer = torch.optim.Adam([vpj.m for vpj in vp.values()] + 
-                                     [vpj.log_s for vpj in vp.values()], lr=lr)
+        optimizer = torch.optim.Adam([vp[key].m for key in param_names_except_Z] + 
+                                     [vp[key].log_s for key in param_names_except_Z] + 
+                                     [vp['Z'].logit_p], lr=lr)
         elbo = []
+        
+        best_vp = copy.deepcopy(vp)
 
         for t in range(niters):
             elbo_mean = self.compute_elbo_mean(data, vp, nmc, minibatch_info)
@@ -368,7 +395,7 @@ class Cytof(advi.Model):
             fixed_grad = False
             with torch.no_grad():
                 for key in vp:
-                    if key != 'iota' and key != 'eps':
+                    if key != 'iota' and key != 'eps' and key != 'Z':
                         grad_m_isnan = torch.isnan(vp[key].m.grad)
                         if grad_m_isnan.sum() > 0:
                             print("WARNING: Setting a nan gradient to zero!")
@@ -380,6 +407,27 @@ class Cytof(advi.Model):
                             print("WARNING: Setting a nan gradient to zero!")
                             vp[key].log_s.grad[grad_log_s_isnan] = 0.0
                             fixed_grad = True
+
+                    elif key == 'Z':
+                        grad_logit_p_isnan = torch.isnan(vp[key].logit_p.grad)
+                        if grad_logit_p_isnan.sum() > 0:
+                            print("WARNING: Setting a nan gradient to zero!")
+                            vp[key].logit_p.grad[grad_logit_p_isnan] = 0.0
+                            fixed_grad = True
+
+            if fixed_grad:
+                for key in vp:
+                    if key != 'iota' and key != 'eps':
+                        with torch.no_grad():
+                            if key != 'Z':
+                                vp[key].m.data = best_vp[key].m.data
+                                vp[key].log_s.data = best_vp[key].log_s.data
+                            else:
+                                vp[key].logit_p.data = best_vp[key].logit_p.data
+
+            if t % 10 == 0 and not fixed_grad:
+                best_vp = copy.deepcopy(vp)
+                # TODO: Save this periodically
 
             optimizer.step()
             elbo.append(elbo_mean.item())
@@ -406,6 +454,7 @@ class Cytof(advi.Model):
             if math.isnan(elbo[-1]):
                 if len(elbo) == 1 or math.isnan(elbo[-2]):
                     print("ELBO is becoming nan. Terminating optimizer early.")
+                    vp = best_vp
                     break
 
         return {'vp': vp, 'elbo': elbo}

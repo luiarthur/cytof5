@@ -1,5 +1,6 @@
 import torch
 from torch.distributions import Normal
+from torch.distributions import Bernoulli
 
 class VarParam():
     def __init__(self, size, init_m=None, init_log_s=None):
@@ -22,5 +23,21 @@ class VarParam():
     def sample(self):
         return torch.randn(self.size) * torch.exp(self.log_s) + self.m
 
-    def log_prob(self, log_x):
-        return Normal(self.m, torch.exp(self.log_s)).log_prob(log_x).sum()
+    def log_prob(self, x):
+        return Normal(self.m, torch.exp(self.log_s)).log_prob(x).sum()
+
+class VarParamBernoulli():
+    def __init__(self, size):
+        logit_p = torch.randn(size)
+        logit_p.requires_grad=True
+        self.logit_p = logit_p
+
+    def sample(self):
+        p = torch.sigmoid(self.logit_p)
+        return Bernoulli(p).sample()
+
+    def log_prob(self, z):
+        p = torch.sigmoid(self.logit_p)
+        return Bernoulli(p).log_prob(z).sum()
+
+
