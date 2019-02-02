@@ -27,17 +27,18 @@ class VarParam():
         return Normal(self.m, torch.exp(self.log_s)).log_prob(x).sum()
 
 class VarParamBernoulli():
-    def __init__(self, size):
-        logit_p = torch.randn(size)
+    def __init__(self, size, init_logit_p=None):
+        if init_logit_p is None:
+            logit_p = torch.randn(size)
+        else:
+            logit_p = torch.zeros(size) + init_logit_p
         logit_p.requires_grad=True
         self.logit_p = logit_p
 
     def sample(self):
-        p = torch.sigmoid(self.logit_p)
-        return Bernoulli(p).sample()
+        return Bernoulli(logits=self.logit_p).sample()
 
     def log_prob(self, z):
-        p = torch.sigmoid(self.logit_p)
-        return Bernoulli(p).log_prob(z).sum()
+        return Bernoulli(logits=self.logit_p).log_prob(z).sum()
 
 

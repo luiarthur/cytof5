@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 
 from torch.distributions import Dirichlet
@@ -9,6 +10,7 @@ from torch.distributions import Uniform
 from torch.distributions import Gamma
 from torch.distributions.log_normal import LogNormal
 
+# CHECK THIS!
 def simdata(N=[300, 100, 200], J=25, K=10, L0=5, L1=3, alpha=None):
     I = len(N)
     data = {'y': [], 'm': []}
@@ -17,9 +19,13 @@ def simdata(N=[300, 100, 200], J=25, K=10, L0=5, L1=3, alpha=None):
         alpha = K
 
     v = Beta(alpha / K, 1).sample((K, ))
-    Z = Bernoulli(v).sample((J, )).reshape(J, K)
+    if J % K == 0 and J > K:
+        g = int(J / K)
+        Z = torch.tensor(np.kron(torch.eye(K), torch.ones(g)).T)
+    else:
+        Z = Bernoulli(v).sample((J, )).reshape(J, K)
 
-    a_W = torch.ones(K) * 1 / K
+    a_W = torch.ones(K) * 2 / K
     a_eta0 = torch.ones(L0) / L0
     a_eta1 = torch.ones(L1) / L1
 
@@ -27,8 +33,8 @@ def simdata(N=[300, 100, 200], J=25, K=10, L0=5, L1=3, alpha=None):
     eta0 = Dirichlet(a_eta0).sample((I, J))
     eta1 = Dirichlet(a_eta1).sample((I, J))
 
-    mu0 = Uniform(-5, 0).sample((L0, ))
-    mu1 = Uniform(0, 5).sample((L1, ))
+    mu0 = Uniform(-5, -1).sample((L0, ))
+    mu1 = Uniform(1, 5).sample((L1, ))
     sig = torch.zeros((I, )) + 0.8 # Gamma(1, 3).sample((I, ))
 
     params = {'W': W, 'v': v, 'eta0': eta0, 'eta1': eta1,
@@ -47,13 +53,13 @@ def simdata(N=[300, 100, 200], J=25, K=10, L0=5, L1=3, alpha=None):
         gam0i = torch.stack(gam0i, 1)
         gam1i = torch.stack(gam1i, 1)
 
-        lami = Categorical(wi).sample((N[i], ))
+        lami = Categorical(wi).sample((N[i], )).sort()[0]
         lam.append(lami)
 
         Zi = Z[:, lami]
         Zi.transpose_(0, 1)
 
-        mui = Zi * mu0[gam0i] + (1 - Zi) * mu1[gam1i]
+        mui = (1 - Zi) * mu0[gam0i] + Zi * mu1[gam1i]
 
         yi = Normal(mui, sig[i]).sample()
 
