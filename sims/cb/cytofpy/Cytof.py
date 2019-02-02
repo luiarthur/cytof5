@@ -126,17 +126,15 @@ class Cytof(advi.Model):
                        'alpha': alpha_prior}
 
     def init_vp(self): 
-        return {'mu0': VarParam((1, 1, self.L[0], 1)),
-                'mu1': VarParam((1, 1, self.L[1], 1)),
-                'sig': VarParam(self.I),
-                'W': VarParam((self.I, self.K - 1), init_m=0.0, init_log_s=-1.0),
-                'v': VarParam((1, 1, self.K), init_m=0.0, init_log_s=-1.0),
+        return {'mu0': VarParam((1, 1, self.L[0], 1), init_m=-2, init_log_s=-2),
+                'mu1': VarParam((1, 1, self.L[1], 1), init_m=-2, init_log_s=-2),
+                'sig': VarParam(self.I, init_m=-2, init_log_s=-2),
+                'W': VarParam((self.I, self.K - 1)),
+                'v': VarParam((1, 1, self.K)),
                 'alpha': VarParam(1),
                 'Z': VarParamBernoulli((1, self.J, self.K)),
-                'eta0': VarParam((self.I, self.J, self.L[0] - 1, 1),
-                                 init_m=0.0, init_log_s=-1.0),
-                'eta1': VarParam((self.I, self.J, self.L[1] - 1, 1),
-                                 init_m=0.0, init_log_s=-1.0),
+                'eta0': VarParam((self.I, self.J, self.L[0] - 1, 1)),
+                'eta1': VarParam((self.I, self.J, self.L[1] - 1, 1)),
                 'eps': VarParam(self.I),
                 'iota': VarParam(1)}
 
@@ -173,9 +171,6 @@ class Cytof(advi.Model):
         lp_mu = 0.0
         for z in range(2):
             muz = 'mu0' if z == 0 else 'mu1'
-            # muz_min = self.priors[muz].low
-            # muz_max = self.priors[muz].high
-            # lp_mu += lpdf_logitUniform(real_params[muz].squeeze(), muz_min, muz_max).sum()
             lp_mu += lpdf_logGamma(real_params[muz].squeeze(),
                                    self.priors[muz].concentration,
                                    self.priors[muz].rate).sum()
@@ -191,7 +186,6 @@ class Cytof(advi.Model):
                                        self.priors['W'].concentration)
 
         lp_v = lpdf_logitBeta(real_params['v'].squeeze(),
-                              # torch.exp(real_params['alpha']) / self.K,
                               torch.exp(real_params['alpha']),
                               torch.tensor(1.0)).sum()
 
@@ -225,6 +219,7 @@ class Cytof(advi.Model):
         lp_iota = 0.0
 
         lp = lp_mu + lp_sig + lp_W + lp_v + lp_alpha + lp_eta + lp_eps + lp_iota + lp_Z
+        # lp = lp_mu + lp_sig + lp_v + lp_alpha + lp_Z
         if self.debug:
             print('log_prior:       {}'.format(lp))
             print('log_prior mu:    {}'.format(lp_mu))
@@ -314,7 +309,10 @@ class Cytof(advi.Model):
     def to_param_space(self, real_params):
         eta0 = torch.empty(self.I, self.J, self.L[0], 1)
         eta1 = torch.empty(self.I, self.J, self.L[1], 1)
+        W = torch.empty(self.I, self.K)
+
         for i in range(self.I):
+            W[i, :] = self.sbt_W(real_params['W'][i, :].squeeze())
             for j in range(self.J):
                 eta0[i, j, :, 0] = self.sbt_eta[0](real_params['eta0'][i, j, :, 0])
                 eta1[i, j, :, 0] = self.sbt_eta[1](real_params['eta1'][i, j, :, 0])
@@ -324,7 +322,8 @@ class Cytof(advi.Model):
         return {'mu0': mu0,
                 'mu1': mu1,
                 'sig': torch.exp(real_params['sig']),
-                'W': self.sbt_W(real_params['W']),
+                # 'W': self.sbt_W(real_params['W']),
+                'W': W,
                 'v': torch.sigmoid(real_params['v']),
                 'Z': real_params['Z'],
                 'alpha': torch.exp(real_params['alpha']),

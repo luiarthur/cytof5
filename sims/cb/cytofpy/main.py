@@ -40,7 +40,8 @@ if __name__ == '__main__':
             # FIXME: missing values should be imputed
             cb['y'][i][cb['m'][i]] = torch.randn(cb['m'][i].sum()) * .5 - 5
     else:
-        data = simdata(N=[30000, 10000, 20000], L0=3, L1=3, J=12, K=4)
+        # data = simdata(N=[30000, 10000, 20000], L0=3, L1=3, J=12, K=4)
+        data = simdata(N=[3000, 3000, 3000], L0=3, L1=3, J=12, K=4)
         cb = data['data']
         plt.imshow(data['params']['Z'], aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
         J, K = data['params']['Z'].shape
@@ -67,12 +68,12 @@ if __name__ == '__main__':
         plt.show()
 
     K = 4
-    model = Cytof(data=cb, K=K, L=[5,5])
+    model = Cytof(data=cb, K=K, L=[3,3])
     priors = model.priors
-    model = Cytof(data=cb, K=K, L=[5,5], priors=priors)
+    model = Cytof(data=cb, K=K, L=[3,3], priors=priors)
     # model.debug=True
     out = model.fit(data=cb, niters=1000, lr=1e-1, print_freq=1, eps=1e-6,
-                    minibatch_info={'prop': .1},
+                    # minibatch_info={'prop': .1},
                     nmc=1)
 
     # Save output
