@@ -9,7 +9,8 @@ function update_lam_logpostvec(i::Int, n::Int, s::State, c::Constants, d::Data)
   for k in 1:c.K
     for j in 1:d.J
       z = s.Z[j, k]
-      loglikeVec[k] += log(dmixture(z, i, n, j, s, c, d))
+      # loglikeVec[k] += log(dmixture(z, i, n, j, s, c, d))
+      loglikeVec[k] += logdmixture(z, i, n, j, s, c, d)
     end
   end
 

@@ -16,8 +16,10 @@ function update_Z(s::State, c::Constants, d::Data)
       k = s.lam[i][n]
       if k > 0
         for j in 1:d.J
-          ll0[j, k] += log(dmixture(0, i, n, j, s, c, d))
-          ll1[j, k] += log(dmixture(1, i, n, j, s, c, d))
+          # ll0[j, k] += log(dmixture(0, i, n, j, s, c, d))
+          # ll1[j, k] += log(dmixture(1, i, n, j, s, c, d))
+          ll0[j, k] += logdmixture(0, i, n, j, s, c, d)
+          ll1[j, k] += logdmixture(1, i, n, j, s, c, d)
         end
       end
     end
