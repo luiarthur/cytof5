@@ -164,7 +164,8 @@ class Cytof(advi.Model):
                 out += vp[key].log_prob(real_params[key]).sum()
         if self.debug:
             print('log_q: {}'.format(out))
-        return out / self.Nsum
+        # return out / self.Nsum
+        return out
 
     def log_prior(self, real_params):
         # FIXME. These should be ordered.
@@ -232,7 +233,8 @@ class Cytof(advi.Model):
             print('log_prior eps:   {}'.format(lp_eps))
 
         # TODO: use the priors!
-        return lp / self.Nsum
+        # return lp / self.Nsum
+        return lp
         # return 0.0
 
     def loglike(self, real_params, data, minibatch_info=None):
@@ -266,11 +268,12 @@ class Cytof(advi.Model):
 
             f = c + params['W'][i:i+1, :].log()
             lli = torch.logsumexp(f, 1).mean(0) * (self.N[i] / self.Nsum)
+            # lli = torch.logsumexp(f, 1).mean(0) * self.N[i]
+            assert(lli.dim() == 0)
 
             # NEW
             # log_W = params['W'][i, :].reshape(1, 1, self.K).log()
             # lli = (log_W + c0).logsumexp(2).sum() * (self.N[i] / self.Nsum)
-
 
             ll += lli
 

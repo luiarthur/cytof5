@@ -42,7 +42,7 @@ if __name__ == '__main__':
     else:
         # data = simdata(N=[30000, 10000, 20000], L0=3, L1=3, J=12, K=4)
         # data = simdata(N=[3000, 3000, 3000], L0=3, L1=3, J=12, K=4)
-        data = simdata(N=[3000, 3000, 3000], L0=3, L1=3, J=6, a_W=[300, 200, 500])
+        data = simdata(N=[30000, 10000, 20000], L0=3, L1=3, J=6, a_W=[300, 200, 500])
         cb = data['data']
         plt.imshow(data['params']['Z'], aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
         J, K = data['params']['Z'].shape
@@ -74,7 +74,7 @@ if __name__ == '__main__':
     model = Cytof(data=cb, K=K, L=[3,3], priors=priors)
     # model.debug=True
     out = model.fit(data=cb, niters=1000, lr=1e-1, print_freq=1, eps=1e-6,
-                    minibatch_info={'prop': .5}, seed=100,
+                    # minibatch_info={'prop': .9},
                     nmc=1)
 
     # Save output
