@@ -87,7 +87,7 @@ class Cytof(advi.Model):
     
     def gen_default_priors(self, data, K, L,
                            # sig_prior=LogNormal(-2., 1.),
-                           sig_prior=Gamma(10, 100),
+                           sig_prior=Gamma(100, 1000),
                            alpha_prior=Gamma(1., 1.),
                            mu0_prior=None,
                            mu1_prior=None,
@@ -126,9 +126,9 @@ class Cytof(advi.Model):
                        'alpha': alpha_prior}
 
     def init_vp(self): 
-        return {'mu0': VarParam((1, 1, self.L[0], 1), init_m=-2, init_log_s=-2),
-                'mu1': VarParam((1, 1, self.L[1], 1), init_m=-2, init_log_s=-2),
-                'sig': VarParam(self.I, init_m=-2, init_log_s=-2),
+        return {'mu0': VarParam((1, 1, self.L[0], 1), init_m=1, init_log_s=0),
+                'mu1': VarParam((1, 1, self.L[1], 1), init_m=1, init_log_s=0),
+                'sig': VarParam(self.I, init_m=-1, init_log_s=0),
                 'W': VarParam((self.I, self.K - 1)),
                 'v': VarParam((1, 1, self.K)),
                 'alpha': VarParam(1),
@@ -198,7 +198,7 @@ class Cytof(advi.Model):
         # Z: 1 x J x K
         # lp_Z = Bernoulli(torch.sigmoid(real_params['v'])).log_prob(real_params['Z']).sum()
         b_vec = torch.sigmoid(real_params['v']).cumprod(2)
-        lp_Z = Bernoulli(b_vec).log_prob(real_params['Z']).sum()
+        lp_Z = (real_params['Z'] * b_vec.log() + (1 - real_params['Z']) * (1 - b_vec).log()).sum()
 
         lp_eta = 0.0
         for z in range(2):
@@ -253,18 +253,24 @@ class Cytof(advi.Model):
             d1 = Normal(params['mu1'].cumsum(2), params['sig'][i]).log_prob(data['y'][i])
             d1 += params['eta1'][i:i+1, :, :, :].log()
             
-            a0 = torch.logsumexp(d0, 2) # Ni x J x K
-            a1 = torch.logsumexp(d1, 2) # Ni x J x K
+            logmix_L0 = torch.logsumexp(d0, 2) # Ni x J x K
+            logmix_L1 = torch.logsumexp(d1, 2) # Ni x J x K
 
             # Ni x J x K
             # Z: 1 x J x K
-            c0 = params['Z'] * a1 + (1 - params['Z']) * a0
+            c0 = params['Z'] * logmix_L1 + (1 - params['Z']) * logmix_L0
 
+            # OLD
             # Ni x K
             c = c0.sum(1)
 
             f = c + params['W'][i:i+1, :].log()
             lli = torch.logsumexp(f, 1).mean(0) * (self.N[i] / self.Nsum)
+
+            # NEW
+            # log_W = params['W'][i, :].reshape(1, 1, self.K).log()
+            # lli = (log_W + c0).logsumexp(2).sum() * (self.N[i] / self.Nsum)
+
 
             ll += lli
 
@@ -331,7 +337,7 @@ class Cytof(advi.Model):
 
     def fit(self, data, niters:int=1000, nmc:int=2, lr:float=1e-2,
             minibatch_info=None, seed:int=1, eps:float=1e-6, init=None,
-            print_freq:int=10, verbose:int=1):
+            print_freq:int=10, verbose:int=1, trace_vp:bool=False):
         """
         fir the model.
 
@@ -351,11 +357,14 @@ class Cytof(advi.Model):
                     status of ADVI. (default=10, i.e. print every 10 iterations.)
         verbose: an integer indicating how much output to show. defaults to 1, 
                  which prints the ELBO. Setting verbose=0 will turn off all outputs.
+        trace_vp: Boolean. Whether or not to store the variational parameters.
+                  Mostly for testing. Don't store if storage and memory are issues.
 
         returns: dictionary with keys 'v' and 'elbo', where 'v' is the
                  variational parameters in real space, and 'elbo' is the 
                  ELBO history.
         """
+        torch.manual_seed(seed)
 
         assert(nmc >= 1)
         assert(lr > 0)
@@ -376,6 +385,7 @@ class Cytof(advi.Model):
         elbo = []
         
         best_vp = copy.deepcopy(vp)
+        trace = []
 
         for t in range(niters):
             elbo_mean = self.compute_elbo_mean(data, vp, nmc, minibatch_info)
@@ -417,8 +427,11 @@ class Cytof(advi.Model):
                                 vp[key].logit_p.data = best_vp[key].logit_p.data
 
             if t % 10 == 0 and not fixed_grad:
-                best_vp = copy.deepcopy(vp)
                 # TODO: Save this periodically
+                best_vp = copy.deepcopy(vp)
+
+                # Trace the vp
+                trace.append(copy.deepcopy(vp))
 
             optimizer.step()
             elbo.append(elbo_mean.item())
@@ -443,10 +456,10 @@ class Cytof(advi.Model):
                 break
 
             if math.isnan(elbo[-1]):
-                if len(elbo) == 1 or math.isnan(elbo[-2]):
+                if t > 20 and math.isnan(elbo[-2]):
                     print("ELBO is becoming nan. Terminating optimizer early.")
                     vp = best_vp
                     break
 
-        return {'vp': vp, 'elbo': elbo}
+        return {'vp': vp, 'elbo': elbo, 'trace': trace}
 

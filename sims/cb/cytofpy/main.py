@@ -22,7 +22,7 @@ if __name__ == '__main__':
     path_to_exp_results = 'results/test/'
     os.makedirs(path_to_exp_results, exist_ok=True)
 
-    torch.manual_seed(1)
+    torch.manual_seed(2)
     np.random.seed(0)
 
     SIMULATE_DATA = True
@@ -41,7 +41,8 @@ if __name__ == '__main__':
             cb['y'][i][cb['m'][i]] = torch.randn(cb['m'][i].sum()) * .5 - 5
     else:
         # data = simdata(N=[30000, 10000, 20000], L0=3, L1=3, J=12, K=4)
-        data = simdata(N=[3000, 3000, 3000], L0=3, L1=3, J=12, K=4)
+        # data = simdata(N=[3000, 3000, 3000], L0=3, L1=3, J=12, K=4)
+        data = simdata(N=[3000, 3000, 3000], L0=3, L1=3, J=6, a_W=[300, 200, 500])
         cb = data['data']
         plt.imshow(data['params']['Z'], aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
         J, K = data['params']['Z'].shape
@@ -51,9 +52,9 @@ if __name__ == '__main__':
 
     y = copy.deepcopy(cb['y'])
 
-    plt.hist(y[0][:, 1], bins=100, density=True); plt.show()
-    plt.hist(y[1][:, 3], bins=100, density=True); plt.show()
-    plt.hist(y[2][:, -1], bins=100, density=True); plt.show()
+    plt.hist(y[0][:, 1], bins=100, density=True); plt.xlim(-7, 7); plt.show()
+    plt.hist(y[1][:, 3], bins=100, density=True); plt.xlim(-7, 7); plt.show()
+    plt.hist(y[2][:, -1], bins=100, density=True); plt.xlim(-7, 7); plt.show()
 
     # Plot yi
     cm = plt.cm.get_cmap('bwr')
@@ -67,13 +68,13 @@ if __name__ == '__main__':
         plt.colorbar()
         plt.show()
 
-    K = 4
+    K = 3
     model = Cytof(data=cb, K=K, L=[3,3])
     priors = model.priors
     model = Cytof(data=cb, K=K, L=[3,3], priors=priors)
     # model.debug=True
     out = model.fit(data=cb, niters=1000, lr=1e-1, print_freq=1, eps=1e-6,
-                    # minibatch_info={'prop': .1},
+                    minibatch_info={'prop': .5}, seed=100,
                     nmc=1)
 
     # Save output
@@ -132,10 +133,6 @@ if __name__ == '__main__':
     plt.subplot(model.I + 1, 1, model.I + 1)
     plt.boxplot(v.cumprod(1), showmeans=True, whis=[2.5, 97.5], showfliers=False)
     plt.ylabel('$v$', rotation=0, labelpad=15)
-    if SIMULATE_DATA:
-        for yint in data['params']['v'].tolist():
-            plt.axhline(yint)
-
     plt.tight_layout()
     plt.show()
 
@@ -154,5 +151,50 @@ if __name__ == '__main__':
     plt.imshow(Z.mean(0) > .5, aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
     add_gridlines_Z(Z.mean(0))
     plt.savefig('{}/Z.pdf'.format(path_to_exp_results))
+    plt.show()
+
+
+    # Plot VP Trace
+
+    # Plot mu vp mean
+    trace_len = len(out['trace'])
+    mu0_m_trace = torch.stack([-t['mu0'].m.exp().cumsum(1)
+                           for t in out['trace']]).reshape(trace_len, model.L[0])
+    mu1_m_trace = torch.stack([t['mu1'].m.exp().cumsum(1)
+                           for t in out['trace']]).reshape(trace_len, model.L[1])
+
+    plt.plot(mu0_m_trace.detach().numpy())
+    plt.plot(mu1_m_trace.detach().numpy())
+    plt.title('trace plot for $\mu$ vp mean')
+    plt.show()
+
+    # Plot W vp mean
+    W_m_trace = torch.stack([model.sbt_W(t['W'].m) for t in out['trace']]).reshape(trace_len, model.I, model.K)
+    for i in range(model.I):
+        plt.plot(W_m_trace.detach().numpy()[:, i, :])
+        if SIMULATE_DATA:
+            for k in range(model.K):
+                plt.axhline(data['params']['W'][i, k])
+
+        plt.title('trace plot for W_{} mean'.format(i))
+        plt.show()
+
+
+    # Plot sig vp mean
+    sig_m_trace = torch.stack([t['sig'].m.exp() for t in out['trace']])
+    plt.plot(sig_m_trace.detach().numpy())
+
+    if SIMULATE_DATA:
+        for i in range(model.I):
+            plt.axhline(data['params']['sig'][i])
+
+    plt.title('trace plot for $\sigma$ vp mean')
+    plt.show()
+
+
+    # Plot v vp mean
+    v_m_trace = torch.stack([t['v'].m.sigmoid().cumprod(2) for t in out['trace']]).reshape(trace_len, model.K)
+    plt.plot(v_m_trace.detach().numpy())
+    plt.title('trace plot for v vp mean')
     plt.show()
 

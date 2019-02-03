@@ -1,6 +1,7 @@
 import torch
 from torch.distributions import Normal
 from torch.distributions import Bernoulli
+from torch.distributions import Dirichlet
 
 class VarParam():
     def __init__(self, size, init_m=None, init_log_s=None):
@@ -40,5 +41,22 @@ class VarParamBernoulli():
 
     def log_prob(self, z):
         return Bernoulli(logits=self.logit_p).log_prob(z).sum()
+
+class VarParamDirichlet():
+    def __init__(self, size, init_log_concentration=None):
+        if init_log_concentration is None:
+            self.log_concentration = torch.randn(size)
+        else:
+            self.log_concentration = torch.zeros(size) + init_log_concentration
+        self.log_concentration.requires_grad=True
+
+    def concentration(self):
+        return self.log_concentration.exp()
+
+    def sample(self):
+        return Dirichlet(self.concentration()).sample()
+
+    def log_prob(self, z):
+        return Dirichlet(self.concentration()).log_prob(z).sum()
 
 

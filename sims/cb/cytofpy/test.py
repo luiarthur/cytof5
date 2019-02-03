@@ -64,7 +64,7 @@ if __name__ == '__main__':
     L = [L0, L1]
     eps = 1e-6
 
-    data = simdata(N=N, L0=L0, L1=L1, J=J, K=K)
+    data = simdata(N=N, L0=L0, L1=L1, J=J, a_W=[2., 3., 4., 3.])
     model = Cytof(data=data['data'], K=K, L=L)
 
     vp = model.init_vp()

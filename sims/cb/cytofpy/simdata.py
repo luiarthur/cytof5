@@ -11,9 +11,11 @@ from torch.distributions import Gamma
 from torch.distributions.log_normal import LogNormal
 
 # CHECK THIS!
-def simdata(N=[300, 100, 200], J=25, K=10, L0=5, L1=3, alpha=None):
+def simdata(N=[300, 100, 200], J=25, a_W=[200., 500., 200., 100.], L0=5, L1=3, alpha=None):
     I = len(N)
     data = {'y': [], 'm': []}
+    K = len(a_W)
+    a_W = torch.tensor(a_W).double()
 
     if alpha is None:
         alpha = K
@@ -25,7 +27,6 @@ def simdata(N=[300, 100, 200], J=25, K=10, L0=5, L1=3, alpha=None):
     else:
         Z = Bernoulli(v).sample((J, )).reshape(J, K)
 
-    a_W = torch.ones(K) * 2 / K
     a_eta0 = torch.ones(L0) / L0
     a_eta1 = torch.ones(L1) / L1
 
@@ -33,8 +34,8 @@ def simdata(N=[300, 100, 200], J=25, K=10, L0=5, L1=3, alpha=None):
     eta0 = Dirichlet(a_eta0).sample((I, J))
     eta1 = Dirichlet(a_eta1).sample((I, J))
 
-    mu0 = Uniform(-5, -1).sample((L0, ))
-    mu1 = Uniform(1, 5).sample((L1, ))
+    mu0 = Uniform(-3, -2).sample((L0, ))
+    mu1 = Uniform(2, 3).sample((L1, ))
     sig = torch.zeros((I, )) + 0.8 # Gamma(1, 3).sample((I, ))
 
     params = {'W': W, 'v': v, 'eta0': eta0, 'eta1': eta1,
