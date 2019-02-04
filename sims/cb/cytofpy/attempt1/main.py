@@ -3,6 +3,7 @@ import torch
 from readCB import readCB
 from Cytof import Cytof
 from simdata import simdata
+from torch.distributions import Normal
 import math
 import matplotlib.pyplot as plt
 import copy
@@ -30,10 +31,10 @@ if __name__ == '__main__':
     cm_greys = plt.cm.get_cmap('Greys')
     
     if not SIMULATE_DATA:
-        CB_FILEPATH = '../data/cb.txt'
+        CB_FILEPATH = '../../data/cb.txt'
         cb = readCB(CB_FILEPATH)
         cb['m'] = []
-        tmp_J = 6
+        tmp_J = 25
         for i in range(len(cb['y'])):
             cb['y'][i] = torch.tensor(cb['y'][i])[:, :tmp_J]
             cb['m'].append(torch.isnan(cb['y'][i]))
@@ -68,14 +69,14 @@ if __name__ == '__main__':
         plt.colorbar()
         plt.show()
 
-    K = 3
+    K = 10
     model = Cytof(data=cb, K=K, L=[3,3])
     priors = model.priors
     model = Cytof(data=cb, K=K, L=[3,3], priors=priors)
     # model.debug=True
     out = model.fit(data=cb, niters=1000, lr=1e-1, print_freq=1, eps=1e-6,
-                    # minibatch_info={'prop': .9},
-                    nmc=1)
+                    minibatch_info={'prop': .1},
+                    nmc=2)
 
     # Save output
     pickle.dump(out, open('{}/out.p'.format(path_to_exp_results), 'wb'))
@@ -147,8 +148,13 @@ if __name__ == '__main__':
     plt.show()
 
     # Plot Z
-    Z = torch.stack([p['Z'] for p in post]).detach().reshape((B, model.J, model.K)).numpy()
-    plt.imshow(Z.mean(0) > .5, aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
+    # Z = torch.stack([p['Z'] for p in post]).detach().reshape((B, model.J, model.K)).numpy()
+    H = torch.stack([p['H'] for p in post]).detach().reshape((B, model.J, model.K))
+    v = torch.stack([p['v'] for p in post]).detach().reshape((B, 1, model.K))
+    Z = v.log().cumsum(2) > Normal(0, 1).cdf(H).log()
+    Z = Z.numpy()
+    # plt.imshow(Z.mean(0) > .5, aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
+    plt.imshow(Z[0], aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
     add_gridlines_Z(Z.mean(0))
     plt.savefig('{}/Z.pdf'.format(path_to_exp_results))
     plt.show()
@@ -169,13 +175,13 @@ if __name__ == '__main__':
     plt.show()
 
     # Plot W vp mean
-    W_m_trace = torch.stack([model.sbt_W(t['W'].m) for t in out['trace']]).reshape(trace_len, model.I, model.K)
+    W_m_trace = torch.stack([model.sbt_W(t['W'].m) for t in out['trace']])
+    W_m_trace = W_m_trace.reshape(trace_len, model.I, model.K)
     for i in range(model.I):
         plt.plot(W_m_trace.detach().numpy()[:, i, :])
         if SIMULATE_DATA:
-            for k in range(model.K):
+            for k in range(data['params']['Z'].size(1)):
                 plt.axhline(data['params']['W'][i, k])
-
         plt.title('trace plot for W_{} mean'.format(i))
         plt.show()
 
