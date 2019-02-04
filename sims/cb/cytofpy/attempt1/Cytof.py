@@ -93,9 +93,7 @@ class Cytof(advi.Model):
                            mu1_prior=None,
                            W_prior=None,
                            eta0_prior=None,
-                           eta1_prior=None,
-                           eps_prior=Beta(5., 95.),
-                           iota_prior=Gamma(1., 10.)):
+                           eta1_prior=None):
 
         if L is None:
             L = [5, 3]
@@ -121,8 +119,7 @@ class Cytof(advi.Model):
             eta1_prior = Dirichlet(torch.ones(self.L[1])) #/ self.L[1])
 
         self.priors = {'mu0': mu0_prior, 'mu1': mu1_prior, 'sig': sig_prior,
-                       'eta0': eta0_prior, 'eta1': eta1_prior,
-                       'eps': eps_prior, 'W': W_prior, 'iota': iota_prior,
+                       'eta0': eta0_prior, 'eta1': eta1_prior, 'W': W_prior,
                        'alpha': alpha_prior}
 
     def init_vp(self): 
@@ -134,9 +131,7 @@ class Cytof(advi.Model):
                 'alpha': VarParam(1),
                 'Z': VarParamBernoulli((1, self.J, self.K)),
                 'eta0': VarParam((self.I, self.J, self.L[0] - 1, 1)),
-                'eta1': VarParam((self.I, self.J, self.L[1] - 1, 1)),
-                'eps': VarParam(self.I),
-                'iota': VarParam(1)}
+                'eta1': VarParam((self.I, self.J, self.L[1] - 1, 1))}
 
     def subsample_data(self, data, minibatch_info=None):
         if minibatch_info is None:
@@ -153,15 +148,13 @@ class Cytof(advi.Model):
     def sample_real_params(self, vp):
         real_params = {}
         for key in vp:
-            if key != 'iota' and key != 'eps':
-                real_params[key] = vp[key].sample()
+            real_params[key] = vp[key].sample()
         return real_params
 
     def log_q(self, real_params, vp):
         out = 0.0
         for key in vp:
-            if key != 'iota' and key != 'eps':
-                out += vp[key].log_prob(real_params[key]).sum()
+            out += vp[key].log_prob(real_params[key]).sum()
         if self.debug:
             print('log_q: {}'.format(out))
         return out / self.Nsum
@@ -211,14 +204,7 @@ class Cytof(advi.Model):
                     # print('i: {}, j:{}, lp_eta: {}'.format(i, j, tmp))
                     lp_eta += tmp
 
-        # lp_eps = lpdf_logitBeta(real_params['eps'].squeeze(),
-        #                         self.priors['eps'].concentration0,
-        #                         self.priors['eps'].concentration1).sum()
-        lp_eps = 0.0
-
-        lp_iota = 0.0
-
-        lp = lp_mu + lp_sig + lp_W + lp_v + lp_alpha + lp_eta + lp_eps + lp_iota + lp_Z
+        lp = lp_mu + lp_sig + lp_W + lp_v + lp_alpha + lp_eta + lp_Z
         # lp = lp_mu + lp_sig + lp_v + lp_alpha + lp_Z
         if self.debug:
             print('log_prior:       {}'.format(lp))
@@ -229,7 +215,6 @@ class Cytof(advi.Model):
             print('log_prior Z:     {}'.format(lp_Z))
             print('log_prior alpha: {}'.format(lp_alpha))
             print('log_prior eta:   {}'.format(lp_eta))
-            print('log_prior eps:   {}'.format(lp_eps))
 
         return lp / self.Nsum
 
@@ -293,9 +278,7 @@ class Cytof(advi.Model):
                 'Z': params['Z'],
                 'alpha': torch.log(params['alpha']),
                 'eta0': eta0,
-                'eta1': eta1,
-                'eps': None, #torch.logit(params['eps']),
-                'iota': None}
+                'eta1': eta1}
 
     def to_param_space(self, real_params):
         eta0 = torch.empty(self.I, self.J, self.L[0], 1)
@@ -319,9 +302,7 @@ class Cytof(advi.Model):
                 'Z': real_params['Z'],
                 'alpha': torch.exp(real_params['alpha']),
                 'eta0': eta0,
-                'eta1': eta1,
-                'eps': None, #torch.sigmoid(real_params['eps']),
-                'iota': None}
+                'eta1': eta1}
 
     def msg(self, t, vp):
         pass
@@ -390,7 +371,7 @@ class Cytof(advi.Model):
             fixed_grad = False
             with torch.no_grad():
                 for key in vp:
-                    if key != 'iota' and key != 'eps' and key != 'Z':
+                    if key != 'Z':
                         grad_m_isnan = torch.isnan(vp[key].m.grad)
                         if grad_m_isnan.sum() > 0:
                             print("WARNING: Setting a nan gradient to zero in {}!".format(key))
@@ -412,13 +393,12 @@ class Cytof(advi.Model):
 
             if fixed_grad:
                 for key in vp:
-                    if key != 'iota' and key != 'eps':
-                        with torch.no_grad():
-                            if key != 'Z':
-                                vp[key].m.data = best_vp[key].m.data
-                                vp[key].log_s.data = best_vp[key].log_s.data
-                            else:
-                                vp[key].logit_p.data = best_vp[key].logit_p.data
+                    with torch.no_grad():
+                        if key != 'Z':
+                            vp[key].m.data = best_vp[key].m.data
+                            vp[key].log_s.data = best_vp[key].log_s.data
+                        else:
+                            vp[key].logit_p.data = best_vp[key].logit_p.data
 
             if t % 10 == 0 and not fixed_grad:
                 # TODO: Save this periodically
