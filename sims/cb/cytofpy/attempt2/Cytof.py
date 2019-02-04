@@ -124,11 +124,9 @@ class Cytof(Model):
         lp_mu = 0.0
         for z in range(2):
             muz = 'mu0' if z == 0 else 'mu1'
-            lp_mu += Gamma(self.priors[muz].concentration,
-                           self.priors[muz].rate).log_prob(params[muz].squeeze()).sum()
+            lp_mu += self.priors[muz].log_prob(params[muz].squeeze()).sum()
 
-        lp_sig = Gamma(self.priors['sig'].concentration,
-                       self.priors['sig'].rate).log_prob(params['sig'].squeeze()).sum()
+        lp_sig = self.priors['sig'].log_prob(params['sig'].squeeze()).sum()
 
         lp_v = Beta(params['alpha'],
                     torch.tensor(1.0)).log_prob(params['v'].squeeze()).sum()
@@ -138,7 +136,7 @@ class Cytof(Model):
 
         lp_W = 0.0
         for i in range(self.I):
-            lp_W += Dirichlet(self.priors['W'].concentration).log_prob(params['W'][i,:].squeeze())
+            lp_W += self.priors['W'].log_prob(params['W'][i,:].squeeze())
     
         # v: 1 x 1 x K
         # Z: 1 x J x K
@@ -150,8 +148,7 @@ class Cytof(Model):
             etaz = 'eta0' if z == 0 else 'eta1'
             for i in range(self.I):
                 for j in range(self.J):
-                    D = Dirichlet(self.priors[etaz].concentration)
-                    tmp = D.log_prob(params[etaz][i, j, :, 0].squeeze())
+                    tmp = self.priors[etaz].log_prob(params[etaz][i, j, :, 0].squeeze())
                     # print('i: {}, j:{}, lp_eta: {}'.format(i, j, tmp))
                     lp_eta += tmp
 
