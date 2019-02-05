@@ -23,10 +23,7 @@ def lpdf_logitBeta(logitx, prior):
 def lpdf_logitUniform(logitx, prior):
     return trans.lpdf_logitx(logitx, prior.log_prob, prior.low, prior.high)
 
-def lpdf_logGamma(logx, prior):
-    return trans.lpdf_logx(logx, prior.log_prob)
-
-def lpdf_logLogNormal(logx, prior):
+def lpdf_logx(logx, prior):
     return trans.lpdf_logx(logx, prior.log_prob)
 
 def lpdf_realDirichlet(real_x, prior):
@@ -41,7 +38,8 @@ def lpdf_realDirichlet(real_x, prior):
 
 
 class Cytof(advi.Model):
-    def __init__(self, data, priors=None, K=None, L=None, dtype=torch.float64, device="cpu"):
+    def __init__(self, data, priors=None, K=None, L=None, iota=1.0,
+                 dtype=torch.float64, device="cpu"):
         """
         TODO: Write doc
         """
@@ -52,6 +50,7 @@ class Cytof(advi.Model):
         self.J = None
         self.N = None
         self.debug = False
+        self.iota = iota
 
         if K is None:
             self.K = 10
@@ -119,9 +118,9 @@ class Cytof(advi.Model):
                        'alpha': alpha_prior}
 
     def init_vp(self): 
-        return {'mu0': VarParam(self.L[0], init_m=1, init_log_s=0),
-                'mu1': VarParam(self.L[1], init_m=1, init_log_s=0),
-                'sig': VarParam(self.I, init_m=-1, init_log_s=0),
+        return {'mu0': VarParam(self.L[0]),
+                'mu1': VarParam(self.L[1]),
+                'sig': VarParam(self.I, init_m=0, init_log_s=-3),
                 'W': VarParam((self.I, self.K - 1)),
                 'v': VarParam(self.K),
                 'alpha': VarParam(1),
@@ -160,9 +159,10 @@ class Cytof(advi.Model):
         lp_mu = 0.0
         for z in range(2):
             muz = 'mu0' if z == 0 else 'mu1'
-            lp_mu += lpdf_logGamma(real_params[muz], self.priors[muz]).sum()
+            lp_mu += lpdf_logx(real_params[muz], self.priors[muz]).sum()
 
-        lp_sig = lpdf_logGamma(real_params['sig'], self.priors['sig']).sum()
+        # lp_sig = lpdf_logGamma(real_params['sig'], self.priors['sig']).sum()
+        lp_sig = lpdf_logx(real_params['sig'], self.priors['sig']).sum()
 
         # ok when the last dimension is Dirichlet
         lp_W = lpdf_realDirichlet(real_params['W'], self.priors['W']).sum()
@@ -170,7 +170,7 @@ class Cytof(advi.Model):
         lp_v = lpdf_logitBeta(real_params['v'],
                               Beta(torch.exp(real_params['alpha']), torch.tensor(1.0))).sum()
 
-        lp_alpha = lpdf_logGamma(real_params['alpha'], self.priors['alpha']).sum()
+        lp_alpha = lpdf_logx(real_params['alpha'], self.priors['alpha']).sum()
 
         # H: J x K
         lp_H = Normal(0, 1).log_prob(real_params['H']).sum()
@@ -209,9 +209,11 @@ class Cytof(advi.Model):
             # etaz_i: 1 x J x Lz
 
             # Ni x J x Lz
-            d0 = Normal(-params['mu0'][None, None, :].cumsum(2), params['sig'][i]).log_prob(data['y'][i][:, :, None])
+            d0 = Normal(-self.iota - params['mu0'][None, None, :].cumsum(2),
+                        params['sig'][i]).log_prob(data['y'][i][:, :, None])
             d0 += params['eta0'][i:i+1, :, :].log()
-            d1 = Normal(params['mu1'].cumsum(0)[None, None, :], params['sig'][i]).log_prob(data['y'][i][:, :, None])
+            d1 = Normal(self.iota + params['mu1'].cumsum(0)[None, None, :],
+                        params['sig'][i]).log_prob(data['y'][i][:, :, None])
             d1 += params['eta1'][i:i+1, :, :].log()
             
             # Ni x J
@@ -240,29 +242,24 @@ class Cytof(advi.Model):
         return ll
 
     def to_real_space(self, params):
-        
-        
-
-        return {'mu0': torch.log(params['mu0']),
-                'mu1': torch.log(params['mu1']),
-                'sig': torch.log(params['sig']),
+        return {'mu0': params['mu0'].log(),
+                'mu1': params['mu1'].log(),
+                'sig': params['sig'].log(),
                 'W': self.sbt.inv(params['W']),
-                'v': logit(params['v']),
+                'v': params['v'].log() - (-params['v']).log1p(),
                 'H': params['H'],
-                'alpha': torch.log(params['alpha']),
+                'alpha': params['alpha'].log(),
                 'eta0': self.sbt.inv(params['eta0']),
                 'eta1': self.sbt.inv(params['eta1'])}
 
     def to_param_space(self, real_params):
-        
-        
-        return {'mu0': torch.exp(real_params['mu0']),
-                'mu1': torch.exp(real_params['mu1']),
-                'sig': torch.exp(real_params['sig']),
+        return {'mu0': real_params['mu0'].exp(),
+                'mu1': real_params['mu1'].exp(),
+                'sig': real_params['sig'].exp(),
                 'W': self.sbt(real_params['W']),
-                'v': torch.sigmoid(real_params['v']),
+                'v': real_params['v'].sigmoid(),
                 'H': real_params['H'],
-                'alpha': torch.exp(real_params['alpha']),
+                'alpha': real_params['alpha'].exp(),
                 'eta0': self.sbt(real_params['eta0']),
                 'eta1': self.sbt(real_params['eta1'])}
 

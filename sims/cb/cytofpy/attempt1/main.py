@@ -70,14 +70,14 @@ if __name__ == '__main__':
         plt.colorbar()
         plt.show()
 
-    K = 10
-    model = Cytof(data=cb, K=K, L=[3,3])
+    K = 3
+    model = Cytof(data=cb, K=K, L=[4,4])
     priors = model.priors
-    model = Cytof(data=cb, K=K, L=[3,3], priors=priors)
+    model = Cytof(data=cb, K=K, L=[4,4], priors=priors)
     # model.debug=True
     out = model.fit(data=cb, niters=1000, lr=1e-1, print_freq=1, eps=1e-6,
                     minibatch_info={'prop': .1},
-                    nmc=2)
+                    nmc=1, seed=10)
 
     # Save output
     pickle.dump(out, open('{}/out.p'.format(path_to_exp_results), 'wb'))
@@ -155,8 +155,8 @@ if __name__ == '__main__':
     Z = v.log().cumsum(0)[:, None, :] > Normal(0, 1).cdf(H).log()
     Z = Z.numpy()
         # plt.imshow(Z.mean(0) > .5, aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
-    plt.imshow(Z[0], aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
-    add_gridlines_Z(Z.mean(0))
+    plt.imshow(Z.mean(0), aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
+    add_gridlines_Z(Z[0])
     plt.savefig('{}/Z.pdf'.format(path_to_exp_results))
     plt.show()
 
@@ -165,9 +165,9 @@ if __name__ == '__main__':
 
     # Plot mu vp mean
     trace_len = len(out['trace'])
-    mu0_m_trace = torch.stack([-t['mu0'].m.exp().cumsum(0)
+    mu0_m_trace = torch.stack([-model.iota - t['mu0'].m.exp().cumsum(0)
                            for t in out['trace']])
-    mu1_m_trace = torch.stack([t['mu1'].m.exp().cumsum(0)
+    mu1_m_trace = torch.stack([model.iota + t['mu1'].m.exp().cumsum(0)
                            for t in out['trace']])
 
     plt.plot(mu0_m_trace.detach().numpy())
@@ -180,7 +180,7 @@ if __name__ == '__main__':
     for i in range(model.I):
         plt.plot(W_m_trace.detach().numpy()[:, i, :])
         if SIMULATE_DATA:
-            for k in range(data['params']['Z'].size(1)):
+            for k in range(data['params']['W'].size(1)):
                 plt.axhline(data['params']['W'][i, k])
         plt.title('trace plot for W_{} mean'.format(i))
         plt.show()
