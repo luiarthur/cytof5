@@ -108,8 +108,8 @@ if __name__ == '__main__':
     post = [model.to_param_space(model.sample_real_params(vp)) for b in range(B)]
 
     # Plot mu
-    mu0 = torch.stack([p['mu0'].cumsum(2) for p in post]).reshape(B, model.L[0]).detach().numpy()
-    mu1 = torch.stack([p['mu1'].cumsum(2) for p in post]).reshape(B, model.L[1]).detach().numpy()
+    mu0 = torch.stack([p['mu0'].cumsum(0) for p in post]).detach().numpy()
+    mu1 = torch.stack([p['mu1'].cumsum(0) for p in post]).detach().numpy()
     mu = np.concatenate((-mu0, mu1), 1)
     plt.boxplot(mu, showmeans=True, whis=[2.5, 97.5], showfliers=False)
     plt.ylabel('$\mu$', rotation=0)
@@ -131,7 +131,7 @@ if __name__ == '__main__':
                 plt.axhline(yint)
 
     # plot v
-    v = torch.stack([p['v'] for p in post]).detach().numpy().reshape(B, model.K)
+    v = torch.stack([p['v'] for p in post]).detach().numpy()
     plt.subplot(model.I + 1, 1, model.I + 1)
     plt.boxplot(v.cumprod(1), showmeans=True, whis=[2.5, 97.5], showfliers=False)
     plt.ylabel('$v$', rotation=0, labelpad=15)
@@ -150,11 +150,11 @@ if __name__ == '__main__':
 
     # Plot Z
     # Z = torch.stack([p['Z'] for p in post]).detach().reshape((B, model.J, model.K)).numpy()
-    H = torch.stack([p['H'] for p in post]).detach().reshape((B, model.J, model.K))
-    v = torch.stack([p['v'] for p in post]).detach().reshape((B, 1, model.K))
-    Z = v.log().cumsum(2) > Normal(0, 1).cdf(H).log()
+    H = torch.stack([p['H'] for p in post]).detach()
+    v = torch.stack([p['v'] for p in post]).detach()
+    Z = v.log().cumsum(0)[:, None, :] > Normal(0, 1).cdf(H).log()
     Z = Z.numpy()
-    # plt.imshow(Z.mean(0) > .5, aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
+        # plt.imshow(Z.mean(0) > .5, aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
     plt.imshow(Z[0], aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
     add_gridlines_Z(Z.mean(0))
     plt.savefig('{}/Z.pdf'.format(path_to_exp_results))
@@ -165,10 +165,10 @@ if __name__ == '__main__':
 
     # Plot mu vp mean
     trace_len = len(out['trace'])
-    mu0_m_trace = torch.stack([-t['mu0'].m.exp().cumsum(1)
-                           for t in out['trace']]).reshape(trace_len, model.L[0])
-    mu1_m_trace = torch.stack([t['mu1'].m.exp().cumsum(1)
-                           for t in out['trace']]).reshape(trace_len, model.L[1])
+    mu0_m_trace = torch.stack([-t['mu0'].m.exp().cumsum(0)
+                           for t in out['trace']])
+    mu1_m_trace = torch.stack([t['mu1'].m.exp().cumsum(0)
+                           for t in out['trace']])
 
     plt.plot(mu0_m_trace.detach().numpy())
     plt.plot(mu1_m_trace.detach().numpy())
@@ -177,7 +177,6 @@ if __name__ == '__main__':
 
     # Plot W vp mean
     W_m_trace = torch.stack([model.sbt(t['W'].m) for t in out['trace']])
-    W_m_trace = W_m_trace.reshape(trace_len, model.I, model.K)
     for i in range(model.I):
         plt.plot(W_m_trace.detach().numpy()[:, i, :])
         if SIMULATE_DATA:
@@ -200,7 +199,7 @@ if __name__ == '__main__':
 
 
     # Plot v vp mean
-    v_m_trace = torch.stack([t['v'].m.sigmoid().cumprod(2) for t in out['trace']]).reshape(trace_len, model.K)
+    v_m_trace = torch.stack([t['v'].m.sigmoid().cumprod(0) for t in out['trace']])
     plt.plot(v_m_trace.detach().numpy())
     plt.title('trace plot for v vp mean')
     plt.show()

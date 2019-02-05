@@ -37,6 +37,7 @@ def lpdf_realDirichlet(real_x, prior):
     sbt = StickBreakingTransform(0)
     simplex_x = sbt(real_x)
     return lpdf(simplex_x) + sbt.log_abs_det_jacobian(real_x, simplex_x)
+    
 
 
 class Cytof(advi.Model):
@@ -63,8 +64,6 @@ class Cytof(advi.Model):
             self.L = L
 
         self.Nsum = None
-        # self.sbt_W = StickBreakingTransform(1)
-        # self.sbt_eta = [StickBreakingTransform(1), StickBreakingTransform(1)]
         self.sbt = StickBreakingTransform(0)
 
         if priors is None:
@@ -84,11 +83,9 @@ class Cytof(advi.Model):
         # Assert that all samples have equal number of markers (columns)
         for i in range(self.I):
             assert(data['y'][i].size(1) == self.J)
-            data['y'][i] = data['y'][i].reshape(self.N[i], self.J, 1, 1)
+            data['y'][i] = data['y'][i].reshape(self.N[i], self.J)
     
     def gen_default_priors(self, data, K, L,
-                           # sig_prior=LogNormal(-2., 1.),
-                           # sig_prior=Gamma(100, 1000),
                            sig_prior=Gamma(1, 1),
                            alpha_prior=Gamma(1., 1.),
                            mu0_prior=None,
@@ -122,15 +119,15 @@ class Cytof(advi.Model):
                        'alpha': alpha_prior}
 
     def init_vp(self): 
-        return {'mu0': VarParam((1, 1, self.L[0], 1), init_m=1, init_log_s=0),
-                'mu1': VarParam((1, 1, self.L[1], 1), init_m=1, init_log_s=0),
+        return {'mu0': VarParam(self.L[0], init_m=1, init_log_s=0),
+                'mu1': VarParam(self.L[1], init_m=1, init_log_s=0),
                 'sig': VarParam(self.I, init_m=-1, init_log_s=0),
                 'W': VarParam((self.I, self.K - 1)),
-                'v': VarParam((1, 1, self.K)),
+                'v': VarParam(self.K),
                 'alpha': VarParam(1),
-                'H': VarParam((1, self.J, self.K)),
-                'eta0': VarParam((self.I, self.J, self.L[0] - 1, 1)),
-                'eta1': VarParam((self.I, self.J, self.L[1] - 1, 1))}
+                'H': VarParam((self.J, self.K)),
+                'eta0': VarParam((self.I, self.J, self.L[0] - 1)),
+                'eta1': VarParam((self.I, self.J, self.L[1] - 1))}
 
     def subsample_data(self, data, minibatch_info=None):
         if minibatch_info is None:
@@ -140,7 +137,7 @@ class Cytof(advi.Model):
             for i in range(self.I):
                 n = int(minibatch_info['prop'] * self.N[i])
                 idx = np.random.choice(self.N[i], n)
-                mini_data['y'].append(data['y'][i][idx, :, :, :])
+                mini_data['y'].append(data['y'][i][idx, :])
                 mini_data['m'].append(data['m'][i][idx, :])
         return mini_data
 
@@ -155,7 +152,7 @@ class Cytof(advi.Model):
         for key in vp:
             out += vp[key].log_prob(real_params[key]).sum()
         if self.debug:
-            print('log_q: {}'.format(out))
+            print('log_q: {}'.format(out / self.Nsum))
         return out / self.Nsum
 
     def log_prior(self, real_params):
@@ -163,82 +160,73 @@ class Cytof(advi.Model):
         lp_mu = 0.0
         for z in range(2):
             muz = 'mu0' if z == 0 else 'mu1'
-            lp_mu += lpdf_logGamma(real_params[muz].squeeze(),
-                                   self.priors[muz]).sum()
+            lp_mu += lpdf_logGamma(real_params[muz], self.priors[muz]).sum()
 
-        lp_sig = lpdf_logGamma(real_params['sig'].squeeze(),
-                               self.priors['sig']).sum()
+        lp_sig = lpdf_logGamma(real_params['sig'], self.priors['sig']).sum()
 
-        lp_W = 0.0
-        for i in range(self.I):
-            lp_W += lpdf_realDirichlet(real_params['W'][i, :].squeeze(),
-                                       self.priors['W']).sum()
+        # ok when the last dimension is Dirichlet
+        lp_W = lpdf_realDirichlet(real_params['W'], self.priors['W']).sum()
 
-        lp_v = lpdf_logitBeta(real_params['v'].squeeze(),
-                              Beta(torch.exp(real_params['alpha']), torch.tensor(1.0))
-                              ).sum()
+        lp_v = lpdf_logitBeta(real_params['v'],
+                              Beta(torch.exp(real_params['alpha']), torch.tensor(1.0))).sum()
 
-        lp_alpha = lpdf_logGamma(real_params['alpha'],
-                                 self.priors['alpha']).sum()
+        lp_alpha = lpdf_logGamma(real_params['alpha'], self.priors['alpha']).sum()
 
-        # v: 1 x 1 x K
-        # H: 1 x J x K
+        # H: J x K
         lp_H = Normal(0, 1).log_prob(real_params['H']).sum()
 
-        lp_eta = 0.0
-        for z in range(2):
-            etaz = 'eta0' if z == 0 else 'eta1'
-            for i in range(self.I):
-                for j in range(self.J):
-                    tmp = lpdf_realDirichlet(real_params[etaz][i, j, :, 0].squeeze(),
-                                             self.priors[etaz]).sum()
-                    # print('i: {}, j:{}, lp_eta: {}'.format(i, j, tmp))
-                    lp_eta += tmp
+        # ok when the last dimension is Dirichlet
+        lp_eta0 = lpdf_realDirichlet(real_params['eta0'], self.priors['eta0']).sum()
+        lp_eta1 = lpdf_realDirichlet(real_params['eta1'], self.priors['eta1']).sum()
+        lp_eta = lp_eta0 + lp_eta1
 
-        # lp = lp_mu + lp_sig + lp_W + lp_v + lp_alpha + lp_eta
+        # sum up the log priors
         lp = lp_mu + lp_sig + lp_W + lp_v + lp_alpha + lp_eta + lp_H
+
         if self.debug:
-            print('log_prior:       {}'.format(lp))
-            print('log_prior mu:    {}'.format(lp_mu))
-            print('log_prior sig:   {}'.format(lp_sig))
-            print('log_prior W:     {}'.format(lp_W))
-            print('log_prior v:     {}'.format(lp_v))
-            print('log_prior H:     {}'.format(lp_H))
-            print('log_prior alpha: {}'.format(lp_alpha))
-            print('log_prior eta:   {}'.format(lp_eta))
+            print('log_prior:       {}'.format(lp / self.Nsum))
+            # print('log_prior mu:    {}'.format(lp_mu))
+            # print('log_prior sig:   {}'.format(lp_sig))
+            # print('log_prior W:     {}'.format(lp_W))
+            # print('log_prior v:     {}'.format(lp_v))
+            # print('log_prior H:     {}'.format(lp_H))
+            # print('log_prior alpha: {}'.format(lp_alpha))
+            # print('log_prior eta:   {}'.format(lp_eta))
 
         return lp / self.Nsum
 
     def loglike(self, real_params, data, minibatch_info=None):
         params = self.to_param_space(real_params)
-        if self.debug:
-            print(params)
+        # if self.debug:
+        #     print(params)
 
         ll = 0.0
         
         # FIXME: Check this!
         for i in range(self.I):
-            # Y: Ni x J x 1 x 1
-            # muz: 1 x 1 x Lz x 1
-            # etaz: I x J x Lz x 1
-            # Ni x J x Lz x K
-            d0 = Normal(-params['mu0'].cumsum(2), params['sig'][i]).log_prob(data['y'][i])
-            d0 += params['eta0'][i:i+1, :, :, :].log()
-            d1 = Normal(params['mu1'].cumsum(2), params['sig'][i]).log_prob(data['y'][i])
-            d1 += params['eta1'][i:i+1, :, :, :].log()
-            
-            logmix_L0 = torch.logsumexp(d0, 2) # Ni x J x K
-            logmix_L1 = torch.logsumexp(d1, 2) # Ni x J x K
+            # Y: Ni x J
+            # muz: Lz
+            # etaz_i: 1 x J x Lz
 
-            # Ni x J x K
-            # Z: 1 x J x K
-            # H: 1 x J x K
-            # v: 1 x 1 x K
+            # Ni x J x Lz
+            d0 = Normal(-params['mu0'][None, None, :].cumsum(2), params['sig'][i]).log_prob(data['y'][i][:, :, None])
+            d0 += params['eta0'][i:i+1, :, :].log()
+            d1 = Normal(params['mu1'].cumsum(0)[None, None, :], params['sig'][i]).log_prob(data['y'][i][:, :, None])
+            d1 += params['eta1'][i:i+1, :, :].log()
+            
+            # Ni x J
+            logmix_L0 = torch.logsumexp(d0, 2)
+            logmix_L1 = torch.logsumexp(d1, 2)
+
+            # Z: J x K
+            # H: J x K
+            # v: K
             # c: Ni x J x K
             # d: Ni x K
-            log_b_vec = params['v'].log().cumsum(2)
-            Z = (log_b_vec > Normal(0, 1).cdf(params['H']).log()).float()
-            c = Z * logmix_L1 + (1 - Z) * logmix_L0
+            # Ni x J x K
+            log_b_vec = params['v'].log().cumsum(0)
+            Z = (log_b_vec[None, :] > Normal(0, 1).cdf(params['H']).log()).float()
+            c = Z[None, :] * logmix_L1[:, :, None] + (1 - Z[None, :]) * logmix_L0[:, :, None]
             d = c.sum(1)
 
             f = d + params['W'][i:i+1, :].log()
@@ -252,48 +240,31 @@ class Cytof(advi.Model):
         return ll
 
     def to_real_space(self, params):
-        eta0 = torch.empty(self.I, self.J, self.L[0] - 1, 1)
-        eta1 = torch.empty(self.I, self.J, self.L[1] - 1, 1)
-        for i in range(self.I):
-            for j in range(self.J):
-                eta0[i, j, :, 0] = self.sbt.inv(params['eta0'][i, j, :, 0])
-                eta1[i, j, :, 0] = self.sbt.inv(params['eta1'][i, j, :, 0])
+        
+        
 
-        mu0 = torch.log(params['mu0'])
-        mu1 = torch.log(params['mu1'])
-        return {'mu0': mu0,
-                'mu1': mu1,
+        return {'mu0': torch.log(params['mu0']),
+                'mu1': torch.log(params['mu1']),
                 'sig': torch.log(params['sig']),
-                'W': torch.stack([self.sbt.inv(params['W'][i, :])
-                                  for i in range(self.I)]),
+                'W': self.sbt.inv(params['W']),
                 'v': logit(params['v']),
                 'H': params['H'],
                 'alpha': torch.log(params['alpha']),
-                'eta0': eta0,
-                'eta1': eta1}
+                'eta0': self.sbt.inv(params['eta0']),
+                'eta1': self.sbt.inv(params['eta1'])}
 
     def to_param_space(self, real_params):
-        eta0 = torch.empty(self.I, self.J, self.L[0], 1)
-        eta1 = torch.empty(self.I, self.J, self.L[1], 1)
-        W = torch.empty(self.I, self.K)
-
-        for i in range(self.I):
-            W[i, :] = self.sbt(real_params['W'][i, :].squeeze())
-            for j in range(self.J):
-                eta0[i, j, :, 0] = self.sbt(real_params['eta0'][i, j, :, 0])
-                eta1[i, j, :, 0] = self.sbt(real_params['eta1'][i, j, :, 0])
-
-        mu0 = torch.exp(real_params['mu0'])
-        mu1 = torch.exp(real_params['mu1'])
-        return {'mu0': mu0,
-                'mu1': mu1,
+        
+        
+        return {'mu0': torch.exp(real_params['mu0']),
+                'mu1': torch.exp(real_params['mu1']),
                 'sig': torch.exp(real_params['sig']),
-                'W': W,
+                'W': self.sbt(real_params['W']),
                 'v': torch.sigmoid(real_params['v']),
                 'H': real_params['H'],
                 'alpha': torch.exp(real_params['alpha']),
-                'eta0': eta0,
-                'eta1': eta1}
+                'eta0': self.sbt(real_params['eta0']),
+                'eta1': self.sbt(real_params['eta1'])}
 
     def msg(self, t, vp):
         pass
