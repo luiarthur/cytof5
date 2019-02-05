@@ -5,7 +5,6 @@ import numpy as np
 
 import torch
 from torch.distributions import Gamma
-from torch.distributions import Bernoulli
 from torch.distributions import Beta
 from torch.distributions import Normal
 from torch.distributions import Dirichlet
@@ -15,7 +14,7 @@ from torch.distributions.transforms import StickBreakingTransform
 
 import advi
 import advi.transformations as trans
-from VarParam import VarParam, VarParamBernoulli
+from VarParam import VarParam
 
 
 def lpdf_logitBeta(logitx, a, b):
@@ -130,7 +129,6 @@ class Cytof(advi.Model):
                 'W': VarParam((self.I, self.K - 1)),
                 'v': VarParam((1, 1, self.K)),
                 'alpha': VarParam(1),
-                # 'Z': VarParamBernoulli((1, self.J, self.K)),
                 'H': VarParam((1, self.J, self.K)),
                 'eta0': VarParam((self.I, self.J, self.L[0] - 1, 1)),
                 'eta1': VarParam((self.I, self.J, self.L[1] - 1, 1))}
@@ -188,12 +186,8 @@ class Cytof(advi.Model):
                                  self.priors['alpha'].concentration,
                                  self.priors['alpha'].rate).sum()
 
-        # Actually, Z is binary here. This is correct, but easier to code.
         # v: 1 x 1 x K
-        # Z: 1 x J x K
-        # lp_Z = Bernoulli(torch.sigmoid(real_params['v'])).log_prob(real_params['Z']).sum()
-        # b_vec = torch.sigmoid(real_params['v']).cumprod(2)
-        # lp_Z = (real_params['Z'] * b_vec.log() + (1 - real_params['Z']) * (1 - b_vec).log()).sum()
+        # H: 1 x J x K
         lp_H = Normal(0, 1).log_prob(real_params['H']).sum()
 
         lp_eta = 0.0
@@ -207,7 +201,7 @@ class Cytof(advi.Model):
                     # print('i: {}, j:{}, lp_eta: {}'.format(i, j, tmp))
                     lp_eta += tmp
 
-        # lp = lp_mu + lp_sig + lp_W + lp_v + lp_alpha + lp_eta + lp_Z
+        # lp = lp_mu + lp_sig + lp_W + lp_v + lp_alpha + lp_eta
         lp = lp_mu + lp_sig + lp_W + lp_v + lp_alpha + lp_eta + lp_H
         if self.debug:
             print('log_prior:       {}'.format(lp))
@@ -215,7 +209,6 @@ class Cytof(advi.Model):
             print('log_prior sig:   {}'.format(lp_sig))
             print('log_prior W:     {}'.format(lp_W))
             print('log_prior v:     {}'.format(lp_v))
-            # print('log_prior Z:     {}'.format(lp_Z))
             print('log_prior H:     {}'.format(lp_H))
             print('log_prior alpha: {}'.format(lp_alpha))
             print('log_prior eta:   {}'.format(lp_eta))
@@ -245,17 +238,16 @@ class Cytof(advi.Model):
 
             # Ni x J x K
             # Z: 1 x J x K
+            # H: 1 x J x K
             # v: 1 x 1 x K
-            # c0 = params['Z'] * logmix_L1 + (1 - params['Z']) * logmix_L0
+            # c: Ni x J x K
+            # d: Ni x K
             log_b_vec = params['v'].log().cumsum(2)
             Z = (log_b_vec > Normal(0, 1).cdf(params['H']).log()).float()
-            c0 = Z * logmix_L1 + (1 - Z) * logmix_L0
+            c = Z * logmix_L1 + (1 - Z) * logmix_L0
+            d = c.sum(1)
 
-            # OLD
-            # Ni x K
-            c = c0.sum(1)
-
-            f = c + params['W'][i:i+1, :].log()
+            f = d + params['W'][i:i+1, :].log()
             lli = torch.logsumexp(f, 1).mean(0) * (self.N[i] / self.Nsum)
             assert(lli.dim() == 0)
 
@@ -405,11 +397,8 @@ class Cytof(advi.Model):
             if fixed_grad:
                 for key in vp:
                     with torch.no_grad():
-                        if key != 'Z':
-                            vp[key].m.data = best_vp[key].m.data
-                            vp[key].log_s.data = best_vp[key].log_s.data
-                        else:
-                            vp[key].logit_p.data = best_vp[key].logit_p.data
+                        vp[key].m.data = best_vp[key].m.data
+                        vp[key].log_s.data = best_vp[key].log_s.data
 
             if t % 10 == 0 and not fixed_grad:
                 # TODO: Save this periodically
