@@ -71,9 +71,9 @@ if __name__ == '__main__':
         plt.show()
 
     K = 3
-    model = Cytof(data=cb, K=K, L=[4,4])
+    model = Cytof(data=cb, K=K, L=[5,5])
     priors = model.priors
-    model = Cytof(data=cb, K=K, L=[4,4], priors=priors)
+    model = Cytof(data=cb, K=K, L=[5,5], priors=priors)
     # model.debug=True
     out = model.fit(data=cb, niters=1000, lr=1e-1, print_freq=1, eps=1e-6,
                     minibatch_info={'prop': .1},
@@ -152,7 +152,7 @@ if __name__ == '__main__':
     # Z = torch.stack([p['Z'] for p in post]).detach().reshape((B, model.J, model.K)).numpy()
     H = torch.stack([p['H'] for p in post]).detach()
     v = torch.stack([p['v'] for p in post]).detach()
-    Z = v.log().cumsum(0)[:, None, :] > Normal(0, 1).cdf(H).log()
+    Z = v.log().cumsum(1)[:, None, :] > Normal(0, 1).cdf(H).log()
     Z = Z.numpy()
         # plt.imshow(Z.mean(0) > .5, aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
     plt.imshow(Z.mean(0), aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
