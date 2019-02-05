@@ -86,7 +86,8 @@ class Cytof(advi.Model):
     
     def gen_default_priors(self, data, K, L,
                            sig_prior=Gamma(1, 1),
-                           alpha_prior=Gamma(1., 1.),
+                           # alpha_prior=Gamma(1., 1.),
+                           alpha_prior=Gamma(.01, .01),
                            mu0_prior=None,
                            mu1_prior=None,
                            W_prior=None,
@@ -168,7 +169,7 @@ class Cytof(advi.Model):
         lp_W = lpdf_realDirichlet(real_params['W'], self.priors['W']).sum()
 
         lp_v = lpdf_logitBeta(real_params['v'],
-                              Beta(torch.exp(real_params['alpha']), torch.tensor(1.0))).sum()
+                              Beta(real_params['alpha'].exp(), torch.tensor(1.0))).sum()
 
         lp_alpha = lpdf_logx(real_params['alpha'], self.priors['alpha']).sum()
 

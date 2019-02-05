@@ -148,6 +148,13 @@ if __name__ == '__main__':
 
     plt.show()
 
+    # plot alpha
+    alpha = torch.stack([p['alpha'] for p in post]).detach().numpy().squeeze()
+    plt.hist(alpha)
+    plt.xlabel('alpha', fontsize=15)
+    plt.show()
+
+
     # Plot Z
     # Z = torch.stack([p['Z'] for p in post]).detach().reshape((B, model.J, model.K)).numpy()
     H = torch.stack([p['H'] for p in post]).detach()
