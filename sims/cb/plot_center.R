@@ -1,6 +1,7 @@
 library(rcommon)
 library(cytof3)
 system('mkdir -p results/thresh')
+system('mkdir -p results/thresh/old')
 
 y = readRDS('data/cytof_cb.rds')
 I = length(y)
@@ -27,4 +28,19 @@ for (thresh in THRESH) {
   dev.off()
 }
 
+for (thresh in THRESH) {
+  gm_idx = which(good_markers)
+  M = matrix(NA, I, length(gm_idx))
+  for (i in 1:I) for (j in 1:length(gm_idx)) {
+    M[i, j] = mean(abs(y[[i]][, gm_idx[j]]) < thresh, na.rm=TRUE)
+  }
 
+  pdf('results/thresh/old/thresh_' %+% thresh %+% '_.pdf')
+  par(mfrow=c(I, 1))
+  for (i in 1:I) {
+    plot(M[i, ], type='h', main='proportion of cells s.t. |y_{inj}| < ' %+% thresh,
+         xlab='markers in sample ' %+% i, ylab='proportion')
+  }
+  par(mfrow=c(1, 1))
+  dev.off()
+}
