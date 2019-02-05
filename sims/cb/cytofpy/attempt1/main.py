@@ -20,6 +20,7 @@ def add_gridlines_Z(Z):
 
 
 if __name__ == '__main__':
+    sbt = torch.distributions.StickBreakingTransform()
     path_to_exp_results = 'results/test/'
     os.makedirs(path_to_exp_results, exist_ok=True)
 
@@ -175,7 +176,7 @@ if __name__ == '__main__':
     plt.show()
 
     # Plot W vp mean
-    W_m_trace = torch.stack([model.sbt_W(t['W'].m) for t in out['trace']])
+    W_m_trace = torch.stack([model.sbt(t['W'].m) for t in out['trace']])
     W_m_trace = W_m_trace.reshape(trace_len, model.I, model.K)
     for i in range(model.I):
         plt.plot(W_m_trace.detach().numpy()[:, i, :])
