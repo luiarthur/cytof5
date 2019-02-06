@@ -75,8 +75,8 @@ if __name__ == '__main__':
     priors = model.priors
     model = Cytof(data=cb, K=K, L=[2,2], priors=priors)
     # model.debug=True
-    out = model.fit(data=cb, niters=1000, lr=1e-1, print_freq=10, eps=1e-6,
-                    minibatch_info={'prop': .1},
+    out = model.fit(data=cb, niters=10000, lr=1e-1, print_freq=10, eps=0,
+                    minibatch_info={'prop': .01},
                     nmc=1, seed=10)
 
     # Save output

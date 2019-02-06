@@ -230,8 +230,15 @@ class Cytof(advi.Model):
             # c: Ni x J x K
             # d: Ni x K
             # Ni x J x K
-            log_b_vec = params['v'].log().cumsum(0)
-            Z = (log_b_vec[None, :] > Normal(0, 1).cdf(params['H']).log()).float()
+
+            # OLD
+            # log_b_vec = params['v'].log().cumsum(0)
+            # Z = (log_b_vec[None, :] > Normal(0, 1).cdf(params['H']).log()).float()
+
+            # FIXME: USING A SIGMOID HERE TOTALLY HELPS!!!
+            #        IS IT HACKY? FIND SOMETHING STEEPER THAN SIGMOID
+            b_vec= params['v'].cumprod(0)
+            Z = (b_vec[None, :] - Normal(0, 1).cdf(params['H'])).sigmoid()
             c = Z[None, :] * logmix_L1[:, :, None] + (1 - Z[None, :]) * logmix_L0[:, :, None]
             d = c.sum(1)
 
