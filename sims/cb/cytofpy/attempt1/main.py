@@ -44,7 +44,8 @@ if __name__ == '__main__':
     else:
         # data = simdata(N=[30000, 10000, 20000], L0=3, L1=3, J=12, K=4)
         # data = simdata(N=[3000, 3000, 3000], L0=3, L1=3, J=12, K=4)
-        data = simdata(N=[30000, 10000, 20000], L0=1, L1=1, J=4, a_W=[300, 700])
+        # data = simdata(N=[30000, 10000, 20000], L0=1, L1=1, J=4, a_W=[300, 700])
+        data = simdata(N=[30000, 10000, 20000], L0=3, L1=3, J=24, a_W=[300, 200, 500])
         cb = data['data']
         plt.imshow(data['params']['Z'], aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
         J, K = data['params']['Z'].shape
@@ -70,12 +71,13 @@ if __name__ == '__main__':
         plt.colorbar()
         plt.show()
 
-    K = 2
-    model = Cytof(data=cb, K=K, L=[2,2])
+    K = 5
+    L = [5, 5]
+    model = Cytof(data=cb, K=K, L=L)
     priors = model.priors
-    model = Cytof(data=cb, K=K, L=[2,2], priors=priors)
+    model = Cytof(data=cb, K=K, L=L, priors=priors)
     # model.debug=True
-    out = model.fit(data=cb, niters=10000, lr=1e-1, print_freq=10, eps=0,
+    out = model.fit(data=cb, niters=3000, lr=1e-1, print_freq=10, eps=0,
                     minibatch_info={'prop': .01},
                     nmc=1, seed=10)
 
@@ -161,8 +163,8 @@ if __name__ == '__main__':
     v = torch.stack([p['v'] for p in post]).detach()
     Z = v.log().cumsum(1)[:, None, :] > Normal(0, 1).cdf(H).log()
     Z = Z.numpy()
-    # plt.imshow(Z.mean(0) > .5, aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
-    plt.imshow(Z.mean(0), aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
+    plt.imshow(Z.mean(0) > .5, aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
+    # plt.imshow(Z.mean(0), aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
     add_gridlines_Z(Z[0])
     plt.savefig('{}/Z.pdf'.format(path_to_exp_results))
     plt.show()

@@ -38,19 +38,25 @@ def lpdf_realDirichlet(real_x, prior):
 
 
 class Cytof(advi.Model):
-    def __init__(self, data, priors=None, K=None, L=None, iota=1.0,
+    def __init__(self, data, priors=None, K=None, L=None, iota=1.0, tau=0.5,
                  dtype=torch.float64, device="cpu"):
         """
         TODO: Write doc
+        tau: temperature parameter for sigmoid gumbel for Z.
+             tau should be in the unit interval.
+             Smaller tau makes Z_jk closer to extremes (0, 1).
         """
         self.dtype = dtype
         self.device = device
+
+        assert(0.0 < tau < 1.0)
 
         self.I = None
         self.J = None
         self.N = None
         self.debug = False
         self.iota = iota
+        self.tau = tau
 
         if K is None:
             self.K = 10
@@ -234,7 +240,7 @@ class Cytof(advi.Model):
             # FIXME: USING A SIGMOID HERE TOTALLY HELPS!!!
             #        IS IT HACKY? FIND SOMETHING STEEPER THAN SIGMOID
             b_vec = params['v'].cumprod(0)
-            Z = ((b_vec[None, :] - Normal(0, 1).cdf(params['H'])) * 2.0).sigmoid()
+            Z = ((b_vec[None, :] - Normal(0, 1).cdf(params['H'])) / self.tau).sigmoid()
             c = Z[None, :] * logmix_L1[:, :, None] + (1 - Z[None, :]) * logmix_L0[:, :, None]
             d = c.sum(1)
 
