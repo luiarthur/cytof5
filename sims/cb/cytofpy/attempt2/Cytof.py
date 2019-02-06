@@ -7,7 +7,6 @@ from VarParams import *
 
 import torch
 from torch.distributions import Gamma
-from torch.distributions import Bernoulli
 from torch.distributions import Beta
 from torch.distributions import Normal
 from torch.distributions import Dirichlet
@@ -35,7 +34,7 @@ class Cytof(Model):
             self.gen_default_priors(K, L)
  
     def gen_default_priors(self, K, L,
-                           sig_prior=Gamma(100, 1000),
+                           sig_prior=Gamma(1, 1),
                            alpha_prior=Gamma(1., 1.),
                            mu0_prior=None,
                            mu1_prior=None,
@@ -101,7 +100,10 @@ class Cytof(Model):
 
             # Ni x J x K
             # Z: 1 x J x K
-            c0 = params['Z'] * logmix_L1 + (1 - params['Z']) * logmix_L0
+            b_vec = params['v'].cumprod(2)
+            H = params['H']
+            Z = ((b_vec - Normal(0,1).cdf(H)) / .5).sigmoid()
+            c0 = Z * logmix_L1 + (1 - Z) * logmix_L0
 
             # OLD
             # Ni x K
@@ -137,8 +139,7 @@ class Cytof(Model):
     
         # v: 1 x 1 x K
         # Z: 1 x J x K
-        b_vec = params['v'].cumprod(2)
-        lp_Z = Bernoulli(b_vec).log_prob(params['Z']).sum()
+        lp_H = Normal(0, 1).log_prob(params['H']).sum()
 
         lp_eta = 0.0
         for z in range(2):
@@ -149,11 +150,12 @@ class Cytof(Model):
                     # print('i: {}, j:{}, lp_eta: {}'.format(i, j, tmp))
                     lp_eta += tmp
 
-        lp = lp_mu + lp_sig + lp_v + lp_alpha + lp_W + lp_Z + lp_eta 
+        lp = lp_mu + lp_sig + lp_v + lp_alpha + lp_W + lp_H + lp_eta 
         if self.debug:
             print('log_prior: {}'.format(lp))
 
-        return lp.sum() / self.Nsum
+        # return lp.sum() / self.Nsum
+        return 0.0
 
     def msg(self, t):
         pass
@@ -175,9 +177,9 @@ class Cytof(Model):
                    'mu1': VPGamma((1, 1, self.L[1], 1)),
                    'sig': VPGamma(self.I),
                    'W': VPDirichletW((self.I, self.K)),
-                   'v': VPBeta((1, 1, self.K)),
+                   'v': VPNormal((1, 1, self.K)),
                    'alpha': VPGamma(1),
-                   'Z': VPBernoulli((1, self.J, self.K)),
+                   'H': VPNormal((1, self.J, self.K)),
                    'eta0': VPDirichletEta((self.I, self.J, self.L[0], 1)),
                    'eta1': VPDirichletEta((self.I, self.J, self.L[1], 1))}
  

@@ -64,7 +64,7 @@ if __name__ == '__main__':
 
     K = 3
     model = Cytof(data=cb, K=K, L=[3,3])
-    model.debug=True
+    # model.debug=True
     out = model.fit(niters=1000, lr=1e-1, print_freq=10, eps=1e-6,
                     # minibatch_info={'prop': .9},
                     nmc=1)
@@ -86,9 +86,11 @@ if __name__ == '__main__':
     post = [model.sample_params() for b in range(B)]
 
     # Plot Z
-    Z = torch.stack([p['Z'] for p in post]).detach().reshape((B, model.J, model.K)).numpy()
+    H = torch.stack([p['H'] for p in post]).detach().reshape((B, model.J, model.K))
+    v = torch.stack([p['v'] for p in post]).detach().reshape((B, 1, model.K))
+    Z = (v.cumprod(2) > torch.distributions.Normal(0, 1).cdf(H)).numpy()
     plt.imshow(Z.mean(0) > .5, aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
-    add_gridlines_Z(Z.mean(0))
+    add_gridlines_Z(Z[0])
     plt.savefig('{}/Z.pdf'.format(path_to_exp_results))
     plt.show()
 

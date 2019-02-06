@@ -2,7 +2,6 @@ import abc
 
 import torch
 from torch.distributions import Normal
-from torch.distributions import Bernoulli
 from torch.distributions import Dirichlet
 from torch.distributions import Gamma
 from torch.distributions import Beta
@@ -29,31 +28,19 @@ class VPNormal(VarParam):
         self.vp.requires_grad = True
 
     def sample(self):
-        return Normal(self.vp[0], self.vp[1].exp()).sample()
+        return Normal(self.vp[0], self.vp[1].exp()).rsample()
 
     def logpdf(self, x):
         return Normal(self.vp[0], self.vp[1].exp()).log_prob(x)
 
-class VPBernoulli(VarParam):
-    def __init__(self, size):
-        super().__init__(size)
-        self.vp = torch.zeros(size)
-        self.vp.requires_grad = True
-
-    def sample(self):
-        return Bernoulli(logits=self.vp).sample()
-
-    def logpdf(self, x):
-        return Bernoulli(logits=self.vp).log_prob(x)
-
 class VPDirichlet(VarParam):
     def __init__(self, size):
         super().__init__(size)
-        self.vp = torch.zeros(size)
+        self.vp = torch.randn(size)
         self.vp.requires_grad = True
 
     def sample(self):
-        return Dirichlet(self.vp.exp()).sample()
+        return Dirichlet(self.vp.exp()).rsample()
 
     def logpdf(self, x):
         return Dirichlet(self.vp.exp()).log_prob(x)
@@ -61,7 +48,7 @@ class VPDirichlet(VarParam):
 class VPDirichletW(VarParam):
     def __init__(self, size):
         super().__init__(size)
-        self.vp = torch.zeros(size)
+        self.vp = torch.randn(size)
         self.vp.requires_grad = True
         self.I = size[0]
         self.K = size[1]
@@ -69,7 +56,7 @@ class VPDirichletW(VarParam):
     def sample(self):
         out = torch.empty(self.size)
         for i in range(self.I):
-            out[i, :] = Dirichlet(self.vp[i, :].exp()).sample()
+            out[i, :] = Dirichlet(self.vp[i, :].exp()).rsample()
         return out
 
     def logpdf(self, x):
@@ -81,7 +68,7 @@ class VPDirichletW(VarParam):
 class VPDirichletEta(VarParam):
     def __init__(self, size):
         super().__init__(size)
-        self.vp = torch.zeros(size)
+        self.vp = torch.randn(size)
         self.vp.requires_grad = True
         self.I = size[0]
         self.J = size[1]
@@ -91,7 +78,7 @@ class VPDirichletEta(VarParam):
         out = torch.empty(self.size)
         for i in range(self.I):
             for j in range(self.J):
-                out[i, j, :, 0] = Dirichlet(self.vp[i, j, :, 0].exp().squeeze()).sample()
+                out[i, j, :, 0] = Dirichlet(self.vp[i, j, :, 0].exp().squeeze()).rsample()
         return out.reshape(self.I, self.J, self.Lz, 1)
 
     def logpdf(self, x):
@@ -105,13 +92,13 @@ class VPDirichletEta(VarParam):
 class VPGamma(VarParam):
     def __init__(self, size):
         super().__init__(size)
-        concentration = torch.zeros(size)
-        rate = torch.zeros(size)
+        concentration = torch.randn(size)
+        rate = torch.randn(size)
         self.vp = torch.stack([concentration, rate])
         self.vp.requires_grad = True
 
     def sample(self):
-        return Gamma(self.vp[0].exp(), self.vp[1].exp()).sample()
+        return Gamma(self.vp[0].exp(), self.vp[1].exp()).rsample()
 
     def logpdf(self, x):
         return Gamma(self.vp[0].exp(), self.vp[1].exp()).log_prob(x)
@@ -119,13 +106,13 @@ class VPGamma(VarParam):
 class VPBeta(VarParam):
     def __init__(self, size):
         super().__init__(size)
-        a = torch.zeros(size)
-        b = torch.zeros(size)
+        a = torch.randn(size)
+        b = torch.randn(size)
         self.vp = torch.stack([a, b])
         self.vp.requires_grad = True
 
     def sample(self):
-        return Beta(self.vp[0].exp(), self.vp[1].exp()).sample()
+        return Beta(self.vp[0].exp(), self.vp[1].exp()).rsample()
 
     def logpdf(self, x):
         return Beta(self.vp[0].exp(), self.vp[1].exp()).log_prob(x)

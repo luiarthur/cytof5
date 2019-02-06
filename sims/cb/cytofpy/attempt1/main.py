@@ -44,8 +44,8 @@ if __name__ == '__main__':
     else:
         # data = simdata(N=[30000, 10000, 20000], L0=3, L1=3, J=12, K=4)
         # data = simdata(N=[3000, 3000, 3000], L0=3, L1=3, J=12, K=4)
-        # data = simdata(N=[30000, 10000, 20000], L0=1, L1=1, J=4, a_W=[300, 700])
-        data = simdata(N=[30000, 10000, 20000], L0=3, L1=3, J=24, a_W=[300, 200, 500])
+        data = simdata(N=[30000, 10000, 20000], L0=1, L1=1, J=4, a_W=[300, 700])
+        # data = simdata(N=[30000, 10000, 20000], L0=3, L1=3, J=24, a_W=[300, 200, 500])
         cb = data['data']
         plt.imshow(data['params']['Z'], aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
         J, K = data['params']['Z'].shape
@@ -71,8 +71,8 @@ if __name__ == '__main__':
         plt.colorbar()
         plt.show()
 
-    K = 5
-    L = [5, 5]
+    K = 2
+    L = [2, 2]
     model = Cytof(data=cb, K=K, L=L)
     priors = model.priors
     model = Cytof(data=cb, K=K, L=L, priors=priors)
