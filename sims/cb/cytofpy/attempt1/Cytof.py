@@ -86,8 +86,7 @@ class Cytof(advi.Model):
     
     def gen_default_priors(self, data, K, L,
                            sig_prior=Gamma(1, 1),
-                           # alpha_prior=Gamma(1., 1.),
-                           alpha_prior=Gamma(.01, .01),
+                           alpha_prior=Gamma(1, 1),
                            mu0_prior=None,
                            mu1_prior=None,
                            W_prior=None,
@@ -95,7 +94,7 @@ class Cytof(advi.Model):
                            eta1_prior=None):
 
         if L is None:
-            L = [5, 3]
+            L = [5, 5]
 
         self.__cache_model_constants__(data, K, L)
 
@@ -121,7 +120,7 @@ class Cytof(advi.Model):
     def init_vp(self): 
         return {'mu0': VarParam(self.L[0]),
                 'mu1': VarParam(self.L[1]),
-                'sig': VarParam(self.I, init_m=0, init_log_s=-3),
+                'sig': VarParam(self.I, init_m=0, init_log_s=-10),
                 'W': VarParam((self.I, self.K - 1)),
                 'v': VarParam(self.K),
                 'alpha': VarParam(1),

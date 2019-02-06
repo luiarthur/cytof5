@@ -71,11 +71,11 @@ if __name__ == '__main__':
         plt.show()
 
     K = 3
-    model = Cytof(data=cb, K=K, L=[5,5])
+    model = Cytof(data=cb, K=K, L=[4,4])
     priors = model.priors
-    model = Cytof(data=cb, K=K, L=[5,5], priors=priors)
+    model = Cytof(data=cb, K=K, L=[4,4], priors=priors)
     # model.debug=True
-    out = model.fit(data=cb, niters=1000, lr=1e-1, print_freq=1, eps=1e-6,
+    out = model.fit(data=cb, niters=1000, lr=1e-1, print_freq=10, eps=1e-6,
                     minibatch_info={'prop': .1},
                     nmc=1, seed=10)
 
@@ -85,7 +85,7 @@ if __name__ == '__main__':
     elbo = out['elbo']
     vp = out['vp']
 
-    out = pickle.load(open('{}/out.p'.format(path_to_exp_results), 'rb'))
+    # out = pickle.load(open('{}/out.p'.format(path_to_exp_results), 'rb'))
 
     plt.plot(elbo)
     plt.ylabel('ELBO / NSUM')
@@ -161,7 +161,7 @@ if __name__ == '__main__':
     v = torch.stack([p['v'] for p in post]).detach()
     Z = v.log().cumsum(1)[:, None, :] > Normal(0, 1).cdf(H).log()
     Z = Z.numpy()
-        # plt.imshow(Z.mean(0) > .5, aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
+    # plt.imshow(Z.mean(0) > .5, aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
     plt.imshow(Z.mean(0), aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
     add_gridlines_Z(Z[0])
     plt.savefig('{}/Z.pdf'.format(path_to_exp_results))
