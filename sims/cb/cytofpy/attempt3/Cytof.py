@@ -237,8 +237,8 @@ class Cytof(advi.Model):
 
             # FIXME: USING A SIGMOID HERE TOTALLY HELPS!!!
             #        IS IT HACKY? FIND SOMETHING STEEPER THAN SIGMOID
-            b_vec= params['v'].cumprod(0)
-            Z = (b_vec[None, :] - Normal(0, 1).cdf(params['H'])).sigmoid()
+            b_vec = params['v'].cumprod(0)
+            Z = ((b_vec[None, :] - Normal(0, 1).cdf(params['H'])) * 2.0).sigmoid()
             c = Z[None, :] * logmix_L1[:, :, None] + (1 - Z[None, :]) * logmix_L0[:, :, None]
             d = c.sum(1)
 

@@ -85,7 +85,7 @@ class Cytof(advi.Model):
             data['y'][i] = data['y'][i].reshape(self.N[i], self.J)
     
     def gen_default_priors(self, data, K, L,
-                           sig_prior=Gamma(1, 1),
+                           sig_prior=Gamma(10, 10),
                            alpha_prior=Gamma(1, 1),
                            mu0_prior=None,
                            mu1_prior=None,
@@ -233,8 +233,8 @@ class Cytof(advi.Model):
 
             # FIXME: USING A SIGMOID HERE TOTALLY HELPS!!!
             #        IS IT HACKY? FIND SOMETHING STEEPER THAN SIGMOID
-            b_vec= params['v'].cumprod(0)
-            Z = (b_vec[None, :] - Normal(0, 1).cdf(params['H'])).sigmoid()
+            b_vec = params['v'].cumprod(0)
+            Z = ((b_vec[None, :] - Normal(0, 1).cdf(params['H'])) * 2.0).sigmoid()
             c = Z[None, :] * logmix_L1[:, :, None] + (1 - Z[None, :]) * logmix_L0[:, :, None]
             d = c.sum(1)
 
