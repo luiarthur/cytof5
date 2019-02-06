@@ -24,7 +24,7 @@ if __name__ == '__main__':
     path_to_exp_results = 'results/test/'
     os.makedirs(path_to_exp_results, exist_ok=True)
 
-    torch.manual_seed(2)
+    torch.manual_seed(0)
     np.random.seed(0)
 
     SIMULATE_DATA = True
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     else:
         # data = simdata(N=[30000, 10000, 20000], L0=3, L1=3, J=12, K=4)
         # data = simdata(N=[3000, 3000, 3000], L0=3, L1=3, J=12, K=4)
-        data = simdata(N=[30000, 10000, 20000], L0=2, L1=2, J=4, a_W=[300, 700])
+        data = simdata(N=[30000, 10000, 20000], L0=1, L1=1, J=4, a_W=[300, 700])
         cb = data['data']
         plt.imshow(data['params']['Z'], aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
         J, K = data['params']['Z'].shape
@@ -75,10 +75,9 @@ if __name__ == '__main__':
     priors = model.priors
     model = Cytof(data=cb, K=K, L=[2,2], priors=priors)
     # model.debug=True
-    out = model.fit(data=cb, niters=2000, lr=1e-1, print_freq=10, eps=1e-6,
-                    minibatch_info={'prop': .1},
+    out = model.fit(data=cb, niters=10000, lr=1e-1, print_freq=10, eps=1e-6,
+                    minibatch_info={'prop': .01},
                     nmc=1, seed=10)
-
     # Save output
     pickle.dump(out, open('{}/out.p'.format(path_to_exp_results), 'wb'))
 
@@ -139,14 +138,15 @@ if __name__ == '__main__':
     plt.show()
 
     # plot sig
-    sig0 = torch.stack([p['sig0'] for p in post]).detach().numpy()
-    plt.boxplot(sig0, showmeans=True, whis=[2.5, 97.5], showfliers=False)
-    plt.xlabel('$\sigma0$', fontsize=15)
-    if SIMULATE_DATA:
-        for yint in data['params']['sig'].tolist():
-            plt.axhline(yint)
-
-    plt.show()
+    for z in range(2):
+        sig_key = 'sig' + str(z)
+        sigz = torch.stack([p[sig_key] for p in post]).detach().numpy()
+        plt.boxplot(sigz, showmeans=True, whis=[2.5, 97.5], showfliers=False)
+        plt.xlabel(sig_key, fontsize=15)
+        if SIMULATE_DATA:
+            for yint in data['params']['sig'].tolist():
+                plt.axhline(yint)
+        plt.show()
 
     # plot alpha
     alpha = torch.stack([p['alpha'] for p in post]).detach().numpy().squeeze()
@@ -194,15 +194,15 @@ if __name__ == '__main__':
 
 
     # Plot sig vp mean
-    sig0_m_trace = torch.stack([t['sig0'].m.exp() for t in out['trace']])
-    plt.plot(sig0_m_trace.detach().numpy())
-
-    if SIMULATE_DATA:
-        for i in range(model.I):
-            plt.axhline(data['params']['sig'][i])
-
-    plt.title('trace plot for $\sigma_0$ vp mean')
-    plt.show()
+    for z in range(2):
+        sig_key = 'sig' + str(z)
+        sigz_m_trace = torch.stack([t[sig_key].m.exp() for t in out['trace']])
+        plt.plot(sigz_m_trace.detach().numpy())
+        if SIMULATE_DATA:
+            for i in range(model.I):
+                plt.axhline(data['params']['sig'][i])
+        plt.title('trace plot for {} vp mean'.format(sig_key))
+        plt.show()
 
 
     # Plot v vp mean
