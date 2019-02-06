@@ -13,3 +13,6 @@ indexing sigma by `i`.
 Realizing that the issue with attempt1 is probably just 
 that I need to run it longer, because sigma_i decreases
 further.
+
+At this point, it plateaus at 3.5 when it's supposed
+to be 1 after 10000 iterations. Could really be label switching.
