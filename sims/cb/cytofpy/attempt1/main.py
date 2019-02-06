@@ -44,7 +44,7 @@ if __name__ == '__main__':
     else:
         # data = simdata(N=[30000, 10000, 20000], L0=3, L1=3, J=12, K=4)
         # data = simdata(N=[3000, 3000, 3000], L0=3, L1=3, J=12, K=4)
-        data = simdata(N=[30000, 10000, 20000], L0=3, L1=3, J=6, a_W=[300, 200, 500])
+        data = simdata(N=[30000, 10000, 20000], L0=1, L1=1, J=4, a_W=[300, 700])
         cb = data['data']
         plt.imshow(data['params']['Z'], aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
         J, K = data['params']['Z'].shape
@@ -54,9 +54,9 @@ if __name__ == '__main__':
 
     y = copy.deepcopy(cb['y'])
 
-    plt.hist(y[0][:, 1], bins=100, density=True); plt.xlim(-7, 7); plt.show()
-    plt.hist(y[1][:, 3], bins=100, density=True); plt.xlim(-7, 7); plt.show()
-    plt.hist(y[2][:, -1], bins=100, density=True); plt.xlim(-7, 7); plt.show()
+    plt.hist(y[0][:, 1], bins=100, density=True); plt.xlim(-20, 20); plt.show()
+    plt.hist(y[1][:, 3], bins=100, density=True); plt.xlim(-20, 20); plt.show()
+    plt.hist(y[2][:, -1], bins=100, density=True); plt.xlim(-20, 20); plt.show()
 
     # Plot yi
     cm = plt.cm.get_cmap('bwr')
@@ -70,10 +70,10 @@ if __name__ == '__main__':
         plt.colorbar()
         plt.show()
 
-    K = 3
-    model = Cytof(data=cb, K=K, L=[4,4])
+    K = 2
+    model = Cytof(data=cb, K=K, L=[2,2])
     priors = model.priors
-    model = Cytof(data=cb, K=K, L=[4,4], priors=priors)
+    model = Cytof(data=cb, K=K, L=[2,2], priors=priors)
     # model.debug=True
     out = model.fit(data=cb, niters=1000, lr=1e-1, print_freq=10, eps=1e-6,
                     minibatch_info={'prop': .1},
@@ -110,7 +110,7 @@ if __name__ == '__main__':
     # Plot mu
     mu0 = torch.stack([p['mu0'].cumsum(0) for p in post]).detach().numpy()
     mu1 = torch.stack([p['mu1'].cumsum(0) for p in post]).detach().numpy()
-    mu = np.concatenate((-mu0, mu1), 1)
+    mu = np.concatenate((-(model.iota + mu0), model.iota + mu1), 1)
     plt.boxplot(mu, showmeans=True, whis=[2.5, 97.5], showfliers=False)
     plt.ylabel('$\mu$', rotation=0)
     if SIMULATE_DATA:
