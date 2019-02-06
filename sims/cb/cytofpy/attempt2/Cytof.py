@@ -13,7 +13,7 @@ from torch.distributions import Normal
 from torch.distributions import Dirichlet
 
 class Cytof(Model):
-    def __init__(self, data, K=None, L=None, priors=None, dtype=torch.float64,
+    def __init__(self, data, K=None, L=None, iota=1.0, priors=None, dtype=torch.float64,
                  device="cpu", misc=None):
         super().__init__(data, priors, dtype, device, misc)
 
@@ -25,6 +25,7 @@ class Cytof(Model):
         self.J = data['y'][0].size(1)
         self.Nsum = sum(self.N)
         self.debug = False
+        self.iota = iota
 
         for i in range(self.I):
             assert data['y'][i].size(1) == self.J
@@ -34,16 +35,13 @@ class Cytof(Model):
             self.gen_default_priors(K, L)
  
     def gen_default_priors(self, K, L,
-                           # sig_prior=LogNormal(-2., 1.),
                            sig_prior=Gamma(100, 1000),
                            alpha_prior=Gamma(1., 1.),
                            mu0_prior=None,
                            mu1_prior=None,
                            W_prior=None,
                            eta0_prior=None,
-                           eta1_prior=None,
-                           eps_prior=Beta(5., 95.),
-                           iota_prior=Gamma(1., 10.)):
+                           eta1_prior=None):
 
         if L is None:
             L = [5, 3]
@@ -68,15 +66,14 @@ class Cytof(Model):
             W_prior = Dirichlet(torch.ones(self.K) / self.K)
 
         if eta0_prior is None:
-            eta0_prior = Dirichlet(torch.ones(self.L[0])) # / self.L[0])
+            eta0_prior = Dirichlet(torch.ones(self.L[0]) / self.L[0])
 
         if eta1_prior is None:
-            eta1_prior = Dirichlet(torch.ones(self.L[1])) #/ self.L[1])
+            eta1_prior = Dirichlet(torch.ones(self.L[1]) / self.L[1])
 
         self.priors = {'mu0': mu0_prior, 'mu1': mu1_prior, 'sig': sig_prior,
                        'eta0': eta0_prior, 'eta1': eta1_prior,
-                       'eps': eps_prior, 'W': W_prior, 'iota': iota_prior,
-                       'alpha': alpha_prior}
+                       'W': W_prior, 'alpha': alpha_prior}
 
     def log_q(self, params):
         out = 0.0
@@ -84,7 +81,7 @@ class Cytof(Model):
             out += self.vp[key].logpdf(params[key]).sum()
         if self.debug:
             print('log_q: {}'.format(out))
-        return out
+        return out / self.Nsum
 
     def loglike(self, data, params, minibatch_info):
         ll = 0.0
@@ -111,7 +108,7 @@ class Cytof(Model):
             c = c0.sum(1)
 
             f = c + params['W'][i:i+1, :].log()
-            lli = torch.logsumexp(f, 1).mean(0) * self.N[i]
+            lli = torch.logsumexp(f, 1).mean(0) * (self.N[i] / self.Nsum)
             assert(lli.dim() == 0)
             ll += lli
 
@@ -156,7 +153,7 @@ class Cytof(Model):
         if self.debug:
             print('log_prior: {}'.format(lp))
 
-        return 0.0 #lp.sum()
+        return lp.sum() / self.Nsum
 
     def msg(self, t):
         pass
@@ -174,13 +171,13 @@ class Cytof(Model):
         return mini_data
 
     def init_vp(self):
-        self.vp= {'mu0': VPGamma((1, 1, self.L[0], 1)),
-                  'mu1': VPGamma((1, 1, self.L[1], 1)),
-                  'sig': VPGamma(self.I),
-                  'W': VPDirichletW((self.I, self.K)),
-                  'v': VPBeta((1, 1, self.K)),
-                  'alpha': VPGamma(1),
-                  'Z': VPBernoulli((1, self.J, self.K)),
-                  'eta0': VPDirichletEta((self.I, self.J, self.L[0], 1)),
-                  'eta1': VPDirichletEta((self.I, self.J, self.L[1], 1))}
+        self.vp = {'mu0': VPGamma((1, 1, self.L[0], 1)),
+                   'mu1': VPGamma((1, 1, self.L[1], 1)),
+                   'sig': VPGamma(self.I),
+                   'W': VPDirichletW((self.I, self.K)),
+                   'v': VPBeta((1, 1, self.K)),
+                   'alpha': VPGamma(1),
+                   'Z': VPBernoulli((1, self.J, self.K)),
+                   'eta0': VPDirichletEta((self.I, self.J, self.L[0], 1)),
+                   'eta1': VPDirichletEta((self.I, self.J, self.L[1], 1))}
  

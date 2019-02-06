@@ -57,7 +57,7 @@ class Model(abc.ABC):
                 params[key] = self.vp[key].sample()
         else:
             for key in vp:
-                params[key] = self.vp[key].sample()
+                params[key] = vp[key].sample()
 
         return params
 

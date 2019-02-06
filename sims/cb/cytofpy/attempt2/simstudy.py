@@ -64,8 +64,8 @@ if __name__ == '__main__':
 
     K = 3
     model = Cytof(data=cb, K=K, L=[3,3])
-    # model.debug=True
-    out = model.fit(niters=1000, lr=1e-3, print_freq=10, eps=1e-6,
+    model.debug=True
+    out = model.fit(niters=1000, lr=1e-1, print_freq=10, eps=1e-6,
                     # minibatch_info={'prop': .9},
                     nmc=1)
 
