@@ -37,6 +37,8 @@ proposed estimate for the target distribution. A common flavor of VI is the
 mean field approximation, where the parameters in the target take on
 independent variational distributions.
 
+VI has enjoyed many advances in recent years [@zhang2018advances].
+
 ## KL Divergence
 Let $\theta$ be parameters in a Bayesian model. Let $q(\theta; \phi)$ be the
 variational distribution with hyper-parameters $\phi$. Then the KL divergence
@@ -158,11 +160,12 @@ m_{inj} \mid y_{inj}, \beta &\sim \text{Bernoulli}((1 + \exp\bc{-(\beta_0 +
 
 ## Mini-batches
 We can make this implementation scalable by using stochastic variational
-inference.  That is, at each step of the gradient ascent, instead of using all
-the data to update parameters, we use only a subset of the data, called a
-mini-batch. The likelihood is scaled according to the mini-batch size. A different
-mini-batch is used for each update. Since the observations contain missing values (known
-as local parameters in the VI literature), we can iteratively 
+inference [@hoffman2013stochastic].  That is, at each step of the gradient
+ascent, instead of using all the data to update parameters, we use only a
+subset of the data, called a mini-batch. The likelihood is scaled according to
+the mini-batch size. A different mini-batch is used for each update. Since the
+observations contain missing values (known as local parameters in the VI
+literature), we can iteratively 
 
 1. sub-sample a mini-batch
 2. infer local parameters
