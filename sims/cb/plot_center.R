@@ -32,7 +32,7 @@ for (thresh in THRESH) {
   gm_idx = which(good_markers)
   M = matrix(NA, I, length(gm_idx))
   for (i in 1:I) for (j in 1:length(gm_idx)) {
-    M[i, j] = mean(abs(y[[i]][, gm_idx[j]]) < thresh, na.rm=TRUE)
+    M[i, j] = sum(abs(y[[i]][, gm_idx[j]]) < thresh, na.rm=TRUE) / NROW(y[[i]])
   }
 
   pdf('results/thresh/old/thresh_' %+% thresh %+% '_.pdf')
@@ -40,6 +40,7 @@ for (thresh in THRESH) {
   for (i in 1:I) {
     plot(M[i, ], type='h', main='proportion of cells s.t. |y_{inj}| < ' %+% thresh,
          xlab='markers in sample ' %+% i, ylab='proportion')
+    abline(h=.25)
   }
   par(mfrow=c(1, 1))
   dev.off()

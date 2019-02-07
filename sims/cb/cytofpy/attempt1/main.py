@@ -24,7 +24,7 @@ if __name__ == '__main__':
     path_to_exp_results = 'results/test/'
     os.makedirs(path_to_exp_results, exist_ok=True)
 
-    torch.manual_seed(2)
+    torch.manual_seed(0)
     np.random.seed(0)
 
     SIMULATE_DATA = True

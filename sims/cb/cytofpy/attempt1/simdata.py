@@ -31,6 +31,9 @@ def simdata(N=[300, 100, 200], J=25, a_W=[200., 500., 200., 100.], L0=5, L1=3, a
     a_eta1 = torch.ones(L1) / L1
 
     W = Dirichlet(a_W).sample((I, ))
+    for i in range(I):
+        W[i, :] = W[i, torch.randperm(K)]
+
     eta0 = Dirichlet(a_eta0).sample((I, J))
     eta1 = Dirichlet(a_eta1).sample((I, J))
 
@@ -44,7 +47,8 @@ def simdata(N=[300, 100, 200], J=25, a_W=[200., 500., 200., 100.], L0=5, L1=3, a
 
     lam = []
     for i in range(I):
-        wi = Dirichlet(a_W).sample()
+        # wi = Dirichlet(a_W).sample()
+        wi = W[i, :].squeeze()
 
         gam0i = []
         gam1i = []

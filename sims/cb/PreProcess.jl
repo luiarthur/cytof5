@@ -41,13 +41,27 @@ function isBadColumnForAllSamples(j::Int, y::Vector{Matrix{T}};
   return result
 end
 
+function markerIsNearZero(j::Int, yi::Matrix{T}; thresh=0.5, prop=.25) where {T}
+  out = (isnan.(yi[:, j]) .== false) .& (abs.(yi[:, j]) .< thresh)
+  println(mean(out))
+  return mean(out) > prop
+end
+
+function markerIsNearZeroInAnySample(j::Int, y::Vector{Matrix{T}}; thresh=0.5, prop=.25) where T
+  I = length(y)
+
+  badMarker = [markerIsNearZero(j, y[i], thresh=thresh, prop=prop) for i in 1:I]
+  return any(badMarker)
+end
+
 """
 subsample data if 0 < `subsample` < 1
 returns goodColumns, new_J
 """
 function preprocess!(y::Vector{Matrix{T}}; maxNanOrNegProp::Float64=.9,
                      maxPosProp::Float64=.9, subsample::Float64=0.0,
-                     rowThresh::Float64=-Inf) where {T}
+                     rowThresh::Float64=-Inf, 
+                     noisyThresh=0.5, noisyProp=0.25) where {T}
   Js = size.(y, 2)
   J = Js[1]
   I = length(y)
@@ -62,6 +76,11 @@ function preprocess!(y::Vector{Matrix{T}}; maxNanOrNegProp::Float64=.9,
 
   goodColumns = [!isBadColumnForAllSamples(j, y, maxNanOrNegProp=maxNanOrNegProp,
                                            maxPosProp=maxPosProp) for j in 1:J]
+
+  goodColumns2=  [!markerIsNearZeroInAnySample(j, y, thresh=noisyThresh, prop=noisyProp)
+                  for j in 1:J]
+
+  goodColumns = goodColumns .& goodColumns2
 
   if 0 < subsample < 1
     for i in 1:I
