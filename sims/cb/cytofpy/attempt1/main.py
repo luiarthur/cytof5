@@ -71,7 +71,7 @@ if __name__ == '__main__':
         plt.colorbar()
         plt.show()
 
-    K = 2
+    K = 10
     L = [2, 2]
     model = Cytof(data=cb, K=K, L=L)
     priors = model.priors

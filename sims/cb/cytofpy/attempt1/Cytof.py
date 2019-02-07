@@ -32,7 +32,7 @@ def lpdf_realDirichlet(real_x, prior):
     """
     lpdf = prior.log_prob
     sbt = StickBreakingTransform(0)
-    simplex_x = sbt(real_x)
+    simplex_x = sbt(real_x) + .1
     return lpdf(simplex_x) + sbt.log_abs_det_jacobian(real_x, simplex_x)
     
 
@@ -91,7 +91,8 @@ class Cytof(advi.Model):
             data['y'][i] = data['y'][i].reshape(self.N[i], self.J)
     
     def gen_default_priors(self, data, K, L,
-                           sig_prior=Gamma(10, 10),
+                           # sig_prior=Gamma(10, 10),
+                           sig_prior=LogNormal(0, 0.01),
                            alpha_prior=Gamma(1, 1),
                            mu0_prior=None,
                            mu1_prior=None,
@@ -344,12 +345,16 @@ class Cytof(advi.Model):
                 for key in vp:
                     grad_m_isnan = torch.isnan(vp[key].m.grad)
                     if grad_m_isnan.sum() > 0:
+                        print("WARNING: in {} m: {}".format(key, vp[key].m))
+                        print("WARNING: in {} m.grad: {}".format(key, vp[key].m.grad))
                         print("WARNING: Setting a nan gradient to zero in {}!".format(key))
                         vp[key].m.grad[grad_m_isnan] = 0.0
                         fixed_grad = True
 
                     grad_log_s_isnan = torch.isnan(vp[key].log_s.grad)
                     if grad_log_s_isnan.sum() > 0:
+                        print("WARNING: in {} log_s: {}".format(key, vp[key].log_s))
+                        print("WARNING: in {} log_s.grad: {}".format(key, vp[key].log_s.grad))
                         print("WARNING: Setting a nan gradient to zero in {}!".format(key))
                         vp[key].log_s.grad[grad_log_s_isnan] = 0.0
                         fixed_grad = True
