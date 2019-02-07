@@ -170,6 +170,7 @@ class Cytof(advi.Model):
 
         # ok when the last dimension is Dirichlet
         lp_W = lpdf_realDirichlet(real_params['W'], self.priors['W']).sum()
+        # print(real_params['W'])
 
         lp_v = lpdf_logitBeta(real_params['v'],
                               Beta(real_params['alpha'].exp(), torch.tensor(1.0))).sum()
@@ -187,15 +188,16 @@ class Cytof(advi.Model):
         # sum up the log priors
         lp = lp_mu + lp_sig + lp_W + lp_v + lp_alpha + lp_eta + lp_H
 
-        if self.debug:
+        if self.debug >= 1:
             print('log_prior:       {}'.format(lp / self.Nsum))
-            # print('log_prior mu:    {}'.format(lp_mu))
-            # print('log_prior sig:   {}'.format(lp_sig))
-            # print('log_prior W:     {}'.format(lp_W))
-            # print('log_prior v:     {}'.format(lp_v))
-            # print('log_prior H:     {}'.format(lp_H))
-            # print('log_prior alpha: {}'.format(lp_alpha))
-            # print('log_prior eta:   {}'.format(lp_eta))
+            if self.debug >= 2:
+                print('log_prior mu:    {}'.format(lp_mu))
+                print('log_prior sig:   {}'.format(lp_sig))
+                print('log_prior W:     {}'.format(lp_W))
+                print('log_prior v:     {}'.format(lp_v))
+                print('log_prior H:     {}'.format(lp_H))
+                print('log_prior alpha: {}'.format(lp_alpha))
+                print('log_prior eta:   {}'.format(lp_eta))
 
         return lp / self.Nsum
 
@@ -345,12 +347,14 @@ class Cytof(advi.Model):
                     grad_m_isnan = torch.isnan(vp[key].m.grad)
                     if grad_m_isnan.sum() > 0:
                         print("WARNING: Setting a nan gradient to zero in {}!".format(key))
+                        print("ELBO: {}!".format(loss.item()))
                         vp[key].m.grad[grad_m_isnan] = 0.0
                         fixed_grad = True
 
                     grad_log_s_isnan = torch.isnan(vp[key].log_s.grad)
                     if grad_log_s_isnan.sum() > 0:
                         print("WARNING: Setting a nan gradient to zero in {}!".format(key))
+                        print("ELBO: {}!".format(loss.item()))
                         vp[key].log_s.grad[grad_log_s_isnan] = 0.0
                         fixed_grad = True
 

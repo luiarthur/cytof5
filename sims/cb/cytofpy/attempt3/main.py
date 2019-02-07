@@ -70,12 +70,13 @@ if __name__ == '__main__':
         plt.colorbar()
         plt.show()
 
-    K = 2
-    model = Cytof(data=cb, K=K, L=[2,2])
+    K = 10
+    L = [2, 2]
+    model = Cytof(data=cb, K=K, L=L)
     priors = model.priors
-    model = Cytof(data=cb, K=K, L=[2,2], priors=priors)
-    # model.debug=True
-    out = model.fit(data=cb, niters=10000, lr=1e-1, print_freq=10, eps=1e-6,
+    model = Cytof(data=cb, K=K, L=L, priors=priors)
+    model.debug=0
+    out = model.fit(data=cb, niters=5000, lr=1e-1, print_freq=10, eps=1e-6,
                     minibatch_info={'prop': .01},
                     nmc=1, seed=10)
     # Save output
