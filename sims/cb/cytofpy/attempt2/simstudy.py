@@ -63,9 +63,10 @@ if __name__ == '__main__':
         plt.show()
 
     K = 3
-    model = Cytof(data=cb, K=K, L=[3,3])
+    L = [3, 3]
+    model = Cytof(data=cb, K=K, L=L)
     # model.debug=True
-    out = model.fit(niters=1000, lr=1e-1, print_freq=10, eps=1e-6,
+    out = model.fit(niters=5000, lr=1e-1, print_freq=10, eps=1e-6,
                     # minibatch_info={'prop': .9},
                     nmc=1)
 

@@ -25,26 +25,6 @@ class Model(abc.ABC):
         """
         pass
 
-    @abc.abstractmethod
-    def log_prior(self, params):
-        """
-        log prior of parameters transformed to real space
-        this should be the log prior of the orginial parameters + log jacobian
-        """
-        pass
-
-    def log_q(self, params):
-        """
-        log of variational density in real space
-
-        real_params: parameters in real space
-        vp: variational parameters, in real space
-        """
-        out = 0.0
-        for key in self.vp:
-            out += self.vp[key].logpdf(params[key]).sum()
-        return out
-
     def sample_params(self, vp=None):
         """
         samples parameters in real space from the variational distributions
@@ -75,6 +55,10 @@ class Model(abc.ABC):
         """
         pass
 
+    @abc.abstractmethod
+    def kl_qp(self, params):
+        pass
+
     def compute_elbo(self, data, minibatch_info=None):
         """
         compute elbo
@@ -84,15 +68,9 @@ class Model(abc.ABC):
         minibatch_info: Information about minibatch
         """
         params = self.sample_params()
-        ll = self.loglike(data=data, params=params,
-                          minibatch_info=minibatch_info)
-        lp = self.log_prior(params)
-        lq = self.log_q(params)
-
-        res = ll + lp - lq
-
+        ll = self.loglike(data=data, params=params, minibatch_info=minibatch_info)
+        res = ll - self.kl_qp(params)
         assert(res.dim() == 0)
-
         return res
 
     def compute_elbo_mean(self, nmc, minibatch_info):
