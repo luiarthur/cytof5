@@ -115,6 +115,22 @@ if __name__ == '__main__':
     v = torch.stack([p['v'] for p in post]).detach().numpy()
     alpha = torch.stack([p['alpha'] for p in post]).detach().numpy()
 
+    # Plot W, v
+    plt.figure()
+    for i in range(model.I):
+        plt.subplot(model.I + 1, 1, i + 1)
+        plt.boxplot(W[:, i, :], showmeans=True, whis=[2.5, 97.5], showfliers=False)
+        plt.ylabel('$W_{}$'.format(i+1), rotation=0, labelpad=15)
+        for yint in data['params']['W'][i, :].tolist():
+            plt.axhline(yint)
+
+    plt.subplot(model.I + 1, 1, model.I + 1)
+    plt.boxplot(v.cumprod(1), showmeans=True, whis=[2.5, 97.5], showfliers=False)
+    plt.ylabel('$v$', rotation=0, labelpad=15)
+    plt.tight_layout()
+    plt.show()
+
+
     W_trace = torch.stack([t['W'].dist().mean for t in out['trace']]).detach().numpy()
     v_trace = torch.stack([t['v'].dist().mean for t in out['trace']]).detach().numpy()
 
