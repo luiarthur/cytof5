@@ -111,6 +111,17 @@ if __name__ == '__main__':
 
     plt.show()
 
+    W = torch.stack([p['W'] for p in post]).detach().numpy()
+    v = torch.stack([p['v'] for p in post]).detach().numpy()
+    alpha = torch.stack([p['alpha'] for p in post]).detach().numpy()
+
+    W_trace = torch.stack([t['W'].dist().mean for t in out['trace']]).detach().numpy()
+    v_trace = torch.stack([t['v'].dist().mean for t in out['trace']]).detach().numpy()
+
+    # Trace for v
+    plt.plot(v_trace)
+    plt.show()
+
     # Plot sig mean trace
     sig_m_trace = torch.stack([t['sig'].dist().mean for t in out['trace']])
     plt.plot(sig_m_trace.detach().numpy())

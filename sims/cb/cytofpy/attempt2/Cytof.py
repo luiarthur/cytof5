@@ -37,7 +37,7 @@ class Cytof(Model):
  
     def gen_default_priors(self, K, L,
                            sig_prior=LogNormal(0, 1),
-                           alpha_prior=Gamma(1., 10.),
+                           alpha_prior=Gamma(1., 1.),
                            mu0_prior=None,
                            mu1_prior=None,
                            W_prior=None,
