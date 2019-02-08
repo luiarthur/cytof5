@@ -43,7 +43,6 @@ end
 
 function markerIsNearZero(j::Int, yi::Matrix{T}; thresh=0.5, prop=.25) where {T}
   out = (isnan.(yi[:, j]) .== false) .& (abs.(yi[:, j]) .< thresh)
-  println(mean(out))
   return mean(out) > prop
 end
 

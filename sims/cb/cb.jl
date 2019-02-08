@@ -109,6 +109,13 @@ goodColumns, J = PreProcess.preprocess!(cbData, maxNanOrNegProp=.9, maxPosProp=.
                                         subsample=subsample, rowThresh=-6.0)
 Cytof5.Model.logger("good columns: $goodColumns")
 
+# TODO: Get rid of this when done
+# REMOVE ALL CELLS WITH MISSING VALUES IN ANY MARKER
+for i in 1:length(cbData)
+  idx_no_missing = findall(vec(sum(isnan.(cbData[i]), dims=2) .== 0))
+  cbData[i] = cbData[i][idx_no_missing, :]
+end
+
 # Possibly reduce data size
 Cytof5.Model.logger(size.(cbData))
 
