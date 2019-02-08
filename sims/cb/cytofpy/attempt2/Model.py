@@ -102,7 +102,7 @@ class Model(abc.ABC):
     def vp_as_list(self):
         return [self.vp[key].vp for key in self.vp]
         
-    def fit(self, niters:int=1000, nmc:int=2, lr:float=1e-2,
+    def fit(self, niters:int=1000, nmc:int=1, lr:float=1e-2,
             minibatch_info=None, seed:int=1, eps:float=1e-6, init=None,
             print_freq:int=10, verbose:int=1, trace_every:int=10):
         """

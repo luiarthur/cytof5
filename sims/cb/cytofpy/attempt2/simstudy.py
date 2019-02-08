@@ -74,7 +74,7 @@ if __name__ == '__main__':
     # model.debug=True
     out = model.fit(niters=5000, lr=1e-1, print_freq=10, eps=1e-6,
                     minibatch_info={'prop': .01},
-                    nmc=1)
+                    seed=1)
 
     # Save output
     pickle.dump(out, open('{}/out.p'.format(path_to_exp_results), 'wb'))
