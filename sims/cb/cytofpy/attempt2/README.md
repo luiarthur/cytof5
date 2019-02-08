@@ -17,6 +17,9 @@ PyTorch uses this. I must get to the bottom of this.
 I should also implement this with a proper [`nn` module][3] with `forward`
 methods (and `backward` methods because of my binary Z matrix).
 
+For `Gamma.rsample` see [this][4] paper.
+
 [1]: https://arxiv.org/pdf/1806.01851.pdf
 [2]: https://pytorch.org/docs/stable/distributions.html#gamma
 [3]: https://pytorch.org/docs/stable/nn.html
+[4]: https://arxiv.org/pdf/1806.01851.pdf
