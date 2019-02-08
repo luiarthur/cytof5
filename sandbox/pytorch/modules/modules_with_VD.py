@@ -1,8 +1,10 @@
+import abc
+import matplotlib.pyplot as plt
+
 import torch
 from torch.distributions import Normal, Gamma
-from torch.nn import Parameter as Param
 from torch.distributions.kl import kl_divergence as kld
-import abc
+from torch.nn import Parameter as Param
 
 # VD: Variational Distribution
 # VP: Variational Parameters
@@ -17,8 +19,8 @@ class VD(abc.ABC):
     def dist(self):
         NotImplemented
 
-    def rsample(self):
-        return self.dist().rsample()
+    def rsample(self, n=torch.Size([])):
+        return self.dist().rsample(n)
 
     def log_prob(self):
         return self.dist().log_prob()
@@ -55,10 +57,9 @@ class VI(torch.nn.Module):
 
         # Register variational parameters
         for key in self.__dict__:
-            i = 0
             param = self.__getattribute__(key)
             if issubclass(type(param), VD):
-                self.__setattr__(key + str(i), param.vp)
+                self.__setattr__(key + '_vp', param.vp)
 
 
 class LinReg(VI):
@@ -121,3 +122,5 @@ if __name__ == '__main__':
     # print(model.state_dict())
     print(model.b.dist().mean, model.sig.dist().mean)
     print(b, sig)
+
+    plt.plot(elbo_hist); plt.show()
