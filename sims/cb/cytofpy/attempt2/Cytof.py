@@ -37,7 +37,7 @@ class Cytof(Model):
  
     def gen_default_priors(self, K, L,
                            sig_prior=LogNormal(0, 1),
-                           alpha_prior=Gamma(1., 1.),
+                           alpha_prior=Gamma(1., 10.),
                            mu0_prior=None,
                            mu1_prior=None,
                            W_prior=None,
@@ -45,22 +45,20 @@ class Cytof(Model):
                            eta1_prior=None):
 
         if L is None:
-            L = [5, 3]
+            L = [5, 5]
         
         self.L = L
 
         if K is None:
-            K = 4
+            K = 30
 
         self.K = K
 
         # FIXME: these should be an ordered prior of TruncatedNormals
         if mu0_prior is None:
-            # mu0_prior = Uniform(-15, 0)
             mu0_prior = Gamma(1, 1)
 
         if mu1_prior is None:
-            # mu1_prior = Uniform(0, 15)
             mu1_prior = Gamma(1, 1)
 
         if W_prior is None:

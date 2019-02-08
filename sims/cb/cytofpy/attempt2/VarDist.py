@@ -12,10 +12,10 @@ class VarDist(abc.ABC):
         self.size = size
         self.vp = None
     
-    def sample(self):
+    def rsample(self):
         return self.dist().rsample()
 
-    def logpdf(self, x):
+    def log_prob(self, x):
         return self.dist().log_prob(x)
 
     @abc.abstractmethod
@@ -33,15 +33,6 @@ class VDNormal(VarDist):
 
     def dist(self):
         return Normal(self.vp[0], self.vp[1].exp())
-
-class VDDirichlet(VarDist):
-    def __init__(self, size):
-        super().__init__(size)
-        self.vp = torch.randn(size)
-        self.vp.requires_grad = True
-
-    def dist(self):
-        return Dirichlet(self.vp.exp())
 
 class VDDirichlet(VarDist):
     def __init__(self, size):
@@ -77,9 +68,9 @@ class VDBeta(VarDist):
 class VDLogNormal(VarDist):
     def __init__(self, size):
         super().__init__(size)
-        a = torch.randn(size)
-        b = torch.randn(size)
-        self.vp = torch.stack([a, b])
+        m = torch.randn(size)
+        s = torch.randn(size)
+        self.vp = torch.stack([m, s])
         self.vp.requires_grad = True
 
     def dist(self):

@@ -18,10 +18,10 @@ from VarParam import VarParam
 
 
 def lpdf_logitBeta(logitx, prior):
-    return trans.lpdf_logitx(logitx, prior.log_prob)
+    return trans.lpdf_logitx(logitx.clamp(-6, 6), prior.log_prob)
 
 def lpdf_logitUniform(logitx, prior):
-    return trans.lpdf_logitx(logitx, prior.log_prob, prior.low, prior.high)
+    return trans.lpdf_logitx(logitx.clamp(-6, 6), prior.log_prob, prior.low, prior.high)
 
 def lpdf_logx(logx, prior):
     return trans.lpdf_logx(logx, prior.log_prob)
@@ -30,9 +30,10 @@ def lpdf_realDirichlet(real_x, prior):
     """
     real_x should be squeezed
     """
+    real_x.clamp_(-6, 6)
     lpdf = prior.log_prob
     sbt = StickBreakingTransform(0)
-    simplex_x = sbt(real_x) + .1
+    simplex_x = sbt(real_x) + .01
     return lpdf(simplex_x) + sbt.log_abs_det_jacobian(real_x, simplex_x)
     
 

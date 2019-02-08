@@ -34,10 +34,10 @@ class Model(abc.ABC):
 
         if vp is None:
             for key in self.vp:
-                params[key] = self.vp[key].sample()
+                params[key] = self.vp[key].rsample()
         else:
             for key in vp:
-                params[key] = vp[key].sample()
+                params[key] = vp[key].rsample()
 
         return params
 
@@ -104,7 +104,7 @@ class Model(abc.ABC):
         
     def fit(self, niters:int=1000, nmc:int=2, lr:float=1e-2,
             minibatch_info=None, seed:int=1, eps:float=1e-6, init=None,
-            print_freq:int=10, verbose:int=1):
+            print_freq:int=10, verbose:int=1, trace_every:int=10):
         """
         fir the model.
 
@@ -164,7 +164,7 @@ class Model(abc.ABC):
                         self.vp[key].vp.data = best_vp[key].vp.data
                         repaired_grads = True
 
-            if t % 10 == 0 and not repaired_grads:
+            if t % trace_every == 0 and not repaired_grads:
                 best_vp = copy.deepcopy(self.vp)
                 trace.append(best_vp)
 

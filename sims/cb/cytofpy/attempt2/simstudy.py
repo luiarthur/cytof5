@@ -34,9 +34,15 @@ if __name__ == '__main__':
 
     cm_greys = plt.cm.get_cmap('Greys')
     
+    # DONE:
+    # data = simdata(N=[30000, 10000, 20000], L0=3, L1=3, J=6, a_W=[300, 200, 500])
+
+    data = simdata(N=[30000, 10000, 20000], L0=1, L1=1, J=4, a_W=[300, 700])
+
+    # TO TRY:
     # data = simdata(N=[30000, 10000, 20000], L0=3, L1=3, J=12, K=4)
     # data = simdata(N=[3000, 3000, 3000], L0=3, L1=3, J=12, K=4)
-    data = simdata(N=[3000, 1000, 2000], L0=3, L1=3, J=6, a_W=[300, 200, 500])
+
     cb = data['data']
     plt.imshow(data['params']['Z'], aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
     J, K = data['params']['Z'].shape
@@ -62,12 +68,12 @@ if __name__ == '__main__':
         plt.colorbar()
         plt.show()
 
-    K = 3
-    L = [3, 3]
-    model = Cytof(data=cb, K=K, L=L)
+    K = 10
+    L = [2, 2]
+    model = Cytof(data=cb, K=K, L=L, tau=.1)
     # model.debug=True
     out = model.fit(niters=5000, lr=1e-1, print_freq=10, eps=1e-6,
-                    # minibatch_info={'prop': .9},
+                    minibatch_info={'prop': .01},
                     nmc=1)
 
     # Save output
@@ -94,5 +100,26 @@ if __name__ == '__main__':
     add_gridlines_Z(Z[0])
     plt.savefig('{}/Z.pdf'.format(path_to_exp_results))
     plt.show()
+
+
+    # Plot sig
+    sig = torch.stack([p['sig'] for p in post]).detach().numpy()
+    plt.boxplot(sig, showmeans=True, whis=[2.5, 97.5], showfliers=False)
+    plt.xlabel('$\sigma$', fontsize=15)
+    for yint in data['params']['sig'].tolist():
+        plt.axhline(yint)
+
+    plt.show()
+
+    # Plot sig mean trace
+    sig_m_trace = torch.stack([t['sig'].dist().mean for t in out['trace']])
+    plt.plot(sig_m_trace.detach().numpy())
+
+    for i in range(model.I):
+        plt.axhline(data['params']['sig'][i])
+
+    plt.title('trace plot for $\sigma$ vp mean')
+    plt.show()
+
 
 
