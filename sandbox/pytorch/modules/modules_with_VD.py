@@ -101,7 +101,7 @@ if __name__ == '__main__':
     model = LinReg(p)
 
     elbo_hist = []
-    optimizer = torch.optim.SGD(model.parameters(), lr=1e-1)
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-1)
     max_iter = 1000
 
     for t in range(max_iter):
