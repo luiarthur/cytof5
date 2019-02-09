@@ -5,12 +5,13 @@ using Distributions
 struct VarParam
   m::Flux.Tracker.TrackedReal{Float64}
   log_s::Flux.Tracker.TrackedReal{Float64}
-  VarParam() = VarParam(param(0.0), param(0.0))
+  VarParam() = new(param(0.0), param(0.0))
 end
+
 
 get_vd(vp) = Normal(vp.m, exp(vp.log_s))
 
-function logpdf_logx(logx::Float64, logpdf)
+function logpdf_logx(logx, logpdf)
   x = exp(logx)
   return logpdf(x) + logx
 end
@@ -38,12 +39,7 @@ function log_prior(real_params)
 end
 
 function log_q(real_params, vp)
-  b0 = params[:b0]
-  b1 = params[:b1]
-  sig = params[:sig]
- 
-  return logpdf(get_vd(vp[:b0]), b0) + logpdf(get_vd(vp[:b1]), b1) +
-         logpdf(get_vd(vp[:sig]), log(sig))
+  return sum([logpdf(get_vd(vp[key]), real_params[key]) for key in keys(vp)])
 end
 
 function to_param_space(real_params)
@@ -52,19 +48,8 @@ function to_param_space(real_params)
   return params
 end
 
-vp = VarParam(param(0.0), param(0.0))
-rsample(vp)
-lpdf(vp, 2.0)
-
-N = 1000
-x = randn(N)
-b0 = 2.0
-b1 = -3.0
-sig = 0.5
-y = b0 .+ b1 .* x .+ sig
-
-
-vps = Dict(:b0 => VarParam(), :b1 => VarParam(), :sig => VarParam())
-# grads = Tracker.gradient(() -> loss(x, y), θ)
-
-opt = ADAM(.1)
+function elbo(y, x, vp)
+  real_params = Dict(k => rsample(vp[k]) for k in keys(vp))
+  params = to_param_space(real_params)
+  return loglike(y, x, params) + log_prior(real_params) + log_q(real_params, vp)
+end
