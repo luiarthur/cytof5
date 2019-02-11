@@ -86,5 +86,10 @@ y = param(x)
   C = lpdf_Dirichlet_fullrank(a, softmax_fullrank(x))
   D = logpdf(Dirichlet(a), softmax([0.; x]))
   @assert abs(C - D) < 1e-6
-end
 
+  # FIXME: prepend not available here
+  # p = softmax_fullrank(y)
+  # prepend!(p, 1 - sum(p))
+  # @assert abs(1 - sum(p)) < 1e-6
+end
+# Test
