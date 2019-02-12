@@ -3,44 +3,42 @@ using Distributions
 import LinearAlgebra.logabsdet
 import SpecialFunctions.lgamma
 
-TA = typeof(param(randn(3, 2)))
-
 struct VP
-  m::TA
-  log_s::TA
-  real_w::TA
+  m::TrackedArray
+  log_s::TrackedArray
+  real_w::TrackedArray
 
   VP(K::Integer) = new(param(randn(K, 2)), param(randn(K, 2)), param(zeros(K - 1, 2)))
 end
 
-function lpdf_vp(p::S, x::T) where {S, T}
+function lpdf_vp(p, x)
   return sum(logpdf.(Normal.(p[:, 1], exp.(p[:, 2])), x))
 end
 
-function rsample(p::T) where T
+function rsample(p)
   return p[:, 1] .+ randn(size(p, 1)) .* exp.(p[:, 2])
 end
 
-function logsumexp(logx::T) where T
+function logsumexp(logx)
   mx = maximum(logx)
   return mx + log(sum(exp.(logx .- mx)))
 end
 
-function logsumexp(logx::T; dims::Integer) where T
+function logsumexp(logx; dims::Integer)
   mx = maximum(logx, dims=dims)
   return mx .+ log.(sum(exp.(logx .- mx), dims=dims))
 end
 
 
-function logsumexp0p(logx::T) where T
+function logsumexp0p(logx)
   return log1p(sum(exp.(logx)))
 end
 
-function lpdf_logx(dist::D, logx::T) where {D, T}
+function lpdf_logx(dist, logx)
   return logpdf(dist, exp(logx)) + logx
 end
 
-function softmax_safe(x::T) where T
+function softmax_safe(x)
   logsumexp_x = logsumexp(x)
   return exp.(x .- logsumexp_x)
 end
@@ -50,7 +48,7 @@ Transform a real vector to a simplex. The sum of the resulting simplex
 is less than 1, and one minus that sum is the probability of the first 
 element in the K+1 dimensional simplex.
 """
-function softmax_fullrank(x::T; complete::Bool=true) where T
+function softmax_fullrank(x; complete::Bool=true)
   logsumexp0p_x = logsumexp0p(x)
   p_reduced = exp.(x .- logsumexp0p_x)
   if complete
@@ -62,45 +60,53 @@ function softmax_fullrank(x::T; complete::Bool=true) where T
   end
 end
 
-function lpdf_Dirichlet_fullrank(a::A, p::T) where {A, T}
+function lpdf_Dirichlet_fullrank(a, p)
   out = lgamma(sum(a)) - sum(lgamma.(a)) + sum((a[2:end] .- 1.0) .* log.(p))
   out += (a[1] - 1.0) * log1p(-sum(p))
   return out
 end
 
 # TODO: Test
-function lpdf_real_simplex(alpha::S, real_simplex::T) where {S, T}
+function lpdf_real_simplex(alpha, real_simplex)
   dim = length(real_simplex)
   p = softmax_fullrank(real_simplex, complete=false)
   jacobian = [i == j ? p[i] * (1 - p[i]) : -p[i] * p[j] for i in 1:dim, j in 1:dim]
   return lpdf_Dirichlet_fullrank(alpha, p) + logabsdet(jacobian)[1]
 end
 
-
 # loglike
-# FIXME: I think this is the slow part
-function loglike(y::S, w::T, m::T, s::T) where {S, T}
+function loglike(y, w, m, s)
   N = length(y)
+
+  # NOTE: I believe this is slower because you have to compute the max every time
   # out = 0.0
   # for i in 1:N
-  #   out += sum(logsumexp(log.(w .+ 1e-6) .+ logpdf.(Normal.(m, s), y[i])))
+  #   out += sum(logsumexp(log.(w) .+ logpdf.(Normal.(m, s), y[i]), dims=1))
   # end
   # return out
+
   K = length(m)
-  return sum(logsumexp(log.(reshape(w, 1, K)) .+ logpdf.(Normal.(reshape(m, 1, K), reshape(s, 1, K)), reshape(y, N, 1)), dims=2))
+  log_w = reshape(log.(w), 1, K)
+  lpdf = logpdf.(Normal.(reshape(m, 1, K), reshape(s, 1, K)), y)
+  return sum(logsumexp(log_w .+ lpdf, dims=2))
+
+  # NOTE: tracker can't keep track of reshapes of Distribution objects
+  #       i.e. THE FOLLOWING WILL NOT WORK!!!
+  # lpdf = logpdf.(reshape(Normal.(m, s), 1, K), reshape(y, N, 1))
+  # return sum(logsumexp(log_w .+ lpdf, dims=2))
 end
 
 # log_p
-function log_p(real_w::T, m::T, log_s::T) where T
+function log_p(real_w, m, log_s)
   K = length(m)
   log_p_m = sum(logpdf.(Normal(0, 1), m))
   log_p_log_s = sum(lpdf_logx.(LogNormal(0, 1), log_s))
-  log_p_real_w = lpdf_real_simplex(ones(K) * 10, real_w)
+  log_p_real_w = lpdf_real_simplex(ones(K), real_w)
   return log_p_m + log_p_log_s + log_p_real_w
 end
 
 # log_q
-function log_q(real_w::T, m::T, log_s::T, vp::VP) where T
+function log_q(real_w, m, log_s, vp::VP)
   log_q_m = lpdf_vp(vp.m, m)
   log_q_log_s = lpdf_vp(vp.log_s, log_s)
   log_q_real_w = lpdf_vp(vp.real_w, real_w)
@@ -108,7 +114,7 @@ function log_q(real_w::T, m::T, log_s::T, vp::VP) where T
 end
 
 # ELBO
-function elbo(y::T, vp::VP) where {T}
+function elbo(y, vp::VP)
   m = rsample(vp.m)
 
   log_s = rsample(vp.log_s)
