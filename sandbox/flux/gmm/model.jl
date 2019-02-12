@@ -1,6 +1,6 @@
 using Flux, Flux.Tracker
 using Distributions
-import LinearAlgebra.logdet
+import LinearAlgebra.logabsdet
 import SpecialFunctions.lgamma
 
 TA = typeof(param(randn(3, 2)))
@@ -73,7 +73,7 @@ function lpdf_real_simplex(alpha::S, real_simplex::T) where {S, T}
   dim = length(real_simplex)
   p = softmax_fullrank(real_simplex, complete=false)
   jacobian = [i == j ? p[i] * (1 - p[i]) : -p[i] * p[j] for i in 1:dim, j in 1:dim]
-  return lpdf_Dirichlet_fullrank(alpha, p) + logdet(jacobian)
+  return lpdf_Dirichlet_fullrank(alpha, p) + logabsdet(jacobian)[1]
 end
 
 
