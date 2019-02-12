@@ -24,7 +24,7 @@ params = Tracker.Params([getfield(vp, fn) for fn in fieldnames(typeof(vp))])
 
 opt = ADAM(1e-1)
 minibatch_size = 100
-niters = 1000
+niters = 10000
 
 # Flux.train!(loss, params, [(y, )], opt)
 

@@ -8,7 +8,7 @@ struct VP
   log_s
   real_w
 
-  VP(K::Integer) = new(param(randn(K, 2) .+ 1), param(randn(K, 2) .- 2), param(ones(K - 1, 2)))
+  VP(K::Integer) = new(param(randn(K, 2)), param(randn(K, 2)), param(randn(K - 1, 2)))
 end
 
 function lpdf_vp(p::S, x::T) where {S, T}
@@ -16,7 +16,7 @@ function lpdf_vp(p::S, x::T) where {S, T}
 end
 
 function rsample(p::T) where T
-  return randn(size(p, 1)) .* exp.(p[:, 2]) .+ p[:, 1]
+  return p[:, 1] .+ randn(size(p, 1)) .* exp.(p[:, 2])
 end
 
 function logsumexp(logx::T) where T
