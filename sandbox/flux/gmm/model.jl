@@ -26,6 +26,12 @@ function logsumexp(logx::T) where T
   return mx + log(sum(exp.(logx .- mx)))
 end
 
+function logsumexp(logx::T; dims::Integer) where T
+  mx = maximum(logx, dims=dims)
+  return mx .+ log.(sum(exp.(logx .- mx), dims=dims))
+end
+
+
 function logsumexp0p(logx::T) where T
   return log1p(sum(exp.(logx)))
 end
@@ -72,21 +78,23 @@ end
 
 
 # loglike
+# FIXME: I think this is the slow part
 function loglike(y::S, w::T, m::T, s::T) where {S, T}
   N = length(y)
-  # println(s)
-  out = 0.0
-  for i in 1:N
-    out += sum(logsumexp(log.(w .+ 1e-6) .+ logpdf.(Normal.(m, s), y[i])))
-  end
-  return out
+  # out = 0.0
+  # for i in 1:N
+  #   out += sum(logsumexp(log.(w .+ 1e-6) .+ logpdf.(Normal.(m, s), y[i])))
+  # end
+  # return out
+  K = length(m)
+  return sum(logsumexp(log.(reshape(w, 1, K)) .+ logpdf.(Normal.(reshape(m, 1, K), reshape(s, 1, K)), reshape(y, N, 1)), dims=2))
 end
 
 # log_p
 function log_p(real_w::T, m::T, log_s::T) where T
   K = length(m)
   log_p_m = sum(logpdf.(Normal(0, 1), m))
-  log_p_log_s = sum(lpdf_logx.(LogNormal(-1, .1), log_s))
+  log_p_log_s = sum(lpdf_logx.(LogNormal(0, 1), log_s))
   log_p_real_w = lpdf_real_simplex(ones(K) * 10, real_w)
   return log_p_m + log_p_log_s + log_p_real_w
 end

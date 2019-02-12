@@ -5,7 +5,7 @@ import Random
 Random.seed!(0);
 
 # Generate Data
-N = 2000
+N = 10000
 m = [3., -1., 2.]
 s = [.1, .05, .15]
 w = [.5, .3, .2]
