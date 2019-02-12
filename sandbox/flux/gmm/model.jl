@@ -3,12 +3,14 @@ using Distributions
 import LinearAlgebra.logdet
 import SpecialFunctions.lgamma
 
-struct VP
-  m
-  log_s
-  real_w
+TA = typeof(param(randn(3, 2)))
 
-  VP(K::Integer) = new(param(randn(K, 2)), param(randn(K, 2)), param(randn(K - 1, 2)))
+struct VP
+  m::TA
+  log_s::TA
+  real_w::TA
+
+  VP(K::Integer) = new(param(randn(K, 2)), param(randn(K, 2)), param(zeros(K - 1, 2)))
 end
 
 function lpdf_vp(p::S, x::T) where {S, T}
@@ -47,9 +49,8 @@ function softmax_fullrank(x::T; complete::Bool=true) where T
   p_reduced = exp.(x .- logsumexp0p_x)
   if complete
     K = length(p_reduced) + 1
-    sum_p_reduced = sum(p_reduced)
-    p = [1.0; p_reduced.data .+ sum_p_reduced.data]
-    return p .- sum_p_reduced
+    g =  vcat(1 .- sum(p_reduced, dims=1), p_reduced)
+    return g
   else
     return p_reduced
   end

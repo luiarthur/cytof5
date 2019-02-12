@@ -5,10 +5,10 @@ import Random
 Random.seed!(0);
 
 # Generate Data
-N = 1000
-m = [1., -3., 5.]
-s = [.2, .4, .1]
-w = [.3, .45, .25]
+N = 2000
+m = [3., -1., 2.]
+s = [.1, .05, .15]
+w = [.5, .3, .2]
 K = length(m)
 y = zeros(N)
 for i in 1:N
@@ -16,6 +16,7 @@ for i in 1:N
   y[i] = rand(Normal(m[k], s[k]))
 end
 
+K = 3
 vp = VP(K)
 function loss(y::T) where T
   return -elbo(y, vp) / N
@@ -23,16 +24,17 @@ end
 params = Tracker.Params([getfield(vp, fn) for fn in fieldnames(typeof(vp))])
 
 opt = ADAM(1e-1)
-minibatch_size = 100
-niters = 10000
+minibatch_size = 500
+niters = 1000
 
 # Flux.train!(loss, params, [(y, )], opt)
 
+# FIXME: WHY IS THIS SLOW?
 Random.seed!(3);
 @time for i in 1:niters
   idx = sample(1:N, minibatch_size)
   Flux.train!(loss, params, [(y[idx], )], opt)
-  if i % 10 == 0
+  if i % 100 == 0
     println("Progress: $(i)/$(niters) | ELBO: $(-loss(y).data)")
     println(vp.m[:, 1])
     println(exp.(vp.log_s[:, 1]))
