@@ -5,10 +5,18 @@ import SpecialFunctions.lgamma
 
 struct VP
   m
-  s
-  w
+  log_s
+  real_w
 
-  VP(K::Integer) = new(param(randn(K, 2)), param(randn(K, 2)), param(randn(K - 1, 2)))
+  VP(K::Integer) = new(param(randn(K, 2) .+ 1), param(randn(K, 2) .- 2), param(ones(K - 1, 2)))
+end
+
+function lpdf_vp(p::S, x::T) where {S, T}
+  return sum(logpdf.(Normal.(p[:, 1], exp.(p[:, 2])), x))
+end
+
+function rsample(p::T) where T
+  return randn(size(p, 1)) .* exp.(p[:, 2]) .+ p[:, 1]
 end
 
 function logsumexp(logx::T) where T
@@ -17,15 +25,8 @@ function logsumexp(logx::T) where T
 end
 
 function logsumexp0p(logx::T) where T
-  mx = max(maximum(logx), 0.0)
-  return mx + log(exp(-mx) + sum(exp.(logx .- mx)))
+  return log1p(sum(exp.(logx)))
 end
-
-# Test
-# for i in 1:1000
-#   x = randn(100)
-#   @assert all(abs(logsumexp([0.0; x]) .- logsumexp0p(x)) < 1e-8)
-# end
 
 function lpdf_logx(dist::D, logx::T) where {D, T}
   return logpdf(dist, exp(logx)) + logx
@@ -41,9 +42,17 @@ Transform a real vector to a simplex. The sum of the resulting simplex
 is less than 1, and one minus that sum is the probability of the first 
 element in the K+1 dimensional simplex.
 """
-function softmax_fullrank(x::T) where T
+function softmax_fullrank(x::T; complete::Bool=true) where T
   logsumexp0p_x = logsumexp0p(x)
-  return exp.(x .- logsumexp0p_x)
+  p_reduced = exp.(x .- logsumexp0p_x)
+  if complete
+    K = length(p_reduced) + 1
+    sum_p_reduced = sum(p_reduced)
+    p = [1.0; p_reduced.data .+ sum_p_reduced.data]
+    return p .- sum_p_reduced
+  else
+    return p_reduced
+  end
 end
 
 function lpdf_Dirichlet_fullrank(a::A, p::T) where {A, T}
@@ -53,43 +62,52 @@ function lpdf_Dirichlet_fullrank(a::A, p::T) where {A, T}
 end
 
 # TODO: Test
-function lpdf_real_simplex(dist::D, real_simplex::T) where {D, T}
+function lpdf_real_simplex(alpha::S, real_simplex::T) where {S, T}
   dim = length(real_simplex)
-  p = softmax_fullrank(real_simplex) # dimensions: dim + 1
-  xtype = typeof(real_simplex[1])
-  jacobian = zeros(xtype, dim, dim)
-  for i in 1:dim
-    for j in 1:dim
-      if i == j
-        jacobian[i, j] = p[i] * (1 - p[i]) # TODO
-      else
-        jacobian[i, j] = jacobian[j, i] = -p[i] * p[j] # TODO
-      end
-    end
+  p = softmax_fullrank(real_simplex, complete=false)
+  jacobian = [i == j ? p[i] * (1 - p[i]) : -p[i] * p[j] for i in 1:dim, j in 1:dim]
+  return lpdf_Dirichlet_fullrank(alpha, p) + logdet(jacobian)
+end
+
+
+# loglike
+function loglike(y::S, w::T, m::T, s::T) where {S, T}
+  N = length(y)
+  # println(s)
+  out = 0.0
+  for i in 1:N
+    out += sum(logsumexp(log.(w .+ 1e-6) .+ logpdf.(Normal.(m, s), y[i])))
   end
-  return lpdf_Dirichlet_fullrank(dist.alpha, p) + logdet(jacobian)
+  return out
 end
 
-
-# Test
-K = 30
-a = collect(1:K)
-
-x = randn(K - 1)
-y = param(x)
-
-@time for i in 1:100
-  A = lpdf_real_simplex(Dirichlet(a), x)
-  B = lpdf_real_simplex(Dirichlet(a), y)
-  @assert abs(A - B) < 1e-6
-
-  C = lpdf_Dirichlet_fullrank(a, softmax_fullrank(x))
-  D = logpdf(Dirichlet(a), softmax([0.; x]))
-  @assert abs(C - D) < 1e-6
-
-  # FIXME: prepend not available here
-  # p = softmax_fullrank(y)
-  # prepend!(p, 1 - sum(p))
-  # @assert abs(1 - sum(p)) < 1e-6
+# log_p
+function log_p(real_w::T, m::T, log_s::T) where T
+  K = length(m)
+  log_p_m = sum(logpdf.(Normal(0, 1), m))
+  log_p_log_s = sum(lpdf_logx.(LogNormal(-1, .1), log_s))
+  log_p_real_w = lpdf_real_simplex(ones(K) * 10, real_w)
+  return log_p_m + log_p_log_s + log_p_real_w
 end
-# Test
+
+# log_q
+function log_q(real_w::T, m::T, log_s::T, vp::VP) where T
+  log_q_m = lpdf_vp(vp.m, m)
+  log_q_log_s = lpdf_vp(vp.log_s, log_s)
+  log_q_real_w = lpdf_vp(vp.real_w, real_w)
+  return log_q_m + log_q_log_s + log_q_real_w
+end
+
+# ELBO
+function elbo(y::T, vp::VP) where {T}
+  m = rsample(vp.m)
+
+  log_s = rsample(vp.log_s)
+  s = exp.(log_s)
+
+  real_w = rsample(vp.real_w)
+  w = softmax_fullrank(real_w)
+
+  return loglike(y, w, m, s) + log_p(real_w, m, log_s) - log_q(real_w, m, log_s, vp)
+end
+

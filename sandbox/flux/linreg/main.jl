@@ -16,7 +16,7 @@ vp = VP()
 loss(y, x) = -elbo(y, x, vp) / N
 
 params = Tracker.Params([getfield(vp, fn) for fn in fieldnames(typeof(vp))])
-grads = Tracker.gradient(() -> loss(y, x), params)
+# grads = Tracker.gradient(() -> loss(y, x), params)
 
 opt = ADAM(1e-1)
 minibatch_size = 100
