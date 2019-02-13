@@ -14,7 +14,7 @@ using JLD2, FileIO
   import Cytof5.Model.Cube
 
   Model.State(Z=Matrix{Bool}(undef, J, K),
-              mus=Dict{Bool, Vector{Float16}}(),
+              delta=Dict{Bool, Vector{Float16}}(),
               alpha=Float16(1.0),
               v=ones(Float16, K),
               W=rand(Float16, I, K),
@@ -23,7 +23,6 @@ using JLD2, FileIO
               lam=[ones(Int8, N[i]) for i in 1:I],
               gam=[ones(Int8, N[i], J) for i in 1:I],
               y_imputed=[randn(Float16, N[i], J) for i in 1:I],
-              iota=Float16(1.0),
               eps=[Float16(.05) for i in 1:I])
   @test true
 
@@ -82,8 +81,7 @@ end
 
   K_MCMC = K #10
   L_MCMC = L #5
-  @time c = Cytof5.Model.defaultConstants(y_dat, K_MCMC, L_MCMC, iota_prior=Gamma(1.0, 0.1),
-                                          noisyDist=Normal(0, sqrt(10)))
+  @time c = Cytof5.Model.defaultConstants(y_dat, K_MCMC, L_MCMC, noisyDist=Normal(0, sqrt(10)))
   Cytof5.Model.printConstants(c)
   # Plot miss mech
   R"pdf('result/beta.pdf')"
@@ -99,8 +97,7 @@ end
 
   # @time init = Cytof5.Model.genInitialState(c, y_dat)
   @time init = Cytof5.Model.smartInit(c, y_dat)
-  println("init iota: $(init.iota)")
-  println("init mus: $(init.mus)")
+  println("init delta: $(init.delta)")
 
   printstyled("Test Model Fitting...\n", color=:yellow)
   @time out, lastState, ll, metrics, dden = Cytof5.Model.cytof5_fit(
@@ -117,12 +114,6 @@ end
   R"pdf('result/Z_post_mean.pdf')"
   R"image"(1 .- mean(Zpost))
   R"dev.off()"
-
-  iota_post = [o[:iota] for o in out[1]]
-  R"pdf('result/iota.pdf')"
-  R"rcommon::plotPost"(iota_post)
-  R"dev.off()"
-
 
   @save "result/out.jld2" out dat ll lastState
 

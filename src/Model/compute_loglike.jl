@@ -13,7 +13,7 @@ function compute_loglike(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data
     if k > 0
       z = s.Z[j, k]
       l = s.gam[i][n, j]
-      ll += logpdf(Normal(s.mus[z][l], sqrt(s.sig2[i])), d.y[i][n, j])
+      ll += logpdf(Normal(mus(z, l, s, c, d), sqrt(s.sig2[i])), d.y[i][n, j])
     else
       ll += logpdf(c.noisyDist, d.y[i][n, j])
     end

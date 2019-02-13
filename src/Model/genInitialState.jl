@@ -7,11 +7,9 @@ function genInitialState(c::Constants, d::Data)
 
   vec_y = vcat(vec.(d.y)...)
   y_neg = filter(y_inj -> !isnan(y_inj) && y_inj < 0, vec_y)
-  iota = rand(c.iota_prior)
 
   y_imputed = begin
     local out = [zeros(Float64, N[i], J) for i in 1:I]
-    # y_lower, y_upper = quantile.(c.mus_prior[0], [0, .1])
     grid_size = 30
     y_grid = collect(range(-7, 0, length=grid_size))
     miss_probs = [[prob_miss(yg, c.beta[:, i]) for yg in y_grid] for i in 1:I]
@@ -35,12 +33,11 @@ function genInitialState(c::Constants, d::Data)
   alpha = rand(c.alpha_prior)
   v = rand(Beta(alpha / c.K, 1), K)
   Z = [ Bool(rand(Bernoulli(v[k]))) for j in 1:J, k in 1:K ]
-  # mus = Dict([Bool(z) => sort(rand(c.mus_prior[z], L[z])) for z in 0:1])
-  mus = Dict(false => sort(rand(Uniform(minimum(c.mus_prior[0]), -iota), L[0])),
-             true => sort(rand(Uniform(iota, maximum(c.mus_prior[1])), L[1])))
+  delta = Dict(false => rand(c.delta_prior[0], L[0]),
+               true  => rand(c.delta_prior[1], L[1]))
   sig2 = [rand(c.sig2_prior) for i in 1:I]
-  W = Matrix{Float64}(hcat([ rand(c.W_prior) for i in 1:I ]...)')
-  lam = [ Int8.(rand(Categorical(W[i,:]), N[i])) for i in 1:I ]
+  W = Matrix{Float64}(hcat([rand(c.W_prior) for i in 1:I]...)')
+  lam = [ Int8.(rand(Categorical(W[i, :]), N[i])) for i in 1:I ]
   eta = begin
     function gen(z)
       arrMatTo3dArr([ rand(c.eta_prior[z]) for i in 1:I, j in 1:J ])
@@ -59,7 +56,7 @@ function genInitialState(c::Constants, d::Data)
 
   eps = mean.(c.eps_prior)
 
-  return State(Z=Z, mus=mus, alpha=alpha, v=v, W=W, sig2=sig2, eps=eps,
+  return State(Z=Z, delta=delta, alpha=alpha, v=v, W=W, sig2=sig2, eps=eps,
                eta=eta, lam=lam, gam=gam, y_imputed=y_imputed)
 end
 

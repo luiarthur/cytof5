@@ -6,7 +6,7 @@ function update_y_imputed(i::Int, n::Int, j::Int, s::State, c::Constants, d::Dat
     if k > 0
       z = s.Z[j, k]
       l = s.gam[i][n, j]
-      mu = s.mus[z][l]
+      mu = mus(z, l, s, c, d)
       sig = sqrt(s.sig2[i])
       logPrior = logpdf(Normal(mu, sig), yinj)
     else

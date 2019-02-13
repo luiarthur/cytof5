@@ -1,8 +1,8 @@
 function print_debug_Z(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)
   println("y_inj = $(s.y_imputed[i][n, j])")
   println("sig2[i]: $(s.sig2[i])")
-  println("mus0: $(s.mus[0])")
-  println("mus1: $(s.mus[1])")
+  println("mus0: $(mus(false, s, c, d))")
+  println("mus1: $(mus(true, s, c, d))")
   println("etaz0_i$(i)_j$(j): $(s.eta[0][i, j, :])")
   println("etaz1_i$(i)_j$(j): $(s.eta[1][i, j, :])")
 end
@@ -18,8 +18,8 @@ function update_Z(s::State, c::Constants, d::Data)
         for j in 1:d.J
           # ll0[j, k] += log(dmixture(0, i, n, j, s, c, d))
           # ll1[j, k] += log(dmixture(1, i, n, j, s, c, d))
-          ll0[j, k] += logdmixture(0, i, n, j, s, c, d)
-          ll1[j, k] += logdmixture(1, i, n, j, s, c, d)
+          ll0[j, k] += logdmixture(false, i, n, j, s, c, d)
+          ll1[j, k] += logdmixture(true, i, n, j, s, c, d)
         end
       end
     end

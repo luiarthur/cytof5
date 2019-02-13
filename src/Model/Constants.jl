@@ -6,7 +6,7 @@ end
 
 @namedargs mutable struct Constants
   alpha_prior::Gamma # alpha ~ Gamma(shape, scale)
-  mus_prior::Dict{Int, Truncated{Normal{Float64}, Continuous}} # mu*[z,l] ~ TN(mean,sd)
+  delta_prior::Dict{Int, Truncated{Normal{Float64}, Continuous}} # delta[z,l] ~ TN(m, s, 0, Inf)
   W_prior::Dirichlet # W_i ~ Dir_K(d)
   eta_prior::Dict{Int, Dirichlet{Float64}} # eta_zij ~ Dir_Lz(a)
   sig2_prior::InverseGamma # sig2_i ~ IG(shape, scale)
@@ -20,7 +20,6 @@ end
   similarity_Z::Function
   noisyDist::ContinuousDistribution
   y_grid::Vector{Float64}
-  iota_prior::Gamma
 end
 
 """
@@ -42,10 +41,7 @@ function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
                           pBounds=[.01, .8, .05], yQuantiles=[0.01, .1, .25],
                           sig2_prior=InverseGamma(3.0, 2 / 3),
                           sig2_range=[0.0, Inf],
-                          mus0_range=[-20, 0.0],
-                          mus1_range=[0.0, 20],
                           alpha_prior = Gamma(3.0, 0.5),
-                          iota_prior=Gamma(5.0, 0.1), # shape and scale
                           tau0::Float64=0.0, tau1::Float64=0.0,
                           probFlip_Z::Float64=1.0 / (data.J * K),
                           noisyDist::ContinuousDistribution=Cauchy(),
@@ -55,7 +51,7 @@ function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
   # Assert range of sig2 is positive
   @assert 0 <= sig2_range[1] < sig2_range[2]
 
-  mus_prior = Dict{Int, Truncated{Normal{Float64}, Continuous}}()
+  delta_prior = Dict{Int, Truncated{Normal{Float64}, Continuous}}()
   vec_y = vcat(vec.(data.y)...)
   y_neg = filter(y_inj -> !isnan(y_inj) && y_inj < 0, vec_y)
   y_pos = filter(y_inj -> !isnan(y_inj) && y_inj > 0, vec_y)
@@ -65,8 +61,8 @@ function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
   if tau1 <= 0
     tau1 = std(y_pos)
   end
-  mus_prior[0] = TruncatedNormal(mean(y_neg), tau0, mus0_range[1], mus0_range[2])
-  mus_prior[1] = TruncatedNormal(mean(y_pos), tau1, mus1_range[1], mus1_range[2])
+  delta_prior[0] = TruncatedNormal(-mean(y_neg) / L[0], tau0 / L[0], 0.0, Inf)
+  delta_prior[1] = TruncatedNormal( mean(y_pos) / L[1], tau1 / L[1], 0.0, Inf)
 
   W_prior = Dirichlet(K, 1 / K)
   eta_prior = Dict(z => Dirichlet(L[z], 1 / L[z]) for z in 0:1)
@@ -76,42 +72,14 @@ function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
   y_negs = [filter(y_i -> !isnan(y_i) && y_i < 0, vec(data.y[i])) for i in 1:data.I]
   beta = hcat([gen_beta_est(y_negs[i], yQuantiles, pBounds) for i in 1:data.I]...)
 
-  return Constants(alpha_prior=alpha_prior, mus_prior=mus_prior, W_prior=W_prior,
+  return Constants(alpha_prior=alpha_prior, delta_prior=delta_prior, W_prior=W_prior,
                    eta_prior=eta_prior,
                    sig2_prior=sig2_prior, sig2_range=sig2_range,
                    beta=beta, K=K, L=L,
                    probFlip_Z=probFlip_Z, similarity_Z=similarity_Z,
-                   noisyDist=noisyDist, eps_prior=eps_prior, y_grid=y_grid,
-                   iota_prior=iota_prior)
+                   noisyDist=noisyDist, eps_prior=eps_prior, y_grid=y_grid)
 end
 
-function priorMu(z::Int, l::Int, s::State, c::Constants)
-  L = c.L
-
-  if l == 1
-    if z == 1 # for mu[z=1][l=1]
-      lower, upper = s.iota, s.mus[1][l+1]
-    else # mu[z=0][l=1]
-      lower, upper = minimum(c.mus_prior[0]), s.mus[0][l+1]
-    end
-  elseif l == L[z]
-    if z == 1 # for mu[1][end]
-      lower, upper = s.mus[1][l-1], maximum(c.mus_prior[1])
-    else # for mu[0][end]
-      lower, upper = s.mus[0][l-1], -s.iota
-    end
-  else
-    lower, upper = s.mus[z][l-1], s.mus[z][l+1]
-  end
-
-  # Note that priorM and priorS are NOT the prior mean and std. They are PARAMETERS in 
-  # the truncated normal!
-  (priorM, priorS, _, _) = params(c.mus_prior[z])
-  # println("z: $z, l: $l | pm: $priorM, ps: $priorS, low: $lower, upp: $upper")
-  #priorMean = mean(c.mus_prior[z])
-  #priorSd = std(c.mus_prior[z])
-  return TruncatedNormal(priorM, priorS, lower, upper)
-end
 
 function printConstants(c::Constants, preprintln::Bool=true)
   if preprintln

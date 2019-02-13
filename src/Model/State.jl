@@ -2,16 +2,15 @@ const Cube = Array{T, 3} where T
 
 @namedargs mutable struct State{F <: AbstractFloat}
   Z::Matrix{Bool} # Dim: J x K. Z[j,k] ∈ {0, 1}. true => 1, false => 0
-  mus::Dict{Bool, Vector{F}}
-  iota::F
+  delta::Dict{Bool, Vector{F}} # delta_z dim: L[z]
   alpha::F
-  v::Vector{F}
-  W::Matrix{F}
-  sig2::Vector{F}
-  eta::Dict{Bool, Cube{F}}
+  v::Vector{F} # dim: K
+  W::Matrix{F} # dim: I x K
+  sig2::Vector{F} # dim: I
+  eta::Dict{Bool, Cube{F}} # eta_zik dim: L[z]
   lam::Vector{Vector{Int8}} # Array of Array. lam[1:I] ∈ {1,...,K}
-  gam::Vector{Matrix{Int8}}
-  y_imputed::Vector{Matrix{F}}
+  gam::Vector{Matrix{Int8}} # gam_ij dim: N[i]
+  y_imputed::Vector{Matrix{F}} # y_ij dim: N[i]
   eps::Vector{F} # dim I
 end
 
@@ -26,7 +25,7 @@ function compress(state::State)
     return state
   else
     return State(Z=Matrix{Bool}(state.Z),
-                 mus=Dict{Bool, Vector{Float32}}(state.mus),
+                 delta=Dict{Bool, Vector{Float32}}(state.delta),
                  alpha=Float32(state.alpha),
                  v=Float32.(state.v),
                  W=Float32.(state.W),
@@ -35,7 +34,6 @@ function compress(state::State)
                  lam=Vector{Vector{Int8}}(state.lam),
                  gam=Vector{Matrix{Int8}}(state.gam),
                  eps=Float32.(state.eps),
-                 iota=Float32.(state.iota),
                  y_imputed=Vector{Matrix{Float32}}(state.y_imputed))
   end
 end

@@ -7,7 +7,7 @@ function update_sig2(i::Int, s::State, c::Constants, d::Data)
       if k > 0
         z = s.Z[j, k]
         l = s.gam[i][n, j]
-        ss += (s.y_imputed[i][n, j] - s.mus[z][l]) ^ 2
+        ss += (s.y_imputed[i][n, j] - mus(z, l, s, c, d)) ^ 2
       end
     end
   end

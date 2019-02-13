@@ -29,7 +29,7 @@ printFreq: defaults to 0 => prints every 10%. turn off printing by setting to -1
 """
 function cytof5_fit(init::State, c::Constants, d::Data;
                     nmcmc::Int=1000, nburn::Int=1000, 
-                    monitors=[[:Z, :lam, :W, :v, :sig2, :mus, :alpha, :v, :eta, :eps, :iota]],
+                    monitors=[[:Z, :lam, :W, :v, :sig2, :delta, :alpha, :v, :eta, :eps]],
                     fix::Vector{Symbol}=Vector{Symbol}(),
                     thins::Vector{Int}=[1],
                     thin_dden::Int=1,
@@ -68,17 +68,8 @@ function cytof5_fit(init::State, c::Constants, d::Data;
     dict
   end
 
-  mus_tuner = begin
-    dict = Dict{Bool, Vector{MCMC.TuningParam}}()
-    for z in 0:1
-      dict[z] = [MCMC.TuningParam(1.0) for l in 1:c.L[z]]
-    end
-    dict
-  end
-
   tuners = Tuners(y_imputed=y_tuner, # yinj, for inj s.t. yinj is missing
-                  Z=MCMC.TuningParam(MCMC.sigmoid(c.probFlip_Z, a=0.0, b=1.0)),
-                  mus=mus_tuner, iota=MCMC.TuningParam(1.0))
+                  Z=MCMC.TuningParam(MCMC.sigmoid(c.probFlip_Z, a=0.0, b=1.0)))
 
   # Loglike
   loglike = Vector{Float64}()
@@ -142,7 +133,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
       p = [[prob_miss(s.y_imputed[i][n, j], c.beta[:, i])
             for n in 1:d.N[i], j in 1:d.J] for i in 1:d.I]
 
-      mu = [[s.lam[i][n] > 0 ? s.mus[s.Z[j, s.lam[i][n]]][s.gam[i][n, j]] : 0.0 
+      mu = [[s.lam[i][n] > 0 ? mus(i, n, j, s, c, d) : 0.0 
              for n in 1:d.N[i], j in 1:d.J] for i in 1:d.I]
 
       sig = [[s.lam[i][n] > 0 ? sqrt(s.sig2[i]) : std(c.noisyDist) for n in 1:d.N[i]] for i in 1:d.I]

@@ -103,29 +103,10 @@ function smartInit(c::Constants, d::Data; iterMax::Int=10,
   # Get v
   v = vec(mean(Z .+ (1.0 / J), dims=1))
 
-  # Get mus
-  min_mus0 = minimum(c.mus_prior[0])
-  if isinf(min_mus0)
-    min_mus0 = minimum(minimum.(y_imputed))
-  end
-
-  # min_mus1 = minimum(c.mus_prior[1])
-  # max_mus0 = maximum(c.mus_prior[0])
-  iota = rand(c.iota_prior)
-  min_mus1 = iota
-  max_mus0 = -iota
-
-  max_mus1 = maximum(c.mus_prior[1])
-  if isinf(max_mus1)
-    max_mus1 = maximum(maximum.(y_imputed))
-  end
-
-  # mus = Dict(false => rangev(min_mus0, max_mus0, length=L[0]), 
-  #            true  => rangev(min_mus1, max_mus1, length=L[1]))
-  (m0, s0, _, _) = params(c.mus_prior[0])
-  (m1, s1, _, _) = params(c.mus_prior[1])
-  mus = Dict(false => sort(rand(TruncatedNormal(m0, s0, min_mus0, max_mus0), L[0])), 
-             true  => sort(rand(TruncatedNormal(m1, s1, min_mus1, max_mus1), L[1])))
+  (m0, s0, _, _) = params(c.delta_prior[0])
+  (m1, s1, _, _) = params(c.delta_prior[1])
+  delta = Dict(false => rand(TruncatedNormal(m0, s0, 0, Inf), L[0]), 
+               true  => rand(TruncatedNormal(m1, s1, 0, Inf), L[1]))
 
   # Get gam
   gam = [zeros(Int8, N[i], J) for i in 1:I]
@@ -133,7 +114,8 @@ function smartInit(c::Constants, d::Data; iterMax::Int=10,
     for j in 1:J
       for n in 1:N[i]
         z = Z[j, lam[i][n]]
-        gam[i][n, j] = argmin(abs.(y_imputed[i][n, j] .- mus[z]))
+        mus_z = cumsum(delta[z]) * (-1) ^ (1 - z)
+        gam[i][n, j] = argmin(abs.(y_imputed[i][n, j] .- mus_z))
       end
     end
   end
@@ -161,7 +143,8 @@ function smartInit(c::Constants, d::Data; iterMax::Int=10,
       for n in 1:N[i]
         z = Z[j, lam[i][n]]
         l = gam[i][n, j]
-        sig2[i] += (y_imputed[i][n, j] - mus[z][l]) ^ 2
+        mus_z = cumsum(delta[z]) * (-1) ^ (1 - z)
+        sig2[i] += (y_imputed[i][n, j] - mus_z[l]) ^ 2
       end
     end
     sig2[i] /= (N[i] * J)
@@ -169,8 +152,8 @@ function smartInit(c::Constants, d::Data; iterMax::Int=10,
 
   eps = mean.(c.eps_prior)
 
-  return State(Z=Z, mus=mus, alpha=alpha, v=v, W=W, sig2=sig2, eta=eta,
-               lam=lam, gam=gam, y_imputed=y_imputed, eps=eps, iota=iota)
+  return State(Z=Z, delta=delta, alpha=alpha, v=v, W=W, sig2=sig2, eta=eta,
+               lam=lam, gam=gam, y_imputed=y_imputed, eps=eps)
 end
 
 
