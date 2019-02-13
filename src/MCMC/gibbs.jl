@@ -13,6 +13,8 @@ function deepcopyFields(state::T, fields::Vector{Symbol}) where T
   return substate
 end
 
+showtime() = Dates.format(Dates.now(), "yyyy-mm-dd HH:MM:SS")
+
 """
 TODO...
 """
@@ -59,8 +61,8 @@ function gibbs(init::T,
 
   function printMsg(i::Int)
     if printFreq > 0 && i % printFreq == 0
-      loglikeMsg = ismissing(loglike) ? "" : " -- loglike: $(last(loglike))"
-      print("$(Dates.now()) -- $i / $(nburn+nmcmc) $loglikeMsg")
+      loglikeMsg = ismissing(loglike) ? "" : "-- loglike: $(last(loglike))"
+      print("$(showtime()) -- $(i)/$(nburn+nmcmc) $loglikeMsg")
 
       if printlnAfterMsg
         println()
