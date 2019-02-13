@@ -16,7 +16,7 @@ end
 # Turn reconstructed type into type State
 function convertState(s)
   println("Trying to convert reconstructed state to Cytof5.Model.State ...")
-  return Cytof5.Model.State(Z=s.Z, mus=s.mus, alpha=s.alpha, v=s.v, W=s.W,
+  return Cytof5.Model.State(Z=s.Z, delta=s.delta, alpha=s.alpha, v=s.v, W=s.W,
                             sig2=s.sig2, eta=s.eta, lam=s.lam, gam=s.gam,
                             y_imputed=s.y_imputed)
 end
@@ -25,7 +25,7 @@ end
 function convertConstants(c)
   println("Trying to convert reconstructed state to Cytof5.Model.Constants ...")
   return Cytof5.Model.Constants(alpha_prior=c.alpha_prior,
-                                mus_prior=c.mus_prior, W_prior=c.W_prior,
+                                delta_prior=c.delta_prior, W_prior=c.W_prior,
                                 eta_prior=c.eta_prior, sig2_prior=c.sig2_prior,
                                 beta=c.beta, K=c.K, L=c.L,
                                 sig2_range=c.sig2_range,
@@ -214,17 +214,6 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
   util.plotPost(alphaPost, ylab="density", xlab="alpha", main="");
   util.devOff()
 
-  # Plot iota
-  try
-    iotaPost = util.getPosterior(:iota, out[1])
-    println("Making iota ...")
-    util.plotPdf("$(IMGDIR)/iota.pdf")
-    util.plotPost(iotaPost, ylab="density", xlab="iota", main="");
-    util.devOff()
-  catch
-    println("Unable to plot iota.")
-  end
-
   # Plot W
   Wpost = util.getPosterior(:W, out[1])
   W_mean = mean(Wpost)
@@ -275,16 +264,13 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
   util.devOff()
 
   # Get mus
-  mus0Post = hcat([m[:mus][0] for m in out[1]]...)'
-  mus1Post = hcat([m[:mus][1] for m in out[1]]...)'
-  musPost = [ mus0Post mus1Post ]
+  mus0Post = -cumsum(hcat([m[:delta][0] for m in out[1]]...)', dims=2)
+  mus1Post = cumsum(hcat([m[:delta][1] for m in out[1]]...)', dims=2)
+  musPost = [ reverse(mus0Post, dims=2) mus1Post ]
 
   println("Making mus...")
   util.plotPdf("$IMGDIR/mus.pdf")
   util.boxplot(musPost, ylab="mu*", xlab="", xaxt="n", col="steelblue", pch=20, cex=0);
-  #util.plot(1:size(musPost, 2), mean(musPost, dims=1), typ="n", ylab="μ*", xlab="", xaxt="n")
-  #util.addErrbar(R"t(apply($musPost, 2, quantile, c(.025, .975)))", 
-  #               x=1:size(musPost, 2), ylab="μ*", xlab="", xaxt="n", col="blue", lend=1, lwd=10);
   util.abline(h=0, v=size(mus0Post, 2) + .5, col="grey30", lty=1);
   util.devOff()
 
@@ -432,6 +418,20 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
     end
   end
 
+
+  for i in 1:I
+    println("Printing number of predominant celltypes for i = $i ...")
+    idx_best = R"estimate_ZWi_index($(out[1]), $i)"[1]
+    Wi = out[1][idx_best][:W][i,:]
+
+    open("$IMGDIR/K_P$(round(Int, thresh * 100))_i$(i).txt", "w") do file
+      cswi = cumsum(sort(Wi, rev=true))
+      K_TOP = findfirst(cswi .> thresh)
+      write(file, "K_TOP: $K_TOP \n")
+    end
+  end
+
+
   if init_is_defined
     println("Making y_dat init ...")
     for i in 1:I
@@ -447,18 +447,5 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
     end
   else
     println("Skipping this plot, init is not defined ...")
-  end
-
-
-  for i in 1:I
-    println("Printing number of predominant celltypes for i = $i ...")
-    idx_best = R"estimate_ZWi_index($(out[1]), $i)"[1]
-    Wi = out[1][idx_best][:W][i,:]
-
-    open("$IMGDIR/K_P$(round(Int, thresh * 100))_i$(i).txt", "w") do file
-      cswi = cumsum(sort(Wi, rev=true))
-      K_TOP = findfirst(cswi .> thresh)
-      write(file, "K_TOP: $K_TOP \n")
-    end
   end
 end

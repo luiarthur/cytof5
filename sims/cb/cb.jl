@@ -111,10 +111,10 @@ Cytof5.Model.logger("good columns: $goodColumns")
 
 # TODO: Get rid of this when done
 # REMOVE ALL CELLS WITH MISSING VALUES IN ANY MARKER
-for i in 1:length(cbData)
-  idx_no_missing = findall(vec(sum(isnan.(cbData[i]), dims=2) .== 0))
-  cbData[i] = cbData[i][idx_no_missing, :]
-end
+# for i in 1:length(cbData)
+#   idx_no_missing = findall(vec(sum(isnan.(cbData[i]), dims=2) .== 0))
+#   cbData[i] = cbData[i][idx_no_missing, :]
+# end
 
 # Possibly reduce data size
 Cytof5.Model.logger(size.(cbData))
@@ -134,9 +134,6 @@ Cytof5.Model.logger("\nGenerating priors ...");
                                         # sig2_prior=InverseGamma(sig2_a, sig2_b),
                                         # sig2_range=[0.0, 10.0],
                                         sig2_prior=InverseGamma(3.0, 2.0),
-                                        mus0_range=[-20, 0.0],
-                                        mus1_range=[0.0, 20],
-                                        iota_prior=Gamma(100.0, 1.0/100.0),
                                         alpha_prior=Gamma(0.1, 10.0),
                                         yQuantiles=[.1, .25, .4], pBounds=[.05, .8, .05],
                                         # TODO: CHECK
@@ -178,15 +175,14 @@ util.devOff()
 Cytof5.Model.logger("Fitting Model ...");
 
 nsamps_to_thin(nsamps::Int, nmcmc::Int) = max(1, div(nmcmc, nsamps))
-print(init.mus)
 
 # init.sig2 = fill(.3, dat.I) # TODO: remove this?
 @time out, lastState, ll, metrics, dden=
   Cytof5.Model.cytof5_fit(init, c, dat,
                           monitors=[[:Z, :lam, :W,
-                                     :sig2, :mus,
+                                     :sig2, :delta,
                                      :alpha, :v,
-                                     :eta, :eps, :iota],
+                                     :eta, :eps],
                                     [:y_imputed, :gam]],
                           thins=[2, nsamps_to_thin(10, MCMC_ITER)],
                           # fix=[:sig2], # TODO: remove this?
