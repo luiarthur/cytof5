@@ -78,20 +78,23 @@ end
 function loglike(y, w, m, s)
   N = length(y)
 
-  # NOTE: I believe this is slower because you have to compute the max every time
+  # NOTE: This is slow because of how tracker is implemented.
+  #       Tensor expressions are still needed.
   # out = 0.0
   # for i in 1:N
   #   out += sum(logsumexp(log.(w) .+ logpdf.(Normal.(m, s), y[i]), dims=1))
   # end
   # return out
 
+  # NOTE: Preferred Implementation
   K = length(m)
   log_w = reshape(log.(w), 1, K)
   lpdf = logpdf.(Normal.(reshape(m, 1, K), reshape(s, 1, K)), y)
   return sum(logsumexp(log_w .+ lpdf, dims=2))
 
-  # NOTE: tracker can't keep track of reshapes of Distribution objects
-  #       i.e. THE FOLLOWING WILL NOT WORK!!!
+  # NOTE: Tracker can't keep track of reshapes of Distribution objects
+  #       i.e. REPLACING THE PREVIOUS TWO LINES WITH THE FOLLOWING WILL NOT
+  #       WORK!!!
   # lpdf = logpdf.(reshape(Normal.(m, s), 1, K), reshape(y, N, 1))
   # return sum(logsumexp(log_w .+ lpdf, dims=2))
 end
