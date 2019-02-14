@@ -135,7 +135,8 @@ Cytof5.Model.logger("\nGenerating priors ...");
                                         # sig2_range=[0.0, 10.0],
                                         sig2_prior=InverseGamma(3.0, 2.0),
                                         alpha_prior=Gamma(0.1, 10.0),
-                                        yQuantiles=[.1, .25, .4], pBounds=[.05, .8, .05],
+                                        # yQuantiles=[.1, .25, .4], pBounds=[.05, .8, .05],
+                                        yQuantiles=[0.0, .01, .05], pBounds=[.05, .8, .05],
                                         # TODO: CHECK
                                         similarity_Z=Cytof5.Model.sim_fn_abs(10000),
                                         probFlip_Z=2.0 / (dat.J * K_MCMC),
