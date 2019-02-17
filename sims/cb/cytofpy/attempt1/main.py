@@ -73,7 +73,8 @@ if __name__ == '__main__':
         plt.colorbar()
         plt.show()
 
-    K = 10
+    # K = 10 # Numerically unstable for values close to 0 in Dirichlet.
+    K = 5
     L = [2, 2]
     model = Cytof(data=cb, K=K, L=L)
     priors = model.priors
