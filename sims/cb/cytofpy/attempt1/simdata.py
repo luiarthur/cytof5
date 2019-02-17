@@ -38,8 +38,8 @@ def simdata(N=[300, 100, 200], J=25, a_W=[200., 500., 200., 100.], L0=5, L1=3, a
     eta1 = Dirichlet(a_eta1).sample((I, J))
 
     # mu0 = Uniform(-10, -2).sample((L0, ))
-    mu0 = -5 * (torch.arange(L0) + 1).float()
-    mu1 = 5 * (torch.arange(L1) + 1).float()
+    mu0 = -5 * (torch.arange(L0) + 1).double()
+    mu1 = 5 * (torch.arange(L1) + 1).double()
     sig = torch.ones((I, )) * 1.0 # Gamma(1, 3).sample((I, ))
 
     params = {'W': W, 'v': v, 'eta0': eta0, 'eta1': eta1,
