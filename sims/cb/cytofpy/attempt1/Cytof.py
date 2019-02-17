@@ -36,9 +36,22 @@ def lpdf_realDirichlet(real_x, prior):
     return lpdf(simplex_x) + sbt.log_abs_det_jacobian(real_x, simplex_x)
     
 
+def compute_Z(logit, tau):
+    """
+    This enables the backward gradient computations via Z.
+    Notice at the end, we basically return Z (binary tensor).
+    But we make use of the smoothed Z, which is differentiable.
+    We detach (Z - smoothed_Z) so that the gradients are not 
+    computed, and then add back smoothed_Z for the return.
+    The only gradient will then be that of smoothed Z.
+    """
+    smoothed_Z = (logit / tau).sigmoid()
+    Z = (smoothed_Z > 0.5).double()
+    return (Z - smoothed_Z).detach() + smoothed_Z
+
 
 class Cytof(advi.Model):
-    def __init__(self, data, priors=None, K=None, L=None, iota=1.0, tau=0.5,
+    def __init__(self, data, priors=None, K=None, L=None, iota=1.0, tau=0.1,
                  dtype=torch.float64, device="cpu"):
         """
         TODO: Write doc
@@ -246,7 +259,9 @@ class Cytof(advi.Model):
             # FIXME: USING A SIGMOID HERE TOTALLY HELPS!!!
             #        IS IT HACKY? FIND SOMETHING STEEPER THAN SIGMOID
             b_vec = params['v'].cumprod(0)
-            Z = ((b_vec[None, :] - Normal(0, 1).cdf(params['H'])) / self.tau).sigmoid()
+            # Z = ((b_vec[None, :] - Normal(0, 1).cdf(params['H'])) / self.tau).sigmoid()
+            Z_logit = (b_vec[None, :] - Normal(0, 1).cdf(params['H']))
+            Z = compute_Z(Z_logit, self.tau)
             c = Z[None, :] * logmix_L1[:, :, None] + (1 - Z[None, :]) * logmix_L0[:, :, None]
             d = c.sum(1)
 

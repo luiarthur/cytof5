@@ -15,6 +15,7 @@ import copy
 import numpy as np
 import pickle
 
+torch.set_default_dtype(torch.float64)
 
 def add_gridlines_Z(Z):
     J, K = Z.shape

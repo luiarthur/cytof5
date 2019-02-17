@@ -22,7 +22,7 @@ def compute_Z(logit, tau):
     The only gradient will then be that of smoothed Z.
     """
     smoothed_Z = (logit / tau).sigmoid()
-    Z = (smoothed_Z > 0.5).float()
+    Z = (smoothed_Z > 0.5).double()
     return (Z - smoothed_Z).detach() + smoothed_Z
 
 class Cytof(Model):
