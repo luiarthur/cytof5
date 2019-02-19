@@ -104,7 +104,7 @@ function log_p(real_w, m, log_s)
   K = length(m)
   log_p_m = sum(logpdf.(Normal(0, 1), m))
   log_p_log_s = sum(lpdf_logx.(LogNormal(0, 1), log_s))
-  log_p_real_w = lpdf_real_simplex(ones(K), real_w)
+  log_p_real_w = lpdf_real_simplex(ones(K) / K, real_w)
   return log_p_m + log_p_log_s + log_p_real_w
 end
 
