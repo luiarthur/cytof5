@@ -264,14 +264,24 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
   util.devOff()
 
   # Get mus
-  mus0Post = -cumsum(hcat([m[:delta][0] for m in out[1]]...)', dims=2)
-  mus1Post = cumsum(hcat([m[:delta][1] for m in out[1]]...)', dims=2)
+  delta0Post = hcat([m[:delta][0] for m in out[1]]...)'
+  delta1Post = hcat([m[:delta][1] for m in out[1]]...)'
+  mus0Post = -cumsum(delta0Post, dims=2)
+  mus1Post =  cumsum(delta1Post, dims=2)
   musPost = [ reverse(mus0Post, dims=2) mus1Post ]
 
   println("Making mus...")
   util.plotPdf("$IMGDIR/mus.pdf")
   util.boxplot(musPost, ylab="mu*", xlab="", xaxt="n", col="steelblue", pch=20, cex=0);
   util.abline(h=0, v=size(mus0Post, 2) + .5, col="grey30", lty=1);
+  util.devOff()
+
+  util.plotPdf("$IMGDIR/delta0.pdf")
+  util.plotPosts(delta0Post);
+  util.devOff()
+
+  util.plotPdf("$IMGDIR/delta1.pdf")
+  util.plotPosts(delta1Post);
   util.devOff()
 
   # Get sig2
