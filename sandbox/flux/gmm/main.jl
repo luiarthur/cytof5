@@ -18,7 +18,7 @@ for i in 1:N
   y[i] = rand(Normal(m[k], s[k]))
 end
 
-K = 3 
+K = 3
 vp = VP(K)
 loss_hist = zeros(0)
 function loss(y::T) where T
