@@ -73,14 +73,14 @@ if __name__ == '__main__':
         plt.colorbar()
         plt.show()
 
-    # K = 10 # Numerically unstable for values close to 0 in Dirichlet.
-    K = 5
+    K = 30 # Numerically unstable for values close to 0 in Dirichlet.
+    # K = 5
     L = [2, 2]
     model = Cytof(data=cb, K=K, L=L)
     priors = model.priors
     model = Cytof(data=cb, K=K, L=L, priors=priors)
     model.debug=0
-    out = model.fit(data=cb, niters=3000, lr=1e-1, print_freq=10, eps=0,
+    out = model.fit(data=cb, niters=3000, lr=1e-2, print_freq=10, eps=0,
                     minibatch_info={'prop': .01},
                     nmc=1, seed=10)
 
