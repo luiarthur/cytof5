@@ -20,8 +20,11 @@ end
 
 K = 3 
 vp = VP(K)
+loss_hist = zeros(0)
 function loss(y::T) where T
-  return -elbo(y, vp) / N
+  out = -elbo(y, vp) / N
+  append!(loss_hist, out.data)
+  return out
 end
 params = Tracker.Params([getfield(vp, fn) for fn in fieldnames(typeof(vp))])
 
@@ -36,7 +39,7 @@ Random.seed!(3);
   Flux.train!(loss, params, [(y[idx], )], opt)
   if i % 100 == 0
 
-    println("$(ShowTime()) -- $(i)/$(niters) -- ELBO: $(-loss(y).data)")
+    println("$(ShowTime()) -- $(i)/$(niters) -- ELBO: $(-loss_hist[end])")
     # println(vp.m[:, 1])
     # println(exp.(vp.log_s[:, 1]))
     # println(softmax_fullrank(vp.real_w[:, 1]))
