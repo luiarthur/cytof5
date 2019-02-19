@@ -39,6 +39,7 @@ Genearte default values for constants
 """
 function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
                           pBounds=[.01, .8, .05], yQuantiles=[0.01, .1, .25],
+                          yBounds=missing,
                           sig2_prior=InverseGamma(3.0, 2 / 3),
                           sig2_range=[0.0, Inf],
                           alpha_prior = Gamma(3.0, 0.5),
@@ -70,7 +71,11 @@ function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
 
   # TODO: use empirical bayes to find these priors
   y_negs = [filter(y_i -> !isnan(y_i) && y_i < 0, vec(data.y[i])) for i in 1:data.I]
-  beta = hcat([gen_beta_est(y_negs[i], yQuantiles, pBounds) for i in 1:data.I]...)
+  if ismissing(yBounds)
+    beta = hcat([gen_beta_est(y_negs[i], yQuantiles, pBounds) for i in 1:data.I]...)
+  else
+    beta = hcat([solveBeta(yBounds, pBounds) for i in 1:data.I]...)
+  end
 
   return Constants(alpha_prior=alpha_prior, delta_prior=delta_prior, W_prior=W_prior,
                    eta_prior=eta_prior,

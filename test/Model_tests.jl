@@ -81,7 +81,8 @@ end
 
   K_MCMC = K #10
   L_MCMC = L #5
-  @time c = Cytof5.Model.defaultConstants(y_dat, K_MCMC, L_MCMC, noisyDist=Normal(0, sqrt(10)))
+  @time c = Cytof5.Model.defaultConstants(y_dat, K_MCMC, L_MCMC,
+                                          noisyDist=Normal(0, sqrt(10)), yBounds=[-5., -3.5, -2.])
   Cytof5.Model.printConstants(c)
   # Plot miss mech
   R"pdf('result/beta.pdf')"
