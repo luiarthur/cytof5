@@ -62,8 +62,10 @@ function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
   if tau1 <= 0
     tau1 = std(y_pos)
   end
-  delta_prior[0] = TruncatedNormal(-mean(y_neg) / L[0], tau0 / L[0], 0.0, Inf)
-  delta_prior[1] = TruncatedNormal( mean(y_pos) / L[1], tau1 / L[1], 0.0, Inf)
+  # delta_prior[0] = TruncatedNormal(-mean(y_neg) / L[0], tau0 / L[0], 0.0, Inf)
+  # delta_prior[1] = TruncatedNormal( mean(y_pos) / L[1], tau1 / L[1], 0.0, Inf)
+  delta_prior[0] = TruncatedNormal(1.0, 1.0, 0.0, Inf)
+  delta_prior[1] = TruncatedNormal(1.0, 1.0, 0.0, Inf)
 
   W_prior = Dirichlet(K, 1 / K)
   eta_prior = Dict(z => Dirichlet(L[z], 1 / L[z]) for z in 0:1)
