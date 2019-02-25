@@ -12,14 +12,14 @@ b1 = -3.0
 sig = 0.5
 y = b0 .+ b1 .* x .+ randn(N) * sig
 
+minibatch_size = 100
 vp = VP()
-loss(y, x) = -elbo(y, x, vp) / N
+loss(y, x) = -elbo(y, x, vp, N) / N
 
 params = Tracker.Params([getfield(vp, fn) for fn in fieldnames(typeof(vp))])
 # grads = Tracker.gradient(() -> loss(y, x), params)
 
 opt = ADAM(1e-1)
-minibatch_size = 100
 niters = 10000
 
 @time for i in 1:niters
