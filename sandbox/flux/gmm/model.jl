@@ -2,6 +2,7 @@ using Flux, Flux.Tracker
 using Distributions
 import LinearAlgebra.logabsdet
 import SpecialFunctions.lgamma
+include("sbt.jl")
 
 struct VP
   m::TrackedArray
@@ -72,6 +73,9 @@ function lpdf_real_simplex(alpha, real_simplex)
   p = softmax_fullrank(real_simplex, complete=false)
   jacobian = [i == j ? p[i] * (1 - p[i]) : -p[i] * p[j] for i in 1:dim, j in 1:dim]
   return lpdf_Dirichlet_fullrank(alpha, p) + logabsdet(jacobian)[1]
+
+  # prob = sbt(real_simplex)
+  # return logpdf(Dirichlet(alpha), prob) + sum(sbt_logabsdetJ(real_simplex, prob))
 end
 
 # loglike
