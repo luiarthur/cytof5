@@ -1,13 +1,10 @@
 function sbt(x)
-  size_x = size(x) 
-  dims = length(size_x)
-  K = size_x[dims]
-
-  offset = (K + 1) .- cumsum(ones(size_x), dims=dims)
+  K = length(x) 
+  offset = (K + 1) .- cumsum(ones(K), dims=1)
   z = sigmoid.(x .- log.(offset)) 
-  z_cumprod = cumprod(1 .- z, dims=dims)
-  pad = ones(size_x[1:end-1])
-  y = cat(z, pad, dims=dims) .* cat(pad, z_cumprod, dims=dims)
+  z_cumprod = cumprod(1 .- z, dims=1)
+  # y = cat(z, pad, dims=dims) .* cat(pad, z_cumprod, dims=1)
+  y = vcat(z, 1) .* vcat(1, z_cumprod)
 
   return y
 end
@@ -18,21 +15,19 @@ function sbt_inv(p)
 end
 
 function sbt_logabsdetJ(x, p)
-  size_x = size(x) 
-  dims = length(size_x)
-  K = size_x[dims]
+  K = length(x)
 
-  offset = (K + 1) .- cumsum(ones(size_x), dims=dims)
+  offset = (K + 1) .- cumsum(ones(K), dims=1)
   z = sigmoid.(x .- log.(offset)) 
-  idx = [d < dims ? (1:size_x[d]) : 1:size_x[d] - 1 for d in 1:dims]
-  detJ = sum(log.(1 .- z) .+ log.(getindex(p, idx...)), dims=dims)
+  detJ = sum(log.(1 .- z) .+ log.(p[1:end-1]))
 
   return detJ
 end
 
 #= TEST
-x = randn(3,5,2)
+x = param(randn(3))
 p = sbt(x)
 sbt_logabsdetJ(x, p)
+logpdf(Dirichlet(ones(4)), p) + sbt_logabsdetJ(x, p)
 =#
 
