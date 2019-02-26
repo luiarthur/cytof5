@@ -31,5 +31,5 @@ niters = 10000
 end
 
 sig_post = exp.([rsample(vp.log_sig) for b in 1:1000])
-println("b0_mean: $(vp.b0[1].data) | b1_mean: $(vp.b1[1].data), | sig_mean: $(mean(sig_post).data)")
+println("b0_mean: $(vp.b0[1].data) | b1_mean: $(vp.b1[1].data) | sig_mean: $(mean(sig_post).data)")
 println("Loss: $(loss(y, x).data)")
