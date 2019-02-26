@@ -20,7 +20,7 @@ params = Tracker.Params([getfield(vp, fn) for fn in fieldnames(typeof(vp))])
 # grads = Tracker.gradient(() -> loss(y, x), params)
 
 opt = ADAM(1e-1)
-niters = 10000
+niters = 5000
 
 @time for i in 1:niters
   idx = sample(1:N, minibatch_size)
