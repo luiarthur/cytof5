@@ -294,6 +294,19 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
   util.plotPosts(sig2Post);
   util.devOff()
 
+  println("Making v...")
+  vPost = hcat(util.getPosterior(:v, out[1])...)'
+  util.plotPdf("$IMGDIR/v.pdf")
+  util.boxplot(vPost, ylab="mu*", xlab="", xaxt="n", col="steelblue", pch=20, cex=0);
+  util.devOff()
+
+  println("Making v_cumprod...")
+  util.plotPdf("$IMGDIR/v_cumprod.pdf")
+  util.boxplot(cumprod(vPost, dims=2),
+               ylab="mu*", xlab="", xaxt="n", col="steelblue", pch=20, cex=0);
+  util.devOff()
+
+
   # Posterior of eps
   println("Making eps...")
   epsPost = hcat(util.getPosterior(:eps, out[1])...)'
