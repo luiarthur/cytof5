@@ -34,7 +34,8 @@ function genInitialState(c::Constants, d::Data)
   println("alpha: $alpha")
   # v = rand(Beta(alpha / c.K, 1), K)
   # Z = [ Bool(rand(Bernoulli(v[k]))) for j in 1:J, k in 1:K ]
-  v = rand(Beta(alpha, 1), K)
+  # v = rand(Beta(alpha, 1), K)
+  v = [mean(Beta(alpha, 1)) for k in 1:K]
   println("v: $v")
   b = cumprod(v)
   println("b: $b")
