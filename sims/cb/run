@@ -38,7 +38,7 @@ SEED=0
 SUBSAMPLE="0.05"
 isTest=""
 otherFlags=""
-SMARTINIT="true"
+SMARTINIT="true false"
 
 if [[ $@ == **--test** ]]
 then
@@ -80,7 +80,7 @@ then
   K_MCMC=5
   SUBSAMPLE="0.1"
   isTest="_isTest"
-  SMARTINIT="true"
+  SMARTINIT="false"
 fi
 
 # simulation number, just for book keeping. Ignore this.
