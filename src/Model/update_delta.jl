@@ -57,8 +57,8 @@ function update_delta(z::Bool, l::Int, s::State, c::Constants, d::Data)
     end
   end
 
-  denom = 1.0 + tau_z^2 * sum(cardinality ./ s.sig2)
-  new_m = (psi_z + tau_z^2 * sum(g_sum ./ s.sig2)) / denom
+  denom = 1.0 + tau_z^2 * sum(cardinality ./ s.sig2[z][:, l])
+  new_m = (psi_z + tau_z^2 * sum(g_sum ./ s.sig2[z][:, l])) / denom
   new_s = sqrt(tau_z^2 / denom)
 
   s.delta[z][l] = rand(TruncatedNormal(new_m, new_s, 0.0, Inf))

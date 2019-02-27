@@ -6,7 +6,7 @@ const Cube = Array{T, 3} where T
   alpha::F
   v::Vector{F} # dim: K
   W::Matrix{F} # dim: I x K
-  sig2::Vector{F} # dim: I
+  sig2::Dict{Bool, Matrix{F}} # dim: sig2_z: I x Lz
   eta::Dict{Bool, Cube{F}} # eta_zik dim: L[z]
   lam::Vector{Vector{Int8}} # Array of Array. lam[1:I] ∈ {1,...,K}
   gam::Vector{Matrix{Int8}} # gam_ij dim: N[i]
@@ -29,7 +29,8 @@ function compress(state::State)
                  alpha=Float32(state.alpha),
                  v=Float32.(state.v),
                  W=Float32.(state.W),
-                 sig2=Float32.(state.sig2),
+                 # sig2=Float32.(state.sig2),
+                 sig2=Dict{Bool, Matrix{Float32}}(state.sig2),
                  eta=Dict{Bool, Cube{Float32}}(state.eta),
                  lam=Vector{Vector{Int8}}(state.lam),
                  gam=Vector{Matrix{Int8}}(state.gam),

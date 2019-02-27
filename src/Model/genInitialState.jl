@@ -42,7 +42,9 @@ function genInitialState(c::Constants, d::Data)
   Z = [ Bool(rand(Bernoulli(b[k]))) for j in 1:J, k in 1:K ]
   delta = Dict(false => rand(c.delta_prior[0], L[0]),
                true  => rand(c.delta_prior[1], L[1]))
-  sig2 = [rand(c.sig2_prior) for i in 1:I]
+  # sig2 = [rand(c.sig2_prior) for i in 1:I]
+  sig2 = Dict(false => rand(c.sig2_prior, I, L[0]),
+              true  => rand(c.sig2_prior, I, L[1]))
   W = Matrix{Float64}(hcat([rand(c.W_prior) for i in 1:I]...)')
   lam = [ Int8.(rand(Categorical(W[i, :]), N[i])) for i in 1:I ]
   eta = begin

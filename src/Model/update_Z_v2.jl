@@ -1,7 +1,7 @@
 function update_Z_v2(s::State, c::Constants, d::Data, tuners::Tuners)
   # if 0.5 > rand()
   # if 0.1 > rand()
-  if 0 > rand()
+  if 0.1 > rand()
     # update Z marginalizing over lam and gam
     update_Z_marg_lamgam(s, c, d)
   else
@@ -18,13 +18,16 @@ function update_Z_marg_lamgam(j::Int, k::Int,
                               B0::Vector{Matrix{Float64}},
                               B1::Vector{Matrix{Float64}},
                               s::State, c::Constants, d::Data)
+  # SB-IBP
+  bv = cumprod(s.v)
+
   Z0 = deepcopy(s.Z)
   Z0[j, k] = false 
-  lp0 = log(1 - s.v[k]) + log_dmix_nolamgam(Z0, A, B0, B1, s, c, d)
+  lp0 = log1p(-bv[k]) + log_dmix_nolamgam(Z0, A, B0, B1, s, c, d)
 
   Z1 = deepcopy(s.Z)
   Z1[j, k] = true 
-  lp1 = log(s.v[k]) + log_dmix_nolamgam(Z1, A, B0, B1, s, c, d)
+  lp1 = log(bv[k]) + log_dmix_nolamgam(Z1, A, B0, B1, s, c, d)
 
   p1_post = 1 / (1 + exp(lp0 - lp1))
   new_Zjk_is_one = p1_post > rand()
