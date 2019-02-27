@@ -73,7 +73,7 @@ function logpdfLogitX(logitX::Float64, logpdfX::Function, a::Float64, b::Float64
 end
 
 function metLogitAdaptive(curr::Float64, ll::Function, lp::Function,
-                          tuner::TuningParam; a::Float64=0, b::Float64=1, 
+                          tuner::TuningParam; a::Float64=0.0, b::Float64=1.0, 
                           update::Function=update_tuning_param_default)
 
   function lfc_logitX(logit_x::Float64)

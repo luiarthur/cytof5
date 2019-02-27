@@ -36,6 +36,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
                     printFreq::Int=0, flushOutput::Bool=false,
                     computeDIC::Bool=false, computeLPML::Bool=false,
                     computedden::Bool=false,
+                    sb_ibp::Bool=true,
                     use_repulsive::Bool=false, joint_update_Z::Bool=false,
                     verbose::Int=1)
 
@@ -69,7 +70,8 @@ function cytof5_fit(init::State, c::Constants, d::Data;
   end
 
   tuners = Tuners(y_imputed=y_tuner, # yinj, for inj s.t. yinj is missing
-                  Z=MCMC.TuningParam(MCMC.sigmoid(c.probFlip_Z, a=0.0, b=1.0)))
+                  Z=MCMC.TuningParam(MCMC.sigmoid(c.probFlip_Z, a=0.0, b=1.0)),
+                  v=[MCMC.TuningParam(1.0) for k in 1:c.K])
 
   # Loglike
   loglike = Vector{Float64}()
@@ -146,7 +148,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
   dden = Vector{Matrix{Vector{Float64}}}()
 
   function update(s::State, iter::Int, out)
-    update_state(s, c, d, tuners, loglike, fix, use_repulsive, joint_update_Z)
+    update_state(s, c, d, tuners, loglike, fix, use_repulsive, joint_update_Z, sb_ibp)
 
     if computedden && iter > nburn && (iter - nburn) % thin_dden == 0
       append!(dden,

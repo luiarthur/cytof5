@@ -16,7 +16,7 @@ include("compute_loglike.jl") # TODO
 
 function update_state(s::State, c::Constants, d::Data, tuners::Tuners,
                       ll::Vector{Float64}, fix::Vector{Symbol},
-                      use_repulsive::Bool, joint_update_Z::Bool)
+                      use_repulsive::Bool, joint_update_Z::Bool, sb_ibp::Bool)
   # Note: `@doIf` is defined in "util.jl"
 
   # Return true if sym not is not fixed
@@ -34,7 +34,7 @@ function update_state(s::State, c::Constants, d::Data, tuners::Tuners,
     end
   end
 
-  @doIf isRandom(:v)          update_v(s, c, d)
+  @doIf isRandom(:v)          update_v(s, c, d, tuners, sb_ibp)
   @doIf isRandom(:alpha)      update_alpha(s, c, d)
   @doIf isRandom(:lam)        update_lam(s, c, d)
   @doIf isRandom(:W)          update_W(s, c, d)

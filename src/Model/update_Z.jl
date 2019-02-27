@@ -26,8 +26,11 @@ function update_Z(s::State, c::Constants, d::Data)
   end
 
   for k in 1:c.K
-    lp0 = log(1 - s.v[k])
-    lp1 = log(s.v[k])
+    # lp0 = log1p(-s.v[k])
+    # lp1 = log(s.v[k])
+    b = cumprod(s.v)
+    lp0 = log1p(-b[k])
+    lp1 = log(b[k])
 
     for j in 1:d.J
       lfc0 = lp0 + ll0[j, k]

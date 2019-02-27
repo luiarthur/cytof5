@@ -1,6 +1,7 @@
 function update_Z_v2(s::State, c::Constants, d::Data, tuners::Tuners)
   # if 0.5 > rand()
-  if 0.1 > rand()
+  # if 0.1 > rand()
+  if 0 > rand()
     # update Z marginalizing over lam and gam
     update_Z_marg_lamgam(s, c, d)
   else
