@@ -30,9 +30,15 @@ function genInitialState(c::Constants, d::Data)
     out
   end
 
-  alpha = rand(c.alpha_prior)
-  v = rand(Beta(alpha / c.K, 1), K)
-  Z = [ Bool(rand(Bernoulli(v[k]))) for j in 1:J, k in 1:K ]
+  alpha = mean(c.alpha_prior)
+  println("alpha: $alpha")
+  # v = rand(Beta(alpha / c.K, 1), K)
+  # Z = [ Bool(rand(Bernoulli(v[k]))) for j in 1:J, k in 1:K ]
+  v = rand(Beta(alpha, 1), K)
+  println("v: $v")
+  b = cumprod(v)
+  println("b: $b")
+  Z = [ Bool(rand(Bernoulli(b[k]))) for j in 1:J, k in 1:K ]
   delta = Dict(false => rand(c.delta_prior[0], L[0]),
                true  => rand(c.delta_prior[1], L[1]))
   sig2 = [rand(c.sig2_prior) for i in 1:I]
