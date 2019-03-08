@@ -1,3 +1,12 @@
+function print_debug_Z(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)
+  println("y_inj = $(s.y_imputed[i][n, j])")
+  println("sig2[i]: $(s.sig2[i])")
+  println("mus0: $(mus(false, s, c, d))")
+  println("mus1: $(mus(true, s, c, d))")
+  println("etaz0_i$(i)_j$(j): $(s.eta[0][i, j, :])")
+  println("etaz1_i$(i)_j$(j): $(s.eta[1][i, j, :])")
+end
+
 function update_Z(s::State, c::Constants, d::Data)
   ll0 = zeros(d.J, c.K)
   ll1 = zeros(d.J, c.K)

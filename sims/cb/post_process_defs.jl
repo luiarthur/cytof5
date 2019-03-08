@@ -55,7 +55,7 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
   println("datapath: $datapath")
   IMGDIR = "$outdir/img/"
 
-  run(`mkdir -p $(IMGDIR)/dden/`)
+  run(`mkdir -p $(IMGDIR)`)
 
   println("Loading Data ...")
   cbData = loadSingleObj(datapath)
@@ -127,7 +127,7 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
   for i in 1:I
     for j in 1:J
       println("Plot posterior density for (i: $i, j: $j) observed ...")
-      util.plotPdf("$(IMGDIR)/dden/dden_i$(i)_j$(j).pdf")
+      util.plotPdf("$(IMGDIR)/dden_i$(i)_j$(j).pdf")
       dyij = util.density(filter(yij -> !isnan(yij), cbData[i][:, j]))
       dd_ij = hcat([dd[i, j] for dd in dden]...)
       pdyij_mean = R"rowMeans($dd_ij)" .+ 0
@@ -268,7 +268,7 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
   delta1Post = hcat([m[:delta][1] for m in out[1]]...)'
   mus0Post = -cumsum(delta0Post, dims=2)
   mus1Post =  cumsum(delta1Post, dims=2)
-  musPost = [ mus0Post mus1Post ]
+  musPost = [ reverse(mus0Post, dims=2) mus1Post ]
 
   println("Making mus...")
   util.plotPdf("$IMGDIR/mus.pdf")
@@ -285,43 +285,25 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
   util.devOff()
 
   # Get sig2
+  sig2Post = hcat(util.getPosterior(:sig2, out[1])...)'
+  sig2Mean = mean(sig2Post, dims=1)
+  sig2Sd = std(sig2Post, dims=1)
+
   println("Making sig2...")
-  sig2_0_post = cat([m[:sig2][0] for m in out[1]]..., dims=3)
-  sig2_1_post = cat([m[:sig2][1] for m in out[1]]..., dims=3)
-
-  for i in 1:I
-    sig2_i = [ sig2_0_post[i, :, :]' sig2_1_post[i, :, :]' ]
-
-    util.plotPdf("$IMGDIR/sig2_i$(i).pdf")
-    util.boxplot(sig2_i, ylab="sig2_i$(i)", xlab="", xaxt="n", col="steelblue", pch=20, cex=0);
-    util.abline(h=0, v=c.L[0] + .5, col="grey30", lty=1);
-    util.devOff()
-
-    util.plotPdf("$IMGDIR/sig2_0_i$(i).pdf")
-    util.plotPosts(sig2_0_post[i, :, :]')
-    util.devOff()
-
-    util.plotPdf("$IMGDIR/sig2_1_i$(i).pdf")
-    util.plotPosts(sig2_1_post[i, :, :]')
-    util.devOff()
-  end
+  util.plotPdf("$IMGDIR/sig2.pdf")
+  util.plotPosts(sig2Post);
+  util.devOff()
 
   println("Making v...")
   vPost = hcat(util.getPosterior(:v, out[1])...)'
   util.plotPdf("$IMGDIR/v.pdf")
-  util.boxplot(vPost, ylab="v", xlab="", xaxt="n", col="steelblue", pch=20, cex=0);
-  util.devOff()
-
-  util.plotPdf("$IMGDIR/v_each.pdf")
-  for k in 1:c.K
-    util.plotPost(vPost[:, k], main="v_$k")
-  end
+  util.boxplot(vPost, ylab="mu*", xlab="", xaxt="n", col="steelblue", pch=20, cex=0);
   util.devOff()
 
   println("Making v_cumprod...")
   util.plotPdf("$IMGDIR/v_cumprod.pdf")
   util.boxplot(cumprod(vPost, dims=2),
-               ylab="v cumprod", xlab="", xaxt="n", col="steelblue", pch=20, cex=0);
+               ylab="mu*", xlab="", xaxt="n", col="steelblue", pch=20, cex=0);
   util.devOff()
 
 

@@ -21,7 +21,7 @@ include("genInitialState.jl")
 @namedargs mutable struct DICparam
   p::Vector{Matrix{Float64}}
   mu::Vector{Matrix{Float64}}
-  sig::Vector{Matrix{Float64}}
+  sig::Vector{Vector{Float64}}
 end
 
 """
@@ -94,7 +94,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
   if computeDIC
     local tmp = DICparam(p=deepcopy(d.y),
                          mu=deepcopy(d.y),
-                         sig=deepcopy(d.y))
+                         sig=[zeros(Float64, d.N[i]) for i in 1:d.I])
     dicStream = MCMC.DICstream{DICparam}(tmp)
 
     function updateParams(d::MCMC.DICstream{DICparam}, param::DICparam)
@@ -121,8 +121,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
             if y_inj_is_missing
               ll += logpdf(Bernoulli(param.p[i][n, j]), d.m[i][n, j])
             else
-              # ll += logpdf(Normal(param.mu[i][n, j], param.sig[i][n]), d.y[i][n, j])
-              ll += logpdf(Normal(param.mu[i][n, j], param.sig[i][n, j]), d.y[i][n, j])
+              ll += logpdf(Normal(param.mu[i][n, j], param.sig[i][n]), d.y[i][n, j])
             end
           end
         end
@@ -131,12 +130,6 @@ function cytof5_fit(init::State, c::Constants, d::Data;
       return ll
     end
 
-    function get_sig(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)
-      k = s.lam[i][n]
-      z = s.Z[j, k]
-      l = s.gam[i][n, j]
-      return sqrt(s.sig2[z][i, l])
-    end
     # FIXME: Doesn't work for c.noisyDist not Normal
     function convertStateToDicParam(s::State)::DICparam
       p = [[prob_miss(s.y_imputed[i][n, j], c.beta[:, i])
@@ -145,8 +138,8 @@ function cytof5_fit(init::State, c::Constants, d::Data;
       mu = [[s.lam[i][n] > 0 ? mus(i, n, j, s, c, d) : 0.0 
              for n in 1:d.N[i], j in 1:d.J] for i in 1:d.I]
 
-      sig = [[s.lam[i][n] > 0 ? get_sig(i, n, j, s, c, d) : std(c.noisyDist)
-              for n in 1:d.N[i], j in 1:d.J] for i in 1:d.I]
+      sig = [[s.lam[i][n] > 0 ? sqrt(s.sig2[i]) : std(c.noisyDist) for n in 1:d.N[i]] for i in 1:d.I]
+
       return DICparam(p, mu, sig)
     end
   end

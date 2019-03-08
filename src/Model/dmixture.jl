@@ -1,13 +1,13 @@
 function dmixture(z::Integer, i::Integer, n::Integer, j::Integer,
                   s::State, c::Constants, d::Data)::Float64
-  sd = sqrt.(s.sig2[z][i, :])
+  sd = sqrt(s.sig2[i])
   dvec = s.eta[z][i, j, :] .* pdf.(Normal.(mus(Bool(z), s, c, d), sd), s.y_imputed[i][n, j])
   return sum(dvec)
 end
 
 function logdmixture(z::Integer, i::Integer, n::Integer, j::Integer,
                   s::State, c::Constants, d::Data)::Float64
-  sd = sqrt.(s.sig2[z][i, :])
+  sd = sqrt(s.sig2[i])
   logdvec = log.(s.eta[z][i, j, :])
   logdvec += logpdf.(Normal.(mus(Bool(z), s, c, d), sd), s.y_imputed[i][n, j])
   return MCMC.logsumexp(logdvec)
@@ -31,7 +31,7 @@ function datadensity(i::Integer, n::Integer, j::Integer,
   if k > 0
     z = s.Z[j, k]
     l = s.gam[i][n, j]
-    sd = sqrt.(s.sig2[z][i, l])
+    sd = sqrt(s.sig2[i])
     out = pdf.(Normal.(mus(z, l, s, c, d), sd), c.y_grid)
   else
     out = pdf.(c.noisyDist, c.y_grid)

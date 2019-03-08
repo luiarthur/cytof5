@@ -137,27 +137,17 @@ function smartInit(c::Constants, d::Data; iterMax::Int=10,
   end
 
   # Get sig2
-  sig2 = Dict(false => zeros(I, L[0]) .+ .01,
-              true  => zeros(I, L[1]) .+ .01)
-  sig2_counter = Dict(false => ones(I, L[0]),
-                      true  => ones(I, L[1]))
+  sig2 = zeros(I)
   for i in 1:I
     for j in 1:J
       for n in 1:N[i]
         z = Z[j, lam[i][n]]
         l = gam[i][n, j]
         mus_z = cumsum(delta[z]) * (-1) ^ (1 - z)
-        sig2[z][i, l] += (y_imputed[i][n, j] - mus_z[l]) ^ 2
-        sig2_counter[z][i, l] += 1
+        sig2[i] += (y_imputed[i][n, j] - mus_z[l]) ^ 2
       end
     end
-
-    # sig2[i] /= (N[i] * J)
-    for z in 0:1
-      for l in 1:L[z]
-        sig2[z][i, l] /= sig2_counter[z][i, l]
-      end
-    end
+    sig2[i] /= (N[i] * J)
   end
 
   eps = mean.(c.eps_prior)
