@@ -46,6 +46,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
       fixed_vars_str = "nothing"
     end
     println("fixing: $fixed_vars_str")
+    println("Use stick-breaking IBP: $(sb_ibp)")
   end
 
   @assert printFreq >= -1
