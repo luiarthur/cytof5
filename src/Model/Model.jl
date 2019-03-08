@@ -36,7 +36,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
                     printFreq::Int=0, flushOutput::Bool=false,
                     computeDIC::Bool=false, computeLPML::Bool=false,
                     computedden::Bool=false,
-                    sb_ibp::Bool=true,
+                    sb_ibp::Bool=false,
                     use_repulsive::Bool=false, joint_update_Z::Bool=false,
                     verbose::Int=1)
 
