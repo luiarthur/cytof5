@@ -6,7 +6,7 @@ RESULTS_DIR=$1
 AWS_BUCKET=$2
 
 # Maximum number of cores to use
-MAX_CORES=27
+MAX_CORES=20
 
 # STAGGER_TIME in seconds. To avoid mass dumping to disk simultaneously. 
 STAGGER_TIME=100
@@ -15,7 +15,7 @@ STAGGER_TIME=100
 # MCMC_ITER=1000
 # BURN=20000
 MCMC_ITER=6000
-BURN=6000
+BURN=10000
 # K_MCMC="15"
 # K_MCMC="`seq -w 2 20 | shuf`"
 # K_MCMC="`seq -w 2 2 50 | shuf`"
@@ -35,10 +35,12 @@ TAU0="10.0"
 TAU1="10.0"
 DATA_PATH="data/cytof_cb_with_nan.jld2"
 SEED=0
-SUBSAMPLE="0.05"
+# SUBSAMPLE="0.05"
+SUBSAMPLE="1.0"
 isTest=""
 otherFlags=""
-SMARTINIT="false true"
+# SMARTINIT="false true"
+SMARTINIT="true"
 
 if [[ $@ == **--test** ]]
 then
