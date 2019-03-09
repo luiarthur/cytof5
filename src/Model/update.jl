@@ -24,18 +24,18 @@ function update_state(s::State, c::Constants, d::Data, tuners::Tuners,
 
   # Gibbs.
   @doIf isRandom(:Z) if use_repulsive
-    update_Z_repulsive(s, c, d, tuners)
+    update_Z_repulsive(s, c, d, tuners, sb_ibp)
   else
     if joint_update_Z
-      update_Z_v2(s, c, d, tuners)
+      update_Z_v2(s, c, d, tuners, sb_ibp)
     else
       # Do regular updates
-      update_Z(s, c, d)
+      update_Z(s, c, d, sb_ibp)
     end
   end
 
   @doIf isRandom(:v)          update_v(s, c, d, tuners, sb_ibp)
-  @doIf isRandom(:alpha)      update_alpha(s, c, d)
+  @doIf isRandom(:alpha)      update_alpha(s, c, d, sb_ibp)
   @doIf isRandom(:lam)        update_lam(s, c, d)
   @doIf isRandom(:W)          update_W(s, c, d)
   @doIf isRandom(:eps)        update_eps(s, c, d) 

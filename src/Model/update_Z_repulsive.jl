@@ -38,14 +38,15 @@ function logprob_Z_repulsive(Z::Matrix{Bool}, v::Vector{Float64}, similarity::Fu
   return lp
 end
 
-function update_Z_repulsive(s::State, c::Constants, d::Data, tuners::Tuners)
+function update_Z_repulsive(s::State, c::Constants, d::Data, tuners::Tuners, sb_ibp::Bool)
   #cand_Z = flip_bit.(s.Z, MCMC.logit(tuners.Z.value, a=0.0, b=1.0))
   cand_Z = Matrix{Bool}(flip_bit.(s.Z, c.probFlip_Z))
 
   curr_Z = s.Z
 
   function log_fc(Z)
-    lp = logprob_Z_repulsive(Z, s.v, c.similarity_Z)
+    v = sb_ibp ? cumprod(s.v) : s.v
+    lp = logprob_Z_repulsive(Z, v, c.similarity_Z)
     ll = 0.0
 
     for i in 1:d.I

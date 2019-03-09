@@ -7,7 +7,7 @@ function print_debug_Z(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)
   println("etaz1_i$(i)_j$(j): $(s.eta[1][i, j, :])")
 end
 
-function update_Z(s::State, c::Constants, d::Data)
+function update_Z(s::State, c::Constants, d::Data, sb_ibp::Bool)
   ll0 = zeros(d.J, c.K)
   ll1 = zeros(d.J, c.K)
 
@@ -26,11 +26,9 @@ function update_Z(s::State, c::Constants, d::Data)
   end
 
   for k in 1:c.K
-    # lp0 = log1p(-s.v[k])
-    # lp1 = log(s.v[k])
-    b = cumprod(s.v)
-    lp0 = log1p(-b[k])
-    lp1 = log(b[k])
+    v = sb_ibp ? cumprod(s.v) : s.v
+    lp0 = log1p(-v[k])
+    lp1 = log(v[k])
 
     for j in 1:d.J
       lfc0 = lp0 + ll0[j, k]
