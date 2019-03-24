@@ -137,7 +137,8 @@ Cytof5.Model.logger("\nGenerating priors ...");
                                         alpha_prior=Gamma(0.1, 10.0),
                                         # yQuantiles=[.1, .25, .4], pBounds=[.05, .8, .05],
                                         # yQuantiles=[0.0, .01, .05], pBounds=[.05, .8, .05], # far
-                                        yQuantiles=[0.0, .35, .7], pBounds=[.05, .8, .05], # near
+                                        # yQuantiles=[0.0, .35, .7], pBounds=[.05, .8, .05], # near
+                                        yQuantiles=[0.0, .25, .5], pBounds=[.05, .8, .05], # near
                                         # yBounds=[-5., -3.5, -2.], pBounds=[.05, .8, .05], # custom
                                         # TODO: CHECK
                                         similarity_Z=Cytof5.Model.sim_fn_abs(10000),
