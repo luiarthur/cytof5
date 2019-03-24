@@ -3,7 +3,7 @@
 .PHONY: genpreprocessGraphs sendPreprocessedGraphs getPreprocessedGraphs getRData sendRData
 
 # Current run name
-DIR_CB_RUN = cb_smartinit_randeps_zmarg_delta_imputenear_sweep_fulldata
+DIR_CB_RUN = cb_smartinit_randeps_zmarg_delta_imputenear_sweep_fulldata2
 # Current run dir
 RESULTS_DIR_CB_RUN = results/$(DIR_CB_RUN)/
 # Current AWS bucket
@@ -13,6 +13,7 @@ AWS_BUCKET_CB_RUN = s3://cytof-cb-results/$(subst _,-,$(DIR_CB_RUN))
 AWS_BUCKET_CB_PREPROCESSED = s3://cytof-cb-results/cb-preprocessed
 
 # {{{1
+# DIR_CB_RUN = cb_smartinit_randeps_zmarg_delta_imputenear_sweep_fulldata
 # DIR_CB_RUN = cb_smartinit_randeps_zmarg_delta_imputenear_sweep
 # DIR_CB_RUN = cb_smartinit_randeps_zmarg_delta_customimpute
 # DIR_CB_RUN = cb_smartinit_randeps_zmarg_delta_imputenear
