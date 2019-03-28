@@ -12,15 +12,17 @@ b1 = 2.0
 p = sigmoid.(b0 .+ b1 * x)
 y = (p .> rand(N)) * 1.0
 
-minibatch_size = 100
+minibatch_size = 500
 vp = VP()
-loss(y, x) = -elbo(y, x, vp, N) / N
+metrics = Vector{Metrics}()
+loss(y, x) = -elbo(y, x, vp, N, metrics) / N
 
 params = Tracker.Params([getfield(vp, fn) for fn in fieldnames(typeof(vp))])
 # grads = Tracker.gradient(() -> loss(y, x), params)
 
 opt = ADAM(1e-1)
 niters = 1000
+Random.seed!(3);
 
 @time for i in 1:niters
   idx = sample(1:N, minibatch_size)
@@ -30,5 +32,6 @@ niters = 1000
   end
 end
 
+println("b0_true: $(b0) | b1_true: $(b1)")
 println("b0_mean: $(vp.b0[1].data) | b1_mean: $(vp.b1[1].data)")
 println("b0_sd: $(exp(vp.b0[2].data)) | b1_sd: $(exp(vp.b1[2].data))")
