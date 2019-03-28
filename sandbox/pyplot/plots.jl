@@ -16,26 +16,30 @@ function saveimg(path::String)
   plt.close()
 end
 
-function plotZ(Z::Matrix{T}; kw...) where {T <: Number}
+function plotZ(Z::Matrix{T}; xticks=true, kw...) where {T <: Number}
   J, K = size(Z)
   cm = plt.cm_get_cmap(:Greys)
   img = plt.imshow(Z, aspect="auto", vmin=0, vmax=1, cmap=cm; kw...);
   [ plt.axhline(y=i+.5, color="grey", linewidth=.5) for i in pyRange(J)];
   [ plt.axvline(x=i+.5, color="grey", linewidth=.5) for i in pyRange(K)];
   plt.yticks(pyRange(J), 1:J);
-  plt.xticks(pyRange(K), 1:K, rotation=:vertical);
+  if xticks
+    plt.xticks(pyRange(K), 1:K, rotation=:vertical);
+  end
   ax = plt.gca()
   ax[:tick_params](length=0)
   return ax
 end
 
-function plotY(Y::Matrix{T}; kw...) where {T  <: Number}
+function plotY(Y::Matrix{T}, colorbar=true; kw...) where {T  <: Number}
   cm = plt.cm_get_cmap(:bwr)
   cm[:set_under](color=:blue)
   cm[:set_over](color=:red)
   cm[:set_bad](color=:black)
   img = plt.imshow(Y, aspect="auto", cmap=cm; kw...) # vmin, vmax
-  plt.plt[:colorbar]();
+  if colorbar
+    plt.plt[:colorbar]();
+  end
   ax = plt.gca()
   ax[:tick_params](length=0)
   return img
@@ -63,25 +67,31 @@ saveimg("img/heatmap.pdf")
 
 # yZ plot
 #plt.rc_context(Dict("axes.edgecolor" => "grey", "xtick.color" => "grey", "ytick.color" => "grey"))
-plt.subplot2grid((1, 10), (0, 0), colspan=3)
-ax = plotZ(Matrix(Z))
-plt.xticks(rotation=:horizontal)
+
+# Y
+plt.subplot2grid((10, 1), (0, 0), rowspan=7)
+plotY(Matrix(Y), false, vmin=-3, vmax=3);
+plt.yticks(fontsize=5)
+plt.plt[:colorbar]()
+plt.xticks(pyRange(J), 1:J, rotation=:vertical);
+
+# Z
+plt.subplot2grid((10, 1), (8, 0), rowspan=3)
+ax = plotZ(Matrix(Z'))
+plt.xticks([])
+plt.yticks(fontsize=5)
 # Add ticks to other axis
 ax = plt.gca()
-ax2 = ax[:twiny]()
-
+ax2 = ax[:twinx]()
+plt.plt[:colorbar](aspect=5)
 # Change default ticks! Comment this out to see the difference.
-ax2[:set_xticks](pyRange(K))
-plt.xticks((K-1) / K * pyRange(K) .+ .5, (1:K) / 10, fontsize=5)
+ax2[:set_yticks](pyRange(K))
+plt.yticks((K-1) / K * pyRange(K) .+ .5, (1:K) / 10, fontsize=5)
 ax2[:tick_params](length=0)
 
-plt.subplot2grid((1, 10), (0, 3), colspan=7)
-plotY(Matrix(Y'), vmin=-3, vmax=3);
-plt.yticks(pyRange(J), 1:J);
-plt.xticks(rotation=:vertical)
-plt.tight_layout()
+plt.savefig("img/yZ.pdf", bbox_inches="tight")
+plt.close()
 
-saveimg("img/yZ.pdf")
 #plt.rcdefaults()
 
 # kde
