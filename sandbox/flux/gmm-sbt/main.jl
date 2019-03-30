@@ -3,11 +3,11 @@ using Flux, Flux.Tracker
 import Random
 import Dates
 
-Random.seed!(1);
+Random.seed!(0);
 ShowTime() = Dates.format(Dates.now(), "yyyy-mm-dd HH:MM:SS")
 
 # Generate Data
-N = 1000
+N = 10000
 m = [3., -1., 2.]
 s = [.1, .05, .15]
 w = [.5, .3, .2]
@@ -29,11 +29,11 @@ end
 params = Tracker.Params([getfield(vp, fn) for fn in fieldnames(typeof(vp))])
 
 opt = ADAM(1e-1)
-minibatch_size = 100
-niters = 1300
+minibatch_size = 500
+niters = 1000
 
 
-Random.seed!(0);
+Random.seed!(3);
 @time for i in 1:niters
   idx = sample(1:N, minibatch_size)
   Flux.train!(loss, params, [(y[idx], )], opt)
@@ -46,7 +46,7 @@ Random.seed!(0);
 end
 
 s_post = vcat([exp.(rsample(vp.log_s.data)) for b in 1:100]'...)
-w_post = vcat([StickBreak.transform(rsample(vp.real_w)) for b in 1:100]'...)
+w_post = vcat([StickBreak.transform(rsample_w(vp.real_w)) for b in 1:100]'...)
 
 println("m_mean: $(vp.m[:, 1].data) | m: $(m)")
 println("s_mean: $(mean(s_post, dims=1)) | s: $(s)")

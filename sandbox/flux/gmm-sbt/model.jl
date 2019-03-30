@@ -65,6 +65,13 @@ function log_q(real_w, m, log_s, vp::VP)
   return log_q_m + log_q_log_s + log_q_real_w
 end
 
+function rsample_w(p)
+  m = sigmoid.(p[:, 1]) * 20 .- 10
+  z = randn(size(p, 1)) 
+  s = exp.(p[:, 2])
+  return m .+ z .* s
+end
+
 # ELBO
 function elbo(y, vp::VP)
   m = rsample(vp.m)
@@ -72,8 +79,10 @@ function elbo(y, vp::VP)
   log_s = rsample(vp.log_s)
   s = exp.(log_s)
 
-  real_w = rsample(vp.real_w)
-  w = SB.transform(sigmoid.(real_w) * 20)
+  # real_w = rsample(vp.real_w)
+  # w = SB.transform(sigmoid.(real_w) * 20.0 .- 10.0)
+  real_w = rsample_w(vp.real_w)
+  w = SB.transform(real_w)
 
   return loglike(y, w, m, s) + log_p(real_w, w, m, log_s) - log_q(real_w, m, log_s, vp)
 end
