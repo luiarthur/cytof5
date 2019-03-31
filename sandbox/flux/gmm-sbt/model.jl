@@ -9,7 +9,7 @@ struct VP
   log_s::TrackedArray
   real_w::TrackedArray
 
-  VP(K::Integer) = new(param(randn(K, 2)), param(randn(K, 2)), param(zeros(K - 1, 2)))
+  VP(K::Integer) = new(param(randn(K, 2)), param(randn(K, 2)), param(randn(K - 1, 2)))
 end
 
 function lpdf_vp(p, x)
@@ -66,9 +66,9 @@ function log_q(real_w, m, log_s, vp::VP)
 end
 
 function rsample_w(p)
-  m = sigmoid.(p[:, 1]) * 20 .- 10
+  m = sigmoid.(p[:, 1]) * 4 .- 2
+  s = sigmoid.(p[:, 2]) * 1
   z = randn(size(p, 1)) 
-  s = exp.(p[:, 2])
   return m .+ z .* s
 end
 

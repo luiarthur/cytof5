@@ -33,7 +33,7 @@ minibatch_size = 500
 niters = 1000
 
 
-Random.seed!(3);
+Random.seed!(1);
 @time for i in 1:niters
   idx = sample(1:N, minibatch_size)
   Flux.train!(loss, params, [(y[idx], )], opt)
