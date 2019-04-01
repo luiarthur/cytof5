@@ -25,9 +25,25 @@ function transform(x::T) where T
   z = sigmoid.(x .- log.(K .- k_vec))
   one_minus_z_cumprod = cumprod(1.0 .- z)
 
+
+  # VERSION I
   p = vcat(z, 1.0) .* vcat(1.0, one_minus_z_cumprod)
-  # return p
   return Tracker.collect(p)
+
+  # VERSION II
+  # p = z .* vcat(1.0, one_minus_z_cumprod[1:end-1])
+  # return vcat(p, 1.0 - sum(p))
+  # return Tracker.collect(vcat(p, 1.0 - sum(p)))
+
+  # VERSION III
+  # p = [begin
+  #        if k > 1
+  #          z[k] * one_minus_z_cumprod[k - 1]
+  #        else
+  #          z[1]
+  #        end
+  #      end for k in 1:K-1]
+  # return Tracker.collect(vcat(p, 1.0 - sum(p)))
 end
 
 

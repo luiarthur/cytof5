@@ -66,8 +66,10 @@ function log_q(real_w, m, log_s, vp::VP)
 end
 
 function rsample_w(p)
-  m = sigmoid.(p[:, 1]) * 4 .- 2
-  s = sigmoid.(p[:, 2]) * 1
+  # m = sigmoid.(p[:, 1]) * 4 .- 2
+  # s = sigmoid.(p[:, 2]) * 1
+  m = p[:, 1]
+  s = exp.(p[:, 2])
   z = randn(size(p, 1)) 
   return m .+ z .* s
 end
