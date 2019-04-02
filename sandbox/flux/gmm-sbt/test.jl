@@ -12,6 +12,11 @@ p = SB.transform(x)
 # TEST
 y = param(ones(3))
 p = SB.transform(y)
-z = sum(p)
+z = sum(log.(p))
 back!(z)
 y.tracker.grad
+# 3-element Array{Float64,1}:
+# 0.0
+# 0.0
+# 0.0
+
