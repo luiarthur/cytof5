@@ -14,9 +14,11 @@ y = param(ones(3))
 p = SB.transform(y)
 z = sum(log.(p))
 back!(z)
-y.tracker.grad
+@assert all(abs.(y.tracker.grad - [-0.9015, -0.7284, -0.4621]) .< 1e-4)
 # 3-element Array{Float64,1}:
-# 0.0
-# 0.0
-# 0.0
+# -0.9014675456746869
+# -0.7283506542974874
+# -0.4621171572600099
+
+
 
