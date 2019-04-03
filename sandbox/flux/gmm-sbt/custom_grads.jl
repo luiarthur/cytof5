@@ -23,3 +23,5 @@ end
 # deprecated:
 # cumprod_pos(x::T; dims=1) where T = exp.(cumsum(log.(x), dims=dims))
  
+# Also see this:
+# https://github.com/FluxML/Flux.jl/pull/524
