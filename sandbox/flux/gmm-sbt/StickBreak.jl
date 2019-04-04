@@ -1,7 +1,4 @@
 module StickBreak
-using Flux
-using Flux.Tracker: TrackedArray, @grad, track
-
 include("custom_grads.jl") # cumsum, cumprod
    
 """
