@@ -75,35 +75,51 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
   J = size(lastState.Z, 1)
   N = size.(lastState.y_imputed, 1)
 
-  # println("Making eta_obs.txt")
-  # open("$IMGDIR/eta_obs.txt", "w") do file
-  #   header = ("i", "j", "z", "ℓ", "p")
-  #   write(file, "\t$(join(header, "\t"))\n")
+  println("Making eta")
+  open("$IMGDIR/eta.txt", "w") do file
+    # TODO
+    eta = util.getPosterior(:eta, out[1])
+    eta0_mean = mean([ei[0] for ei in eta])
+    eta1_mean = mean([ei[1] for ei in eta])
+    eta_mean = Dict(0 => eta0_mean, 1 => eta1_mean)
 
-  #   for i in 1:I
-  #     for j in 1:J
-  #       for z in 0:1
-  #         for l in 1:c.L[z]
-  #           idx_observed = idx_observed_ij(cbData, i, j)
-  #           println("HERE1")
-  #           z_ij = out[1][end][:Z][j, out[1][end][:lam][i][idx_observed]]
-  #           println("HERE2")
-  #           gam_ij = out[2][end][:gam][i, idx_observed, j]
-  #           println("HERE3")
-  #           mij_sum = length(idx_observed)
-  #           println("HERE4")
-  #           p = sum((gam_ij .== l) .& (z_ij .== z)) / mij_sum
+    header = "i", "j", "z", "l", "eta"
+    write(file, "$(join(header, "     "))\n")
+    for i in 1:I
+      for j in 1:J
+        for z in 0:1
+          for l in 1:c.L[z]
+            line = (i, j, z, l, eta_mean[z][i, j, l])
+            line = Printf.@sprintf("%d %5d %5d %5d     %.5f", line...);
+            write(file, "$line\n")
+          end
+        end
+      end
+    end
+  end
 
-  #           println("HERE5")
-  #           line = (i, j, z, l, p)
-  #           println("HERE6")
-  #           write(file, "\t$(join(line, "\t"))\n")
-  #           println("HERE7")
-  #         end
-  #       end
-  #     end
-  #   end
-  # end
+  println("Making eta_obs.txt")
+  open("$IMGDIR/eta_obs.txt", "w") do file
+    header = "i", "j", "z", "l", "p"
+    write(file, "$(join(header, "     "))\n")
+
+    for i in 1:I
+      for j in 1:J
+        for z in 0:1
+          for l in 1:c.L[z]
+            idx_observed = util.idx_observed_ij(cbData, i, j)
+            z_ij = out[1][end][:Z][j, out[1][end][:lam][i][idx_observed]]
+            gam_ij = out[2][end][:gam][i][idx_observed, j]
+            mij_sum = length(idx_observed)
+            p = sum((gam_ij .== l) .& (z_ij .== z)) / mij_sum
+            line = (i, j, z, l, p)
+            line = Printf.@sprintf("%d %5d %5d %5d     %.5f", line...);
+            write(file, "$line\n")
+          end
+        end
+      end
+    end
+  end
 
   # Plot loglikelihood
   util.plotPdf("$(IMGDIR)/ll_complete_history.pdf")
@@ -508,5 +524,4 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
   else
     println("Skipping this plot, init is not defined ...")
   end
-
 end
