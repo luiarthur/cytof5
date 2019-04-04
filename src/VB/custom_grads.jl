@@ -1,6 +1,9 @@
 using Flux
 using Flux.Tracker: TrackedArray, @grad, track
 
+# TODO:
+# remove this file when Zygote.jl is officially the AD for Flux
+
 # cumsum
 # https://discourse.julialang.org/t/how-to-create-tracked-cumsum-using-flux-jl/17772/2
 Base.cumsum(x::TrackedArray; dims=1) = track(cumsum, x, dims)
