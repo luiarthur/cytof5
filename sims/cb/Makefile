@@ -1,4 +1,4 @@
-.PHONY: send retrieve retrievelite litecp 
+.PHONY: send retrieve retrieveall litecp 
 .PHONY: run pullAndProcess postProcess repFamTest test testlocal testplots metrics runAndProcess
 .PHONY: genpreprocessGraphs sendPreprocessedGraphs getPreprocessedGraphs getRData sendRData
 
@@ -81,8 +81,11 @@ postProcess:
 send:
 	aws s3 sync $(RESULTS_DIR_CB_RUN) $(AWS_BUCKET_CB_RUN) --exclude '*.nfs*'
 
-retrieve:
+retrieveall:
 	aws s3 sync $(AWS_BUCKET_CB_RUN) $(RESULTS_DIR_CB_RUN) --exclude '*EXCLUDE_ME*'
+
+retrieve:
+	aws s3 sync $(AWS_BUCKET_CB_RUN) $(RESULTS_DIR_CB_RUN) --exclude '*.jld2' --exclude '*EXCLUDE_ME*'
 
 test:
 	./run $(RESULTS_DIR_CB_RUN) $(AWS_BUCKET_CB_RUN) --test
@@ -101,9 +104,6 @@ metrics: metrics.py
 
 pullAndProcess:
 	julia pullAndGenResults.jl $(AWS_BUCKET_CB_RUN)
-
-retrievelite:
-	aws s3 sync $(AWS_BUCKET_CB_RUN) $(RESULTS_DIR_CB_RUN) --exclude '*.jld2' --exclude '*EXCLUDE_ME*'
 
 
 # Preprocess ###
