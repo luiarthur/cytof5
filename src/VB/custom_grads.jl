@@ -20,6 +20,7 @@ Base.cumprod(x::TrackedArray; dims=1) = track(cumprod, x, dims)
 end
 
 # reverse
+# https://github.com/FluxML/Tracker.jl/blob/master/src/lib/array.jl
 Base.reverse(x::TrackedArray; dims=1) = track(reverse, x, dims)
 @grad function reverse(x::TrackedArray, dims)
   return reverse(x.data, dims=dims), function(Δ)
