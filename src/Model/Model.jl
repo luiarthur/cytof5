@@ -1,7 +1,10 @@
 module Model
 
 using Distributions
+
+# TODO: Remove this dependency
 using RCall # Mclust
+
 import LinearAlgebra # Identity matrix
 import Random # shuffle
 import StatsBase # wsample
