@@ -10,15 +10,23 @@ Base.cumsum(x::TrackedArray; dims=1) = track(cumsum, x, dims)
   end
 end
 
-# cumprod positive
+# cumprod
 # https://stackoverflow.com/questions/40916955/how-to-compute-gradient-of-cumprod-safely
 Base.cumprod(x::TrackedArray; dims=1) = track(cumprod, x, dims)
 @grad function cumprod(x::TrackedArray, dims)
-  cumprod_x = cumprod(x.data, dims=dims)
-  return cumprod_x, function(Δ)
-    return reverse(cumsum(reverse(cumprod_x .* Δ, dims=dims), dims=dims), dims=dims) ./ x.data, nothing
+  return cumprod(x.data, dims=dims), function(Δ)
+    reverse(cumsum(reverse(cumprod(x, dims=dims) .* Δ, dims=dims), dims=dims), dims=dims) ./ x, nothing
   end
 end
+
+# reverse
+Base.reverse(x::TrackedArray; dims=1) = track(reverse, x, dims)
+@grad function reverse(x::TrackedArray, dims)
+  return reverse(x.data, dims=dims), function(Δ)
+    return reverse(Δ, dims=dims), nothing
+  end
+end
+
 
 # deprecated:
 # cumprod_pos(x::T; dims=1) where T = exp.(cumsum(log.(x), dims=dims))
