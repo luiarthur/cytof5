@@ -7,6 +7,11 @@ using Flux.Tracker: TrackedArray, @grad, track
 # `cumsum` and `cumprod` by hand.
 # https://en.wikipedia.org/wiki/Automatic_differentiation
 
+# Also, for x (input of dim M) and y (input of dim N). During backward, Δ
+# should have dimensions (N) of output. We compute J (N × M) where
+# Jₙₘ = ∂yₘ/∂xₙ. Finally, we return J • Δ. See also `jacobian` in:
+# https://github.com/FluxML/Tracker.jl/blob/master/src/back.jl
+
 # cumsum
 # https://discourse.julialang.org/t/how-to-create-tracked-cumsum-using-flux-jl/17772/2
 Base.cumsum(x::TrackedArray; dims=1) = track(cumsum, x, dims)
