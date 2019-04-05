@@ -2,6 +2,7 @@ Random.seed!(10)
 printDebug = false
 using RCall, Distributions
 using JLD2, FileIO
+using BSON
 
 @testset "Compile Model.State." begin
   I = 3
@@ -117,6 +118,11 @@ end
   R"dev.off()"
 
   @save "result/out.jld2" out dat ll lastState
+  BSON.bson("result/out.bson", Dict(
+    :out => out,
+    :dat => dat,
+    :ll => ll,
+    :lastState => lastState))
 
   #=
   using JLD2, FileIO, RCall
