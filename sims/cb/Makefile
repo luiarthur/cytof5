@@ -3,7 +3,7 @@
 .PHONY: genpreprocessGraphs sendPreprocessedGraphs getPreprocessedGraphs getRData sendRData
 
 # Current run name
-DIR_CB_RUN = cb_smartinit_randeps_zmarg_delta_imputenear_sweep_fulldata2
+DIR_CB_RUN = cb_smartinit_randeps_zmarg_delta_imputenear_sweep_fulldata2 # (for paper)
 # Current run dir
 RESULTS_DIR_CB_RUN = results/$(DIR_CB_RUN)/
 # Current AWS bucket
