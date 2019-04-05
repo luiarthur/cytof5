@@ -1,6 +1,12 @@
 using Flux
 using Flux.Tracker: TrackedArray, @grad, track
 
+# NOTE:
+# See "Vector arguments and functions" and "Automatic differentiation using
+# dual numbers" in this page and do the derivations for
+# `cumsum` and `cumprod` by hand.
+# https://en.wikipedia.org/wiki/Automatic_differentiation
+
 # cumsum
 # https://discourse.julialang.org/t/how-to-create-tracked-cumsum-using-flux-jl/17772/2
 Base.cumsum(x::TrackedArray; dims=1) = track(cumsum, x, dims)
