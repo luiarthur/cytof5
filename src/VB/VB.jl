@@ -24,4 +24,19 @@ function prob_miss_logit(y::S, b0::T, b1::T, b2::T) where {S, T}
 end
 
 
+# TODO
+function loglike(s, c, d)
+  y = s.y
+  sig = sqrt.(s.sig2)
+  ll = Tracker.TrackedReal(0.)
+
+  for i in 1:c.I
+    mu0 = -cumsum(s.delta0, 1)
+    mu1 = cumsum(s.delta1, 1)
+    # TODO
+  end
+
+  return ll
+end
+
 end # VB
