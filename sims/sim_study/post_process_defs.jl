@@ -1,6 +1,9 @@
-using Distributions
-using Cytof5, Random, RCall
-using JLD2, FileIO
+# Required for BSON loading output.bson
+using Cytof5, Distributions
+
+using Random, RCall
+# using JLD2, FileIO
+using BSON
 
 include("util.jl")
 #include("CytofImg.jl")

@@ -1,14 +1,20 @@
 println("Loading packages...")
 @time begin
   using Cytof5
-  using Random
-  using JLD2, FileIO
+  using Random, Distributions
+  # TODO: Get rid of this dep
+  using RCall
+  # TODO: remove this if BSON is good
+  # using JLD2, FileIO
+  using BSON
   using ArgParse
   import Cytof5.Model.logger
+  include("util.jl")
 end
 println("Done loading packages.")
 
 
+# TODO: review
 # ARG PARSING
 function parse_cmd()
   s = ArgParseSettings()
@@ -33,12 +39,6 @@ function parse_cmd()
       arg_type = Int
       required = true
     "--K_MCMC"
-      arg_type = Int
-      required = true
-    "--L0"
-      arg_type = Int
-      required = true
-    "--L1"
       arg_type = Int
       required = true
     "--L0_MCMC"
@@ -81,13 +81,10 @@ BURN = PARSED_ARGS["BURN"]
 I = PARSED_ARGS["I"]
 J = PARSED_ARGS["J"]
 N_factor = PARSED_ARGS["N_factor"]
-N = N_factor * [3, 1, 2]
+N = N_factor * [8, 2, 1]
 K = PARSED_ARGS["K"]
 K_MCMC = PARSED_ARGS["K_MCMC"]
 
-L0 = PARSED_ARGS["L0"]
-L1 = PARSED_ARGS["L1"]
-L = Dict(0 => L0, 1 => L1)
 L0_MCMC = PARSED_ARGS["L0_MCMC"]
 L1_MCMC = PARSED_ARGS["L1_MCMC"]
 L_MCMC = Dict(0 => L0_MCMC, 1 => L1_MCMC)
@@ -107,43 +104,83 @@ mkpath(OUTDIR)
 
 logger("Simulating Data ...");
 Z = Cytof5.Model.genZ(J, K, 0.6)
-dat = Cytof5.Model.genData(J=J, N=N, K=K, L=L, Z=Z,
+
+mus_true = Dict(0=>[-1.0, -2.3, -3.6],
+                1=>[1.0, 2.0, 3.0])
+L_true = Dict(0=>length(mus_true[0]),
+              1=>length(mus_true[1]))
+
+simdat = Cytof5.Model.genData(J=J, N=N, K=K, L=L_true, Z=Z,
                            beta=[-9.2, -2.3],
                            sig2=[0.2, 0.1, 0.3],
-                           mus=Dict(0=>-rand(L[0]) * 5,
-                                    1=> rand(L[1]) * 5),
+                           mus=mus_true,
                            a_W=rand(K)*10,
-                           a_eta=Dict(z => rand(L[z])*10 for z in 0:1),
+                           a_eta=Dict(z => rand(L_true[z])*10 for z in 0:1),
                            sortLambda=false, propMissingScale=0.7)
 
-y_dat = Cytof5.Model.Data(dat[:y])
+dat = Cytof5.Model.Data(simdat[:y])
 
 logger("Generating priors ...");
-@time c = Cytof5.Model.defaultConstants(y_dat, K_MCMC, L_MCMC)
+@time c = Cytof5.Model.defaultConstants(dat, K_MCMC, L_MCMC,
+                                        tau0=10.0, tau1=10.0,
+                                        sig2_prior=InverseGamma(3.0, 2.0),
+                                        alpha_prior=Gamma(0.1, 10.0),
+                                        yQuantiles=[0.0, .25, .5], pBounds=[.05, .8, .05], # near
+                                        similarity_Z=Cytof5.Model.sim_fn_abs(10000),
+                                        probFlip_Z=2.0 / (dat.J * K_MCMC),
+                                        noisyDist=Normal(0.0, 3.16))
 Cytof5.Model.printConstants(c)
 
-logger("Generating initial state ...");
-@time init = Cytof5.Model.genInitialState(c, y_dat)
 
-logger("Fitting Model ...");
-@time out, lastState, ll, metrics =
-  Cytof5.Model.cytof5_fit(init, c, y_dat,
+# Plot missing mechanism
+logger("Plot missing mechanism")
+util.plotPdf("$(OUTDIR)/prob_miss.pdf")
+R"par(mfrow=c($(dat.I), 1))"
+for i in 1:dat.I
+  util.plotProbMiss(c.beta, i)
+end
+R"par(mfrow=c(1,1))"
+util.devOff()
+
+
+logger("Generating initial state ...");
+# @time init = Cytof5.Model.genInitialState(c, dat)
+logger("use smart init ...")
+@time init = Cytof5.Model.smartInit(c, dat)
+
+# Plot initial Z
+util.plotPdf("$(OUTDIR)/Z_init.pdf")
+addGridLines(J::Int, K::Int, col="grey") = util.abline(v=(1:K) .+ .5, h=(1:J) .+ .5, col=col)
+util.myImage(init.Z, xlab="Features", ylab="Markers", addL=false, f=Z->addGridLines(dat.J, c.K))
+util.devOff()
+
+
+# Fit Model
+nsamps_to_thin(nsamps::Int, nmcmc::Int) = max(1, div(nmcmc, nsamps))
+
+@time out, lastState, ll, metrics, dden=
+  Cytof5.Model.cytof5_fit(init, c, dat,
                           monitors=[[:Z, :lam, :W,
-                                     :sig2, :mus,
+                                     :sig2, :delta,
                                      :alpha, :v,
-                                     :eta],
-                                    [:y_imputed]],
-                          thins=Int[1, MCMC_ITER / 10],
+                                     :eta, :eps],
+                                    [:y_imputed, :gam]],
+                          thins=[2, nsamps_to_thin(10, MCMC_ITER)],
                           nmcmc=MCMC_ITER, nburn=BURN,
-                          printFreq=printFreq,
                           computeLPML=true, computeDIC=true,
-                          flushOutput=true)
+                          computedden=true, thin_dden=nsamps_to_thin(200, MCMC_ITER),
+                          use_repulsive=false,
+                          joint_update_Z=true,
+                          printFreq=10, flushOutput=true)
 
 logger("Saving Data ...");
-@save "$(OUTDIR)/output.jld2" out dat ll lastState c y_dat metrics
+println("length of dden: $(length(dden))")
+# @save "$(OUTDIR)/output.jld2" out dat ll lastState c dat metrics
+BSON.@save "$(OUTDIR)/output.bson" out ll lastState c metrics init dden simdat
 
 logger("MCMC Completed.");
 
 #= Test
-julia --color=yes sim.jl --I=3 --J=32 --N_factor=100 --K=8 --L=4 --K_MCMC=10 --L_MCMC=5 --RESULTS_DIR="bla" --EXP_NAME=small
+julia --color=yes sim.jl --I=3 --J=32 --N_factor=100 --K=8 --K_MCMC=10 --L0_MCMC=5 --L1_MCMC=5 \
+      --MCMC_ITER=10 --BURN=10 --RESULTS_DIR=results --EXP_NAME=bla
 =#
