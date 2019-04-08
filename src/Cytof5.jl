@@ -9,5 +9,6 @@ export MCMC
 
 include("MCMC/MCMC.jl")
 include("Model/Model.jl")
+include("Plot/Plot.jl")
 
 end # module
