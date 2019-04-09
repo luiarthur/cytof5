@@ -2,13 +2,13 @@ SHELL:=/bin/bash
 .PHONY: test run clean retrieve retrieveAll metrics
 
 # EXPERIMENT NAME
-EXP_NAME = sim
+EXP_NAME = sim-paper
 
 # RESULTS DIRECTORY
 RESULTS_DIR = results/$(EXP_NAME)
 
 # AWS BUCKET
-AWS_BUCKET = s3://cytof-paper-sim-results/cb/$(subst _,-,$(EXP_NAME))
+AWS_BUCKET = s3://cytof-sim-results/$(subst _,-,$(EXP_NAME))
 
 # TEST DIRECTORY
 TEST_DIR = $(RESULTS_DIR)/test/
@@ -28,7 +28,7 @@ clean:
 	rm -rf $(RESULTS_DIR)
 
 retrieve: 
-	aws s3 sync $(AWS_BUCKET) $(RESULTS_DIR) --exclude "*/out.p*"
+	aws s3 sync $(AWS_BUCKET) $(RESULTS_DIR) --exclude "*/output.bson"
 
 retrieveAll:
 	aws s3 sync $(AWS_BUCKET) $(RESULTS_DIR)

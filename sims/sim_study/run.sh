@@ -45,7 +45,7 @@ for simNum in `seq 0 1`; do
 
   for k_mcmc in ${K_MCMC}; do
     # EXPERIMENT NAME
-    EXP_NAME="sim_Nfac${n_factor}_K{$k}_KMCMC{$k_mcmc}"
+    EXP_NAME="sim_Nfac${n_factor}_K${k}_KMCMC${k_mcmc}"
 
     # DIRECTORY FOR EXPERIMENT RESULTS
     EXP_DIR=$RESULTS_DIR/$EXP_NAME/
@@ -66,7 +66,7 @@ for simNum in `seq 0 1`; do
       --BURN=$BURN \
       --SEED=${SEED}"
 
-    engine $RESULTS_DIR $AWS_BUCKET $EXP_NAME "$cmd" $MAX_CORES $STAGGER
+    engine $RESULTS_DIR $AWS_BUCKET $EXP_NAME "$jlCmd" $MAX_CORES $STAGGER_TIME
   done
 done
 
