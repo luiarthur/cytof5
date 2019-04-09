@@ -75,6 +75,11 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
   J = size(lastState.Z, 1)
   N = size.(lastState.y_imputed, 1)
 
+  # Set png resolution settings
+  s_png = 10
+  fy(clus) = util.addCut(clus, s_png)
+  fZ(Z) = util.addGridLines(Z, s_png)
+
   println("Making eta")
   open("$IMGDIR/eta.txt", "w") do file
     # TODO
@@ -131,8 +136,8 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
   util.plot(ll[end-length(out[1]):end], ylab="log-likelihood", xlab="MCMC iteration", typ="l");
   util.devOff()
 
-  function addGridLines(J::Int, K::Int, col="grey")
-    util.abline(v=(1:K) .+ .5, h=(1:J) .+ .5, col=col);
+  function addGridLines(J::Int, K::Int, col="grey", lwd=1)
+    util.abline(v=(1:K) .+ .5, h=(1:J) .+ .5, col=col, lwd=lwd);
   end
 
   # Plot Z
@@ -143,13 +148,13 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
   try
     util.plotPdf("$IMGDIR/Z_mean.pdf")
     util.myImage(Zmean, xlab="Features", ylab="Markers", addL=true, col=util.greys(11),
-                 f=Z->addGridLines(J,K_MCMC));
+                 f=Z->addGridLines(J, K_MCMC));
     util.devOff()
 
     util.plotPdf("$IMGDIR/Z_mean_est_leftordered.pdf")
     util.myImage(Cytof5.Model.leftOrder((Zmean .> .5)*1),
                  xlab="Features", ylab="Markers", addL=true, col=util.greys(11),
-                 f=Z->addGridLines(J,K_MCMC));
+                 f=Z->addGridLines(J, K_MCMC));
     util.devOff()
   catch
     println("Failed to make complete making Z ...")
@@ -161,7 +166,7 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
     for i in 1:length(Zpost)
       z = Zpost[i]
       util.myImage(z - init.Z, xlab="Features", ylab="Markers", addL=true, col=util.blueToRed(3),
-                   zlim=[-1, 1], f=Z->addGridLines(J,K_MCMC), main="Z_$i - Z_0");
+                   zlim=[-1, 1], f=Z->addGridLines(J, K_MCMC), main="Z_$i - Z_0");
     end
     util.devOff()
   else
@@ -221,11 +226,6 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
     ord = sortperm(Wi, rev=true)
     lami = util.reorder_lami(ord, lami)
 
-    # Set png resolution settings
-    s_png = 10
-    fy(clus) = util.addCut(clus, s_png)
-    fZ(Z) = util.addGridLines(Z, s_png)
-
     for min_presence in min_presences
       common_celltypes = util.get_common_celltypes(Wi, thresh=min_presence,
                                                    filter_by_min_presence=true)
@@ -235,7 +235,7 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
       util.plotPng("$IMGDIR/y_dat$(i)_only_minpresence$(min_presence).png")
       ord_yi = sortperm(lami)
       util.myImage(cbData[i][ord_yi[1 .<= lami[ord_yi] .<= K_trunc], :],
-                   addL=true, f=fy,
+                   addL=true, f=yi->util.addCut(lami, s_png),
                    zlim=[-4,4], col=util.blueToRed(9), na="black", xlab="markers",
                    ylab="cells");
       # util.myImage(cbData[i][sortperm(lami), :], addL=true, f=yi->util.addCut(lami),
@@ -282,7 +282,7 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
   for i in 1:I
     util.boxplot(hcat([w[i, :] for w in Wpost]...)', ylab="Posterior: W$i",
                  xlab=i<I ? "" : "Features",
-                 col="steelblue", pch=20, cex=0, ylim=[0, 1]);
+                 col="steelblue", pch=20, cex=0);
   end
   R"par(mfrow=c(1, 1), mar=rcommon::mar.default())"
   util.devOff()
