@@ -1,23 +1,38 @@
 # Required for BSON loading output.bson
 using Cytof5, Distributions
 
-using Random, RCall
+using Random
+
+import Cytof5.Plot
+
+# TODO: Remove this dependency
+using RCall
+
+
+# TODO: remove these in favor of BSON
 # using JLD2, FileIO
 using BSON
 
 include("util.jl")
 #include("CytofImg.jl")
 
+"""
+# Example
+
+```julia
+post_process("path/to/output.bson")
+```
+"""
 function post_process(PATH_TO_OUTPUT) # path/to/output.jld2
-  JLD_FILENAME = split(PATH_TO_OUTPUT, "/")[end]
   OUTDIR = join(split(PATH_TO_OUTPUT, "/")[1:end-1], "/")
   IMGDIR = "$OUTDIR/img/"
   run(`mkdir -p $(IMGDIR)`)
 
   println("Loading Data ...")
-  @load "$PATH_TO_OUTPUT" out dat ll lastState c y_dat metrics
+  BSON.@load "$PATH_TO_OUTPUT" out ll lastState c metrics init dden simdat
+  y_dat = simdat[:y]
 
-  I, K = size(dat[:W])
+  I, K = size(simdat[:W])
   K_MCMC = size(lastState.W, 2)
   J = size(lastState.Z, 1)
   MCMC_ITER = length(out[1])
@@ -54,48 +69,49 @@ function post_process(PATH_TO_OUTPUT) # path/to/output.jld2
   util.devOff()
 
   util.plotPdf("$IMGDIR/Z_true.pdf")
-  util.myImage(dat[:Z], xlab="Features", ylab="Markers");
+  util.myImage(simdat[:Z], xlab="Features", ylab="Markers");
   addGridLines(J, K)
   util.devOff()
 
   # Plot W
   Wpost = util.getPosterior(:W, out[1])
-  Wmean = mean(Wpost)
+  Wpost = cat(Wpost..., dims=3) # I x K_MCMC x NMCMC
 
   util.plotPdf("$IMGDIR/W_mean.pdf")
-  util.myImage(Wmean, xlab="Features", ylab="Samples", col=R"greys(10)", addL=true, zlim=[0,.3]);
-  util.devOff()
-
-  util.plotPdf("$IMGDIR/W_true.pdf")
-  util.myImage(dat[:W], xlab="Features", ylab="Samples", col=R"greys(10)", addL=true, zlim=[0,.3]);
+  for i in 1:I
+    util.boxplot(Wpost[i, :, :]', xlab="Features", ylab="Samples", );
+    # Plot data
+    util.abline(h=simdat[:W][i, :], lty=2, col="grey")
+  end
   util.devOff()
 
   # Get lam
   lamPost = util.getPosterior(:lam, out[1])
-  unique(lamPost)
+  # unique(lamPost)
 
   # Get mus
-  mus0Post = hcat([m[:mus][0] for m in out[1]]...)'
-  mus1Post = hcat([m[:mus][1] for m in out[1]]...)'
-  musPost = [ mus0Post mus1Post ]
+  delta0Post = cat([m[:delta][0] for m in out[1]]..., dims=2) # L0 x NMCMC
+  delta1Post = cat([m[:delta][1] for m in out[1]]..., dims=2) # L1 x NMCMC
+  mus0Post = -cumsum(delta0Post, dims=1)
+  mus1Post = cumsum(delta1Post, dims=1)
+  musPost = [ mus0Post; mus1Post ]
 
   util.plotPdf("$IMGDIR/mus.pdf")
-  R"boxplot"(musPost, ylab="mu*", xlab="", xaxt="n", col="steelblue", pch=20, cex=0);
+  R"boxplot"(musPost', ylab="mu*", xlab="", xaxt="n", col="steelblue", pch=20, cex=0);
   #util.plot(1:size(musPost, 2), mean(musPost, dims=1), typ="n", ylab="μ*", xlab="", xaxt="n")
   #util.addErrbar(R"t(apply($musPost, 2, quantile, c(.025, .975)))", 
   #               x=1:size(musPost, 2), ylab="μ*", xlab="", xaxt="n", col="blue", lend=1, lwd=10);
   util.abline(h=0, v=size(mus0Post, 2) + .5, col="grey30", lty=1);
-  util.abline(h=dat[:mus][0], lty=2, col="steelblue");
-  util.abline(h=dat[:mus][1], lty=2, col="steelblue");
+  util.abline(h=simdat[:mus][0], lty=2, col="steelblue");
+  util.abline(h=simdat[:mus][1], lty=2, col="steelblue");
   util.devOff()
 
   # Get sig2
-  sig2Post = hcat(util.getPosterior(:sig2, out[1])...)'
-  sig2Mean = mean(sig2Post, dims=1)
-  sig2Sd = std(sig2Post, dims=1)
+  sig2Post = hcat(util.getPosterior(:sig2, out[1])...) # I x NMCMC
 
   util.plotPdf("$IMGDIR/sig2.pdf")
-  util.plotPosts(sig2Post, cnames=["truth: $s2" for s2 in dat[:sig2]]);
+  util.boxplot(sig2Post', xlab="samples", ylab="sig2")
+  util.abline(h=simdat[:sig2], lty=2, col="grey")
   util.devOff()
 
   # Posterior of y_imputed
@@ -104,20 +120,20 @@ function post_process(PATH_TO_OUTPUT) # path/to/output.jld2
   R"par(mfrow=c(4,2))"
   for i in 1:I
     for j in 1:J
-      util.plot(util.density(dat[:y][i][:, j], na=true), col="red", xlim=[-8,8],
+      util.plot(util.density(simdat[:y][i][:, j], na=true), col="red", xlim=[-8,8],
                 main="Y sample: $(i), marker: $(j)", bty="n", fg="grey")
       for iter in 1:length(y_imputed)
         yimp = y_imputed[iter]
         util.lines(util.density(yimp[i][:, j]), col=util.rgba("blue", .5))
       end
-      util.lines(util.density(dat[:y_complete][i][:, j]), col="grey")
+      util.lines(util.density(simdat[:y_complete][i][:, j]), col="grey")
     end
   end
   R"par(mfrow=c(1,1))"
   util.devOff()
 
 
-  idx_missing = [ findall(isnan.(y_dat.y[i])) for i in 1:y_dat.I ]
+  idx_missing = [ findall(isnan.(y_dat[i])) for i in 1:I ]
   idx = idx_missing[2][1]
   util.plotPdf("$(IMGDIR)/y_trace.pdf")
   util.hist([ y_imputed[b][2][idx] for b in 1:length(y_imputed) ], col="blue", border="transparent")
@@ -127,26 +143,43 @@ function post_process(PATH_TO_OUTPUT) # path/to/output.jld2
   # ARI - adjusted Rand Index ∈  (0, 1). Metric for clustering.
   # Higher is better.
   open("$IMGDIR/ari.txt", "w") do file
-    ariCytof = [ x[1] for x in util.ari.(dat[:lam], lastState.lam) ]
+    ariCytof = [ x[1] for x in util.ari.(simdat[:lam], lastState.lam) ]
     write(file, "ARI lam: $ariCytof\n")
   end
 
+  println("Make png...")
+
+  # Set png resolution settings
+  s_png = 10
+  w_orig = 480
+  ps_orig = 12
+  w_new = w_orig * s_png
+  ps_new = ps_orig * s_png
+  table = R"table"
+  cumsum_R = R"cumsum"
+  fy(lami) = util.abline(h=cumsum_R(table(lami)) .+ .5, lwd=3*s_png, col="yellow")
+  fZ(Z) = util.abline(v=collect(1:size(Z, 2)) .+ .5,
+                      h=collect(1:size(Z,1)) .+ .5, col="grey", lwd=s_png)
+
   for i in 1:I
-    util.plotPng("$IMGDIR/y_imputed$(i).png", typ="cairo")
-    util.yZ_inspect(out[1], i=i, lastState.y_imputed, zlim=[-4,4], using_zero_index=false) 
+    util.plotPng("$IMGDIR/y_imputed$(i).png", typ="cairo", w=w_new, h=w_new, pointsize=ps_new)
+    util.yZ_inspect(out[1], i=i, lastState.y_imputed, zlim=[-4,4], using_zero_index=false,
+                    thresh=.9, fy=fy, fZ=fZ)
     util.devOff()
 
-    util.plotPng("$IMGDIR/y_dat$(i).png", typ="cairo")
-    util.yZ_inspect(out[1], i=i, dat[:y], zlim=[-4,4], na="black", using_zero_index=false)
+    util.plotPng("$IMGDIR/y_dat$(i).png", typ="cairo", w=w_new, h=w_new, pointsize=ps_new)
+    util.yZ_inspect(out[1], i=i, simdat[:y], zlim=[-4,4], na="black", using_zero_index=false,
+                    thresh=.9, fy=fy, fZ=fZ)
     util.devOff()
   end
+  println("Done with png...")
 
   #= Plots.jl
   for i in 1:I
     CytofImg.yZ_inspect(out[1], lastState.y_imputed, i, thresh=.9)
     CytofImg.Plots.savefig("$IMGDIR/y_imputed$(i).png")
 
-    CytofImg.yZ_inspect(out[1], dat[:y], i, thresh=.9)
+    CytofImg.yZ_inspect(out[1], simdat[:y], i, thresh=.9)
     CytofImg.Plots.savefig("$IMGDIR/y_dat$(i).png")
   end
   =#
@@ -161,8 +194,8 @@ function post_process(PATH_TO_OUTPUT) # path/to/output.jld2
 
   # Plot missing mechanism
   util.plotPdf("$IMGDIR/prob_miss.pdf")
-  R"par(mfrow=c($(y_dat.I), 1))"
-  for i in 1:y_dat.I
+  R"par(mfrow=c($(I), 1))"
+  for i in 1:I
     util.plotProbMiss(c.beta, i)
   end
   R"par(mfrow=c(1,1))"
@@ -171,12 +204,12 @@ function post_process(PATH_TO_OUTPUT) # path/to/output.jld2
   # Plot QQ
   util.plotPdf("$IMGDIR/qq.pdf")
   R"par(mfrow=c(3, 3), mar=c(5.1, 4, 2, 1))"
-  y_obs_range = util.y_obs_range(y_dat.y)
+  y_obs_range = util.y_obs_range(y_dat)
   for i in 1:I
     for j in 1:J
       println("i: $i, j: $j")
       # QQ of observed expression levels
-      y_obs, y_pp = util.qq_yobs_postpred(y_dat.y, i, j, out)
+      y_obs, y_pp = util.qq_yobs_postpred(y_dat, i, j, out)
       util.myQQ(y_obs, y_pp, pch=20, ylab="post pred quantiles", xlab="y
                 (observed) quantiles", main="i: $i, j: $j", xlim=y_obs_range,
                 ylim=y_obs_range)
@@ -188,12 +221,12 @@ function post_process(PATH_TO_OUTPUT) # path/to/output.jld2
   # QQ with observed values
   util.plotPdf("$IMGDIR/qq_truedat.pdf")
   R"par(mfrow=c(3, 3), mar=c(5.1, 4, 2, 1))"
-  y_obs_range = util.y_obs_range(dat[:y_complete])
+  y_obs_range = util.y_obs_range(simdat[:y_complete])
   for i in 1:I
     for j in 1:J
       println("i: $i, j: $j")
       # QQ of observed expression levels
-      y_obs, y_pp = util.qq_yobs_postpred(dat[:y_complete], i, j, out)
+      y_obs, y_pp = util.qq_yobs_postpred(simdat[:y_complete], i, j, out)
       util.myQQ(y_obs, y_pp, pch=20, ylab="post pred quantiles", xlab="y
                 (observed) quantiles", main="i: $i, j: $j", xlim=y_obs_range,
                 ylim=y_obs_range)

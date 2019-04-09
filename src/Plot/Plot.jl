@@ -1,8 +1,11 @@
 module Plot
 
 using Distributions
+using KernelDensity
+
 import PyPlot
 const plt = PyPlot
+export plt
 
 # For Debugging
 printKeys(x) = [print("$k  ") for k in keys(x)]
@@ -55,6 +58,9 @@ end
 
 
 """
+# Example
+
+```julia
 J, K = 20, 4
 Y = randn(1000, J)
 Y[:, 2] .= NaN
@@ -64,6 +70,7 @@ Z = Int.(randn(J, K) .> 0)
 Plot.plotYZ(Y, Z)
 Plot.plt.savefig("yZ.pdf", bbox_inches="tight")
 Plot.plt.close()
+```
 """
 function plotYZ(Y::Matrix, Z::Matrix, vmin=-4, vmax=4, y_ytick_fs=5, z_ytick_fs=5; kw...)
   J, K = size(Z)
@@ -90,30 +97,6 @@ function plotYZ(Y::Matrix, Z::Matrix, vmin=-4, vmax=4, y_ytick_fs=5, z_ytick_fs=
   ax2[:tick_params](length=0)
 end
 
-# kde
-"""
-# Example:
-dist = Gamma(3, 200)
-x = rand(dist, 10000);
-d = kde(x, numPoints=100, bw=100.);
-
-plt.plot(d[:x], pdf.(dist, d[:x]), label=:truth, color=:blue)
-plt.plot(d[:x], d[:dx], color=:orange, label=:kde)
-x_ci = quantile(x, [.025, .975])
-plt.fill_between(d[:x][x_ci[1] .< d[:x] .< x_ci[2]], d[:dx][x_ci[1] .< d[:x] .< x_ci[2]],
-                color=:orange)
-plt.tight_layout()
-plt.legend()
-"""
-function kde(x::Vector; from=minimum(x), to=maximum(x), numPoints::Int=1000,
-             bw::Float64=0.0, kernel::Function=z->pdf(Normal(), z))
-  n = length(x)
-  if bw == 0.0
-    bw = std(x) * n ^ (-0.2) * 1.06
-  end
-  x_grid = collect(range(from, stop=to, length=numPoints))
-  return Dict(:dx => [sum(kernel.((xi .- x) / bw)) / (n * bw) for xi in x_grid], :x => x_grid)
-end
 
 # TODO: Plot in plot
 # https://stackoverflow.com/questions/17458580/embedding-small-plots-inside-subplots-in-matplotlib
@@ -135,7 +118,7 @@ function infig_position(ax, rect)
 end
 
 function plotPost(y, ax::PyPlot.PyObject; rect=[.7, .7, .3, .2], showTrace::Bool=true,
-                  showAcc::Bool=true, digits_ci=2, numPoints=100, c=:royalblue,
+                  showAcc::Bool=true, digits_ci=2, c=:royalblue,
                   alpha_level=.05, useHistogram=false, normalizeHist=true, histBins=0,
                   accFontsize=6, annfs=6, hide_yaxis=true)
   # Get current figure
@@ -173,17 +156,15 @@ function plotPost(y, ax::PyPlot.PyObject; rect=[.7, .7, .3, .2], showTrace::Bool
       a_lower = alpha_level / 2
       a_upper = 1 - a_lower
       y_ci = quantile(y, [a_lower, a_upper])
-      d_ci = kde(y, numPoints=numPoints, from=y_ci[1], to=y_ci[2])
-      d = kde(y, numPoints=numPoints)
-      ax[:plot](d_ci[:x], d_ci[:dx], c=c)
-      ax[:plot](d[:x], d[:dx], c=c, alpha=.5)
-      ax[:fill_between](d[:x][y_ci[1] .< d[:x] .< y_ci[2]],
-                        d[:dx][y_ci[1] .< d[:x] .< y_ci[2]], color=c)
-      ax[:fill_between](d[:x][minimum(y) .< d[:x] .< maximum(y)],
-                        d[:dx][minimum(y) .< d[:x] .< maximum(y)], color=c, alpha=.3)
+      d = kde(y)
+      # ax[:plot](d_ci[:x], d_ci[:dx], c=c)
+      ax[:plot](d.x, d.density, c=c, alpha=.5)
+      ax[:fill_between](d.x[y_ci[1] .< d.x .< y_ci[2]],
+                        d.density[y_ci[1] .< d.x .< y_ci[2]], color=c)
+      ax[:fill_between](d.x, d.density, color=c, alpha=.3)
       ax[:set_xticks](round.(y_ci, digits=digits_ci))
       y_mean = mean(y)
-      ax[:vlines](y_mean, ymin=0, ymax=d[:dx][argmin(abs.(d[:x] .- y_mean))],
+      ax[:vlines](y_mean, ymin=0, ymax=d.density[argmin(abs.(d.x .- y_mean))],
                   color=:red, linewidth=1)
 
       # Plot Annotations
@@ -215,6 +196,14 @@ function plotPost(y; kw...)
 end
 
 
+"""
+# Example
+
+```julia
+Y = cumsum(randn(1000, 4), dims=1)
+Plot.plotPosts(Y)
+```
+"""
 function plotPosts(Y; use_tight_layout=true,
                    fig_size_inches=missing,
                    fig_subplots_adjust=missing,

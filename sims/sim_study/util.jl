@@ -101,7 +101,12 @@ function get_mu_observed(i::Int, j::Int, y, o)
   gam_ij = [Cytof5.MCMC.wsample(einj) for einj in eta_ij]
   idx_observed = idx_observed_ij(y, i, j)
 
-  result = [o[:mus][z_ij[n]][gam_ij[n]] for n in idx_observed]
+  result = [begin
+              l = gam_ij[n]
+              z = z_ij[n]
+              sum_delta = sum(o[:delta][z][1:l])
+              z == 0 ? -sum_delta : sum_delta
+            end for n in idx_observed]
   return result
 end
 
