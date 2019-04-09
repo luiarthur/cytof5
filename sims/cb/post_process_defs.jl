@@ -76,7 +76,7 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
   N = size.(lastState.y_imputed, 1)
 
   # Set png resolution settings
-  s_png = 5
+  s_png = 10
   fy(clus) = util.addCut(clus, s_png)
   fZ(Z) = util.addGridLines(Z, s_png)
 
