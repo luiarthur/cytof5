@@ -9,6 +9,8 @@ export MCMC
 
 include("MCMC/MCMC.jl")
 include("Model/Model.jl")
-include("Plot/Plot.jl")
+
+# TODO: get rid of RCall, use Plots with GR backend.
+# include("Plot/Plot.jl")
 
 end # module
