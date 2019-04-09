@@ -150,7 +150,7 @@ function post_process(PATH_TO_OUTPUT) # path/to/output.jld2
   println("Make png...")
 
   # Set png resolution settings
-  s_png = 10
+  s_png = 5
   fy(clus) = util.addCut(clus, s_png)
   fZ(Z) = util.addGridLines(Z, s_png)
 
