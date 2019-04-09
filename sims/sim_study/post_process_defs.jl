@@ -151,18 +151,11 @@ function post_process(PATH_TO_OUTPUT) # path/to/output.jld2
 
   # Set png resolution settings
   s_png = 10
-  w_orig = 480
-  ps_orig = 12
-  w_new = w_orig * s_png
-  ps_new = ps_orig * s_png
-  table = R"table"
-  cumsum_R = R"cumsum"
-  fy(lami) = util.abline(h=cumsum_R(table(lami)) .+ .5, lwd=3*s_png, col="yellow")
-  fZ(Z) = util.abline(v=collect(1:size(Z, 2)) .+ .5,
-                      h=collect(1:size(Z,1)) .+ .5, col="grey", lwd=s_png)
+  fy(clus) = util.addCut(clus, s_png)
+  fZ(Z) = util.addGridLines(Z, s_png)
 
   for i in 1:I
-    util.plotPng("$IMGDIR/y_imputed$(i).png", typ="cairo", w=w_new, h=w_new, pointsize=ps_new)
+    util.plotPng("$IMGDIR/y_imputed$(i).png")
     util.yZ_inspect(out[1], i=i, lastState.y_imputed, zlim=[-4,4], using_zero_index=false,
                     thresh=.9, fy=fy, fZ=fZ)
     util.devOff()

@@ -221,6 +221,11 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
     ord = sortperm(Wi, rev=true)
     lami = util.reorder_lami(ord, lami)
 
+    # Set png resolution settings
+    s_png = 10
+    fy(clus) = util.addCut(clus, s_png)
+    fZ(Z) = util.addGridLines(Z, s_png)
+
     for min_presence in min_presences
       common_celltypes = util.get_common_celltypes(Wi, thresh=min_presence,
                                                    filter_by_min_presence=true)
@@ -230,7 +235,7 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
       util.plotPng("$IMGDIR/y_dat$(i)_only_minpresence$(min_presence).png")
       ord_yi = sortperm(lami)
       util.myImage(cbData[i][ord_yi[1 .<= lami[ord_yi] .<= K_trunc], :],
-                   addL=true, f=yi->util.addCut(lami),
+                   addL=true, f=fy,
                    zlim=[-4,4], col=util.blueToRed(9), na="black", xlab="markers",
                    ylab="cells");
       # util.myImage(cbData[i][sortperm(lami), :], addL=true, f=yi->util.addCut(lami),
@@ -421,14 +426,14 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
   for i in 1:I
     util.plotPng("$IMGDIR/y_imputed$(i).png")
     util.yZ_inspect(out[1], i=i, lastState.y_imputed, zlim=[-4,4], using_zero_index=false,
-                    thresh=thresh, col=util.blueToRed(9))
+                    thresh=thresh, col=util.blueToRed(9), fy=fy, fZ=fZ)
     util.devOff()
   end
 
   for i in 1:I
     util.plotPng("$IMGDIR/y_dat$(i).png")
     util.yZ_inspect(out[1], i=i, cbData, zlim=[-4,4], using_zero_index=false, na="black",
-                    thresh=thresh, col=util.blueToRed(9))
+                    thresh=thresh, col=util.blueToRed(9), fy=fy, fZ=fZ)
     util.devOff()
   end
 
@@ -447,7 +452,7 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
 
       util.yZ(cbData[i], Zi_bar, Wi, lami, zlim=[-4,4], thresh=thresh, col=util.blueToRed(9),
               na="black", using_zero_index=false, col_Z=R"grey(seq(1, 0, len=11))", 
-              colorbar_Z=true, cex_z_leg=0.001)
+              colorbar_Z=true, cex_z_leg=0.001, fy=fy, fZ=fZ)
 
       util.devOff()
     end
@@ -518,7 +523,7 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
 
       util.yZ(cbData[i], Zi, Wi, lami, zlim=[-4,4], thresh=thresh, col=util.blueToRed(9),
               na="black", using_zero_index=false, col_Z=R"grey(seq(1, 0, len=11))", 
-              colorbar_Z=true, cex_z_leg=0.001)
+              colorbar_Z=true, cex_z_leg=0.001, fy=fy, fZ=fZ)
       util.devOff()
     end
   else

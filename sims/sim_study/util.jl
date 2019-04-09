@@ -18,7 +18,13 @@ plotPost = R"rcommon::plotPost";
 plotPosts = R"rcommon::plotPosts";
 myImage = R"cytof3::my.image";
 plotPdf = R"pdf";
-plotPng = R"png";
+# plotPng = R"png";
+R"""
+plotPng = function(fname, s=10, w=480, h=480, ps=12, ...) {
+  png(fname, w=w*s, h=h*s, pointsize=ps*s, ...)
+}
+""";
+plotPng = R"plotPng";
 devOff = R"dev.off";
 blueToRed = R"cytof3::blueToRed";
 greys = R"cytof3::greys";
@@ -30,7 +36,9 @@ addErrbar = R"rcommon::add.errbar";
 hist = R"hist";
 colorBtwn = R"color.btwn";
 myQQ = R"my.qqplot";
-addCut = R"add.cut";
+# addCut = R"add.cut";
+addCut = R"function(clus, s=1) abline(h=cumsum(table(clus)) + .5, lwd=3*s, col='yellow')";
+addGridLines = R"function(Z, s=1) abline(v=1:NCOL(Z) + .5, h=1:NROW(Z) + .5, col='grey', lwd=1*s)";
 
 
 function quantile_vm(xs, p)
