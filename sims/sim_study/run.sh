@@ -24,7 +24,7 @@ SEED=0
 MCMC_ITER=6000
 BURN=10000
 K=(5 10)
-N_factor=(100 5000)
+N_factor=(500 5000)
 
 declare -A K_MCMC_GROUP
 K_MCMC_GROUP=( [0]="`seq -w 2 10`" [1]="`seq -w 2 2 20`")
