@@ -17,7 +17,7 @@ STAGGER_TIME=100
 
 # Experiment Settings
 I=3
-J=32
+J=20
 L0_MCMC=5
 L1_MCMC=5
 SEED=0
