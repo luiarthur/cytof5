@@ -130,6 +130,9 @@ logger("Generating priors ...");
                                         probFlip_Z=2.0 / (dat.J * K_MCMC),
                                         noisyDist=Normal(0.0, 3.16))
 Cytof5.Model.printConstants(c)
+println("dat.I: $(dat.I)")
+println("dat.J: $(dat.J)")
+println("dat.N: $(dat.N)")
 
 
 # Plot missing mechanism
