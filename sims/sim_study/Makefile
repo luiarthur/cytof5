@@ -25,7 +25,7 @@ test:
 	bash run.sh  $(TEST_DIR)/  $(AWS_BUCKET)  --test
 
 clean:
-	rm -rf $(RESULTS_DIR)
+	rm -rf $(RESULTS_DIR)/*
 
 retrieve: 
 	aws s3 sync $(AWS_BUCKET) $(RESULTS_DIR) --exclude "*/output.bson"
