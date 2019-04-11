@@ -35,6 +35,11 @@ K_MCMC_GROUP=( [${N_factor[0]}]="`seq -w 2 10`" [${N_factor[1]}]="`seq -w 2 2 20
 declare -A SEED
 SEED=( [${N_factor[0]}]=90 [${N_factor[1]}]=98)
 
+# Create K dict
+declare -A K
+K=( [${N_factor[0]}]="5" [${N_factor[1]}]="10")
+
+
 if [[ $@ == **--test** ]]
 then
   MCMC_ITER=20
@@ -47,7 +52,8 @@ fi
 for n_factor in ${N_factor[@]}; do
   K_MCMC=${K_MCMC_GROUP[$n_factor]}
   seed=${SEED[$n_factor]}
-  simdat_path="${SIMDAT_DIR}/N${n_factor}/${seed}/simdat.bson"
+  k=${K[$n_factor]}
+  simdat_path="${SIMDAT_DIR}/N${n_factor}/K${k}/${seed}/simdat.bson"
 
   for k_mcmc in ${K_MCMC}; do
     # EXPERIMENT NAME
