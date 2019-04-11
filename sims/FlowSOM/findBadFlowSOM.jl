@@ -127,27 +127,32 @@ function sim(jl_seed::Int, n_fac::Int; K=5, L=Dict(0=>3, 1=>3), J=20, fs_seed=42
   sink()
   """
 
-  if any(R"ARI" .< .5)
-    println("saving sim $jl_seed")
-    BSON.@save "$(OUTPUT_DIR)/$(jl_seed)/simdat.bson" simdat
-  end
+  # if any(R"ARI" .< .5)
+  #   println("saving sim $jl_seed")
+  #   BSON.@save "$(OUTPUT_DIR)/$(jl_seed)/simdat.bson" simdat
+  # end
+
+  BSON.@save "$(OUTPUT_DIR)/$(jl_seed)/simdat.bson" simdat
 end
 
 
 # MAIN
-SIMS = [1, 90, 98, 68] # 90, 98 are good ones
-K_DICT = Dict(500 => 5, 5000 => 10)
-N_FAC = sort(collect(keys(K_DICT)))
+# SIMS = [1, 90, 98, 68] # 90, 98 are good ones
+N_FAC = [500, 5000]
+K_DICT = Dict(N_FAC[1] => 5, N_FAC[2]=> 10)
+SIMS = Dict(N_FAC[1] => [90], N_FAC[2] => [98])
+
+@assert length(K_DICT) == length(SIMS) == length(N_FAC)
 
 # These don't have much effect. Bad is bad.
-# FS_SEED = 42
+# FS_SEED = 42 # KEEP
 # FS_SEED = 0 # KEEP
 # FS_SEED = 1 # KEEP
 FS_SEED = 0 # KEEP
 
 #Threads.@threads for i in 1:SIMS
 for n_fac in N_FAC
-  for jl_seed in SIMS
+  for jl_seed in SIMS[n_fac]
     println("$(jl_seed) | n_fac: $(n_fac)")
     sim(jl_seed, n_fac, K=K_DICT[n_fac], L=Dict(0=>3, 1=>3), J=20, fs_seed=FS_SEED)
   end

@@ -1,5 +1,5 @@
 SHELL:=/bin/bash
-.PHONY: test run clean retrieve retrieveAll metrics flowsom
+.PHONY: test run clean retrieve retrieveAll metrics flowsom getsimdat
 
 # EXPERIMENT NAME
 EXP_NAME = sim-paper
@@ -12,6 +12,12 @@ AWS_BUCKET = s3://cytof-sim-results/$(subst _,-,$(EXP_NAME))
 
 # TEST DIRECTORY
 TEST_DIR = $(RESULTS_DIR)/test/
+
+# AWS BUCKET for simulated data
+SIMDATA_AWS_BUCKET = s3://cytof-sim-results/simdata/
+
+# DATA DIR
+SIMDATA_DIR = simdata/
 
 # OLD EXPERIMENTS
 #{{{1
@@ -35,6 +41,9 @@ retrieveAll:
 
 flowsom:
 	@echo TODO
+
+getsimdat:
+	aws s3 sync $(SIMDATA_AWS_BUCKET) $(SIMDATA_DIR)
 
 metrics:
 	@echo TODO	

@@ -4,8 +4,6 @@ println("Loading packages...")
   using Random, Distributions
   # TODO: Get rid of this dep
   using RCall
-  # TODO: remove this if BSON is good
-  # using JLD2, FileIO
   using BSON
   using ArgParse
   import Cytof5.Model.logger
@@ -20,24 +18,15 @@ function parse_cmd()
   s = ArgParseSettings()
 
   @add_arg_table s begin
+    "--simdat_path"
+      arg_type = String
+      required = true
     "--MCMC_ITER"
       arg_type = Int
       default = 1000
     "--BURN"
       arg_type = Int
       default = 10000
-    "--I"
-      arg_type = Int
-      required = true
-    "--J"
-      arg_type = Int
-      required = true
-    "--N_factor"
-      arg_type = Int
-      required = true
-    "--K"
-      arg_type = Int
-      required = true
     "--K_MCMC"
       arg_type = Int
       required = true
@@ -76,15 +65,12 @@ for (k,v) in PARSED_ARGS
   logger("$k => $v")
 end
 
+SIMDAT_PATH = PARSED_ARGS["simdat_path"]
+
 MCMC_ITER = PARSED_ARGS["MCMC_ITER"]
 BURN = PARSED_ARGS["BURN"]
-I = PARSED_ARGS["I"]
-J = PARSED_ARGS["J"]
-N_factor = PARSED_ARGS["N_factor"]
-N = N_factor * [8, 2, 1]
-K = PARSED_ARGS["K"]
-K_MCMC = PARSED_ARGS["K_MCMC"]
 
+K_MCMC = PARSED_ARGS["K_MCMC"]
 L0_MCMC = PARSED_ARGS["L0_MCMC"]
 L1_MCMC = PARSED_ARGS["L1_MCMC"]
 L_MCMC = Dict(0 => L0_MCMC, 1 => L1_MCMC)
@@ -99,22 +85,11 @@ printFreq = PARSED_ARGS["printFreq"]
 OUTDIR = "$(RESULTS_DIR)/$(EXP_NAME)/"
 mkpath(OUTDIR)
 
-logger("Simulating Data ...");
-
-mus_true = Dict(0=>[-1.0, -2.3, -3.6],
-                1=>[1.0, 2.0, 3.0])
-L_true = Dict(0=>length(mus_true[0]),
-              1=>length(mus_true[1]))
-
+# Set random seed
 Random.seed!(SEED);
-Z = Cytof5.Model.genZ(J, K, 0.5)
-simdat = Cytof5.Model.genData(J=J, N=N, K=K, L=L_true, Z=Z,
-                           beta=[-9.2, -2.3],
-                           sig2=[0.2, 0.1, 0.3],
-                           mus=mus_true,
-                           a_W=rand(K)*10,
-                           a_eta=Dict(z => rand(L_true[z])*10 for z in 0:1),
-                           sortLambda=false, propMissingScale=0.7)
+
+logger("Load simulated data ...");
+BSON.@load SIMDAT_PATH simdat
 dat = Cytof5.Model.Data(simdat[:y])
 
 logger("Generating priors ...");
