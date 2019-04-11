@@ -38,6 +38,15 @@ function genSimpleZ(J::Int, K::Int)
 end
 
 """
+Assert that a Z matrix is valid
+"""
+function isValidZ(Z)
+  hasRepeatedColumns = size(unique(Z, dims=2), 2) < size(Z, 2)
+  hasColOfZero =  any(sum(Z, dims=1) .== 0)
+  return  !(hasRepeatedColumns || hasRepeatedColumns)
+end
+
+"""
 Generate a (J x K) Z matrix for simulation studies.
 
 `prob1` is the desired proportion of 1's in the matrix.
@@ -48,10 +57,11 @@ function genZ(J::Int, K::Int, prob1::Float64)::Matrix{Int}
   Z = sortslices(Z, dims=1, rev=true)
   Z = leftOrder(Z)
 
-  if size(unique(Z, dims=2), 2) < K || any(sum(Z, dims=1) .== 0) || all(sum(Z, dims=2) .== 0)
-    return genZ(J, K, prob1)
-  else
+  # if size(unique(Z, dims=2), 2) < K || any(sum(Z, dims=1) .== 0) || all(sum(Z, dims=2) .== 0)
+  if isValidZ(Z)
     return Z
+  else
+    return genZ(J, K, prob1)
   end
 end
 

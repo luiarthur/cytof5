@@ -40,8 +40,8 @@ retrieveAll:
 	aws s3 sync $(AWS_BUCKET) $(RESULTS_DIR)
 
 flowsom:
-	julia flowsom.jl "simdata/kills-flowsom/N5000/98/simdat.bson"  "results/sim-paper/flowsom/N5000/"
-	julia flowsom.jl "simdata/kills-flowsom/N500/90/simdat.bson"  "results/sim-paper/flowsom/N500/"
+	julia flowsom.jl "simdata/kills-flowsom/N500/K5/90/simdat.bson"  "results/sim-paper/flowsom/N500/"
+	julia flowsom.jl "simdata/kills-flowsom/N5000/K10/1/simdat.bson" "results/sim-paper/flowsom/N5000/"
 
 getsimdat:
 	aws s3 sync $(SIMDATA_AWS_BUCKET) $(SIMDATA_DIR)

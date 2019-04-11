@@ -23,35 +23,55 @@ function replaceMissing(yi, x)
 end
 
 crange(start, stop, length) = collect(range(start, stop=stop, length=length))
+runif(n; a=0, b=1) = rand(n) * (b - a) .+ a
+csrand(n; min=0) = cumsum(rand(n) * 2) .+ min
+flipbit(x; prob=.5) = [prob > rand() ? 1 - xi : xi for xi in x]
 
-function sim(jl_seed::Int, n_fac::Int; K=5, L=Dict(0=>3, 1=>3), J=20, fs_seed=42)
-  OUTPUT_DIR = "results/flowSearch/N$(n_fac)/"
+function sim(jl_seed::Int, n_fac::Int; K=5, L=Dict(0=>3, 1=>3), J=20, fs_seed=42, save=false,
+             results_dir="results/flowSearch/")
+  OUTPUT_DIR = "$(results_dir)/N$(n_fac)/K$(K)/$jl_seed"
   mkpath(OUTPUT_DIR)
-
-  mkpath("$OUTPUT_DIR/$jl_seed/")
 
   N = [8, 1, 2] * n_fac
   I = length(N)
   Random.seed!(jl_seed)
-  Z=Cytof5.Model.genZ(J, K, .5)
+  Z = zeros(Int, J, K)
+  while !Cytof5.Model.isValidZ(Z)
+    Z=Cytof5.Model.genZ(J, K, .5)
+    Z[:, 2] .= flipbit(Z[:, 1], prob=.1)
+  end
+  # mus=Dict(0 => -csrand(L[0], min=.5),
+  #          1 =>  csrand(L[1], min=.5))
+  # mus=Dict(0 => -crange(1, 4, L[0]) .+ randn(L[0]) * .2,
+  #          1 =>  crange(1, 3, L[1]) .+ randn(L[1]) * .2)
+  # mus=Dict(0 => -[.5, 1.5, 3.0], 
+  #          1 => +[.5, 1.5, 2.7])
+  mus=Dict(0 => -[1.0, 2.3, 3.5], 
+           1 => +[1.0, 2.0, 3.0])
+  a_W=rand(K)*10
+  a_eta=Dict(z => rand(L[z])*10 for z in 0:1)
   simdat = Cytof5.Model.genData(J=J, N=N, K=K, L=L, Z=Z,
-                             beta=[-9.2, -2.3],
-                             sig2=[0.2, 0.1, 0.3],
-                             mus=Dict(0 => -crange(1, 4, L[0]) .+ randn(L[0]) * .1,
-                                      1 =>  crange(1, 3, L[1]) .+ randn(L[1]) * .1),
-                             a_W=rand(K)*10,
-                             a_eta=Dict(z => rand(L[z])*10 for z in 0:1),
-                             sortLambda=false, propMissingScale=0.7)
+                                beta=[-9.2, -2.3],
+                                sig2=[0.2, 0.1, 0.3],
+                                mus=mus,
+                                a_W=a_W,
+                                a_eta=a_eta,
+                                sortLambda=false, propMissingScale=0.7)
   dat = Cytof5.Model.Data(simdat[:y])
 
-  util.plotPdf("$OUTPUT_DIR/$jl_seed/Z.pdf")
+  util.plotPdf("$OUTPUT_DIR/Z.pdf")
   util.myImage(simdat[:Z])
   util.devOff()
 
-  open("$OUTPUT_DIR/$jl_seed/dat.txt", "w") do f
+  open("$OUTPUT_DIR/dat.txt", "w") do f
     write(f, "mu*0: $(simdat[:mus][0]) \n")
     write(f, "mu*1: $(simdat[:mus][1]) \n")
     write(f, "sig2: $(simdat[:sig2]) \n")
+
+    for i in 1:I
+      write(f, "W$(i): $(simdat[:W][i, :]) \n")
+    end
+    write(f, "\n")
   end
 
   # Preimpute missing values
@@ -67,7 +87,7 @@ function sim(jl_seed::Int, n_fac::Int; K=5, L=Dict(0=>3, 1=>3), J=20, fs_seed=42
                        # Input options:
                        colsToUse = 1:J,
                        # Metaclustering options:
-                       #nClus = 20,
+                       # nClus=K,
                        maxMeta=20,
                        # Seed for reproducible results:
                        seed=fs_seed)
@@ -91,10 +111,10 @@ function sim(jl_seed::Int, n_fac::Int; K=5, L=Dict(0=>3, 1=>3), J=20, fs_seed=42
   fsClus = as.numeric(fSOMClus)
   
   mult=10
-  plotPng($OUTPUT_DIR %+% '/' %+% $jl_seed %+% '/'%+% 'YZ%03d_FlowSOM.png', s=mult)
+  plotPng($OUTPUT_DIR %+% '/' %+% 'YZ%03d_FlowSOM.png', s=mult)
   for (i in 1:$I) {
     clus = fsClus[idx[i,1]:idx[i,2]]
-    print(length(unique(clus))) # Number of clusters learned
+    print('fs num clus (i' %+% i %+% '): ' %+% length(unique(clus))) # Number of clusters learned
     clus = relabel_clusters(clus)
     my.image($(dat.y)[[i]][order(clus),], col=blueToRed(9), zlim=zlim, addL=TRUE,
              na.color='black', cex.y.leg=1, xlab='cell types',  ylab='cells',
@@ -119,11 +139,12 @@ function sim(jl_seed::Int, n_fac::Int; K=5, L=Dict(0=>3, 1=>3), J=20, fs_seed=42
   println("ARI:" %+% ARI)
   println("ARI all:" %+% ARI_all)
 
-  sink($OUTPUT_DIR %+% '/' %+% $jl_seed %+% '/' %+% "ari.txt")
+  sink($OUTPUT_DIR %+% '/' %+% "ari.txt")
     println("ARI:")
     print(ARI)
     println("ARI all:")
     print(ARI_all)
+    println('')
   sink()
   """
 
@@ -132,32 +153,39 @@ function sim(jl_seed::Int, n_fac::Int; K=5, L=Dict(0=>3, 1=>3), J=20, fs_seed=42
   #   BSON.@save "$(OUTPUT_DIR)/$(jl_seed)/simdat.bson" simdat
   # end
 
-  BSON.@save "$(OUTPUT_DIR)/$(jl_seed)/simdat.bson" simdat
+  if save
+    BSON.@save "$(OUTPUT_DIR)/simdat.bson" simdat
+  end
 end
 
 
 # MAIN
 # SIMS = [1, 90, 98, 68] # 90, 98 are good ones
 N_FAC = [500, 5000]
-K_DICT = Dict(N_FAC[1] => 5, N_FAC[2]=> 10)
-SIMS = Dict(N_FAC[1] => [90], N_FAC[2] => [98])
+# K_DICT = Dict(N_FAC[1] => 5, N_FAC[2]=> 10)
+# SIMS = Dict(N_FAC[1] => [90], N_FAC[2] => [98])
+# SIMS = Dict(N_FAC[1] => collect(90:100), N_FAC[2] => collect(90:100))
+
+# K_DICT = Dict(N_FAC[1] => [5, 8], N_FAC[2]=> [5, 10, 15])
+# SIMS = Dict(N_FAC[1] => [90, 98, 1], N_FAC[2] => [90, 98, 1])
+
+K_DICT = Dict(N_FAC[1] => [5], N_FAC[2]=> [10])
+SIMS = Dict(N_FAC[1] => [90], N_FAC[2] => [1])
 
 @assert length(K_DICT) == length(SIMS) == length(N_FAC)
 
 # These don't have much effect. Bad is bad.
-# FS_SEED = 42 # KEEP
-# FS_SEED = 0 # KEEP
-# FS_SEED = 1 # KEEP
-FS_SEED = 0 # KEEP
+FS_SEED = 42 # PASS
+# FS_SEED = 0 # PASS
+# FS_SEED = 1 # PASS
 
 #Threads.@threads for i in 1:SIMS
 for n_fac in N_FAC
   for jl_seed in SIMS[n_fac]
-    println("$(jl_seed) | n_fac: $(n_fac)")
-    sim(jl_seed, n_fac, K=K_DICT[n_fac], L=Dict(0=>3, 1=>3), J=20, fs_seed=FS_SEED)
+    for k in K_DICT[n_fac]
+      println("$(jl_seed) | n_fac: $(n_fac) | K_TRUE: $(k)")
+      sim(jl_seed, n_fac, K=k, L=Dict(0=>3, 1=>3), J=20, fs_seed=FS_SEED, save=true,
+          results_dir="data/kills-flowsom/")
+    end
   end
 end
-
-# NOTE:
-# use SIM 90 for N_factor 500
-#     SIM 98 for N_factor 5000
