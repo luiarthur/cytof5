@@ -1,11 +1,10 @@
 using Random
 using RCall
 using Cytof5
-using JLD2, FileIO
+using BSON
 
 # Import R libs
 R"""
-library(xtable)
 library(FlowSOM)
 library(flowCore)
 library(rcommon)
@@ -23,44 +22,45 @@ function replaceMissing(yi, x)
   return out
 end
 
+crange(start, stop, length) = collect(range(start, stop=stop, length=length))
 
-function sim(jl_seed::Int, n_fac::Int)
-  Random.seed!(jl_seed)
+function sim(jl_seed::Int, n_fac::Int; K=5, L=Dict(0=>3, 1=>3), J=20, fs_seed=42)
   OUTPUT_DIR = "results/flowSearch/N$(n_fac)/"
   mkpath(OUTPUT_DIR)
 
   mkpath("$OUTPUT_DIR/$jl_seed/")
-  I=3
-  J=32
-  N = [3, 1, 2] * n_fac
-  K=8
-  L=5
-  Z=Cytof5.Model.genZ(J, K, .6)
-  dat = Cytof5.Model.genData(I, J, N, K, L, Z,
-                             Dict(:b0=>-9.2, :b1=>2.3), # missMechParams
-                             [0.2, 0.1, 0.3], # sig2
-                             Dict(0=>-(0 .+ rand(L) * 5), #mus
-                                  1=>  0 .+ rand(L) * 5),
-                             rand(K)*10, # a_W
-                             Dict([ z => rand(L)*10 for z in 0:1 ]), # a_eta
+
+  N = [8, 1, 2] * n_fac
+  I = length(N)
+  Random.seed!(jl_seed)
+  Z=Cytof5.Model.genZ(J, K, .5)
+  simdat = Cytof5.Model.genData(J=J, N=N, K=K, L=L, Z=Z,
+                             beta=[-9.2, -2.3],
+                             sig2=[0.2, 0.1, 0.3],
+                             mus=Dict(0 => -crange(1, 4, L[0]) .+ randn(L[0]) * .1,
+                                      1 =>  crange(1, 3, L[1]) .+ randn(L[1]) * .1),
+                             a_W=rand(K)*10,
+                             a_eta=Dict(z => rand(L[z])*10 for z in 0:1),
                              sortLambda=false, propMissingScale=0.7)
-  y_dat = Cytof5.Model.Data(dat[:y])
+  dat = Cytof5.Model.Data(simdat[:y])
 
   util.plotPdf("$OUTPUT_DIR/$jl_seed/Z.pdf")
-  util.myImage(dat[:Z])
+  util.myImage(simdat[:Z])
   util.devOff()
 
   open("$OUTPUT_DIR/$jl_seed/dat.txt", "w") do f
-    write(f, "mu*0: $(dat[:mus][0]) \n")
-    write(f, "mu*1: $(dat[:mus][1]) \n")
-    write(f, "sig2: $(dat[:sig2]) \n")
+    write(f, "mu*0: $(simdat[:mus][0]) \n")
+    write(f, "mu*1: $(simdat[:mus][1]) \n")
+    write(f, "sig2: $(simdat[:sig2]) \n")
   end
 
   # Preimpute missing values
-  y_tilde = [ replaceMissing(yi, -20) .+ 0 for yi in y_dat.y ]
-  Y_tilde = R"Reduce(rbind, $y_tilde)"
-  @rput Y_tilde
-  ff_Y = R"colnames(Y_tilde) <- 1:NCOL(Y_tilde); flowFrame(Y_tilde)"
+  REPLACEMENT = -6.0
+  y = [replaceMissing(yi, REPLACEMENT) for yi in dat.y]
+
+  Y = vcat(y...)
+  @rput Y
+  ff_Y = R"colnames(Y) <- 1:NCOL(Y); flowFrame(Y)"
 
   FlowSOM = R"FlowSOM::FlowSOM"
   @time fSOM = FlowSOM(ff_Y,
@@ -70,10 +70,18 @@ function sim(jl_seed::Int, n_fac::Int)
                        #nClus = 20,
                        maxMeta=20,
                        # Seed for reproducible results:
-                       seed = 42)
+                       seed=fs_seed)
 
   @rput fSOM I J N
+
   R"""
+  zlim = c(-1, 1) * 4
+  plotPng = function(fname, s=10, w=480, h=480, ps=12, ...) {
+    png(fname, w=w*s, h=h*s, pointsize=ps*s, ...)
+  }
+  addCut = function(clus, s=1) abline(h=cumsum(table(clus)) + .5, lwd=3*s, col='yellow')
+  addGridLines = function(Z, s=1) abline(v=1:NCOL(Z) + .5, h=1:NROW(Z) + .5, col='grey', lwd=1*s)
+
   idx_upper = cumsum(N)
   idx_lower = c(1,idx_upper[-I]+1)
   idx = cbind(idx_lower, idx_upper)
@@ -82,24 +90,24 @@ function sim(jl_seed::Int, n_fac::Int)
   fsEst = as.list(1:$I)
   fsClus = as.numeric(fSOMClus)
   
-  mult=1
-  png($OUTPUT_DIR %+% '/' %+% $jl_seed %+% '/'%+% 'YZ%03d_FlowSOM.png', height=500*mult, width=500*mult)
+  mult=10
+  plotPng($OUTPUT_DIR %+% '/' %+% $jl_seed %+% '/'%+% 'YZ%03d_FlowSOM.png', s=mult)
   for (i in 1:$I) {
     clus = fsClus[idx[i,1]:idx[i,2]]
     print(length(unique(clus))) # Number of clusters learned
     clus = relabel_clusters(clus)
-    my.image($(y_dat.y)[[i]][order(clus),], col=blueToRed(11), zlim=c(-4,4), addL=TRUE,
-             na.color='black', cex.y.leg=2, xlab='cell types',  ylab='cells',
+    my.image($(dat.y)[[i]][order(clus),], col=blueToRed(9), zlim=zlim, addL=TRUE,
+             na.color='black', cex.y.leg=1, xlab='cell types',  ylab='cells',
              cex.lab=1.5, cex.axis=1.5, xaxt='n',
              f=function(z) {
-               add.cut(clus) 
+               addCut(clus, s=mult)
                axis(1, at=1:$(J), fg='grey', las=2, cex.axis=1.5)
              })
   }
   dev.off()
   
   println("Computing ARI ...")
-  true.clus.ls <- $(dat[:lam])
+  true.clus.ls <- $(simdat[:lam])
   fs.clus.ls = lapply(1:I, function(i) fsClus[idx_lower[i]:idx_upper[i]])
   
   ARI = sapply(1:I, function(i) {
@@ -108,6 +116,9 @@ function sim(jl_seed::Int, n_fac::Int)
   
   ARI_all = 'FlowSOM'=ari(unlist(true.clus.ls), fsClus)
   
+  println("ARI:" %+% ARI)
+  println("ARI all:" %+% ARI_all)
+
   sink($OUTPUT_DIR %+% '/' %+% $jl_seed %+% '/' %+% "ari.txt")
     println("ARI:")
     print(ARI)
@@ -118,16 +129,30 @@ function sim(jl_seed::Int, n_fac::Int)
 
   if any(R"ARI" .< .5)
     println("saving sim $jl_seed")
-    @save "$(OUTPUT_DIR)/$(jl_seed)/dat.jld2" dat
+    BSON.@save "$(OUTPUT_DIR)/$(jl_seed)/simdat.bson" simdat
   end
 end
 
 
-SIMS = 100
+# MAIN
+SIMS = [1, 90, 98, 68] # 90, 98 are good ones
+K_DICT = Dict(500 => 5, 5000 => 10)
+N_FAC = sort(collect(keys(K_DICT)))
+
+# These don't have much effect. Bad is bad.
+# FS_SEED = 42
+# FS_SEED = 0 # KEEP
+# FS_SEED = 1 # KEEP
+FS_SEED = 0 # KEEP
+
 #Threads.@threads for i in 1:SIMS
-for n_fac in [100, 1000, 10000]
-  for i in [1, 10, 98, 87, 69, 64, 100]
-    println("$i / $SIMS | n_fac: $n_fac")
-    sim(i, n_fac)
+for n_fac in N_FAC
+  for jl_seed in SIMS
+    println("$(jl_seed) | n_fac: $(n_fac)")
+    sim(jl_seed, n_fac, K=K_DICT[n_fac], L=Dict(0=>3, 1=>3), J=20, fs_seed=FS_SEED)
   end
 end
+
+# NOTE:
+# use SIM 90 for N_factor 500
+#     SO< 98 for N_factor 5000

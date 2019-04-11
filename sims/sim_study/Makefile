@@ -1,5 +1,5 @@
 SHELL:=/bin/bash
-.PHONY: test run clean retrieve retrieveAll metrics
+.PHONY: test run clean retrieve retrieveAll metrics flowsom
 
 # EXPERIMENT NAME
 EXP_NAME = sim-paper
@@ -32,6 +32,9 @@ retrieve:
 
 retrieveAll:
 	aws s3 sync $(AWS_BUCKET) $(RESULTS_DIR)
+
+flowsom:
+	@echo TODO
 
 metrics:
 	@echo TODO	

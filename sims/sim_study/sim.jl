@@ -93,9 +93,6 @@ EXP_NAME = PARSED_ARGS["EXP_NAME"]
 SEED = PARSED_ARGS["SEED"]
 RESULTS_DIR = PARSED_ARGS["RESULTS_DIR"]
 printFreq = PARSED_ARGS["printFreq"]
-
-
-Random.seed!(SEED);
 # END OF ARG PARSING
 
 # CREATE RESULTS DIR
@@ -103,13 +100,14 @@ OUTDIR = "$(RESULTS_DIR)/$(EXP_NAME)/"
 mkpath(OUTDIR)
 
 logger("Simulating Data ...");
-Z = Cytof5.Model.genZ(J, K, 0.6)
 
 mus_true = Dict(0=>[-1.0, -2.3, -3.6],
                 1=>[1.0, 2.0, 3.0])
 L_true = Dict(0=>length(mus_true[0]),
               1=>length(mus_true[1]))
 
+Random.seed!(SEED);
+Z = Cytof5.Model.genZ(J, K, 0.5)
 simdat = Cytof5.Model.genData(J=J, N=N, K=K, L=L_true, Z=Z,
                            beta=[-9.2, -2.3],
                            sig2=[0.2, 0.1, 0.3],
@@ -117,7 +115,6 @@ simdat = Cytof5.Model.genData(J=J, N=N, K=K, L=L_true, Z=Z,
                            a_W=rand(K)*10,
                            a_eta=Dict(z => rand(L_true[z])*10 for z in 0:1),
                            sortLambda=false, propMissingScale=0.7)
-
 dat = Cytof5.Model.Data(simdat[:y])
 
 logger("Generating priors ...");

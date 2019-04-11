@@ -1,15 +1,14 @@
 using Cytof5
 using RCall, Distributions, Random
-using BSON
+using JLD2, FileIO
 
-@rimport xtable
 @rimport FlowSOM
 @rimport flowCore
 R"source('../FlowSOM/est_Z_from_clusters.R')"
 
 if length(ARGS) == 0
   # Where to get data
-  SIMDAT_PATH = "results/sim-paper/sim_Nfac500_K5_KMCMC04/output.bson"
+  DAT_PATH = ""
   # Where to put results from FlowSOM analysis
   RESULTS_DIR = "results/sim-paper/flowsom/"
 else
@@ -25,7 +24,7 @@ mkpath(RESULTS_DIR)
 @time y = simdat[:y]
 
 # replace missing values with `REPLACEMENT`
-REPLACEMENT = -6.0
+REPLACEMENT = -6
 replaceMissing(yi, x) = (yi[isnan.(yi)] .= x)
 for yi in y; replaceMissing(yi, REPLACEMENT); end
 
