@@ -9,9 +9,12 @@ R"source('../FlowSOM/est_Z_from_clusters.R')"
 
 if length(ARGS) == 0
   # Where to get data
-  SIMDAT_PATH = "results/sim-paper/sim_Nfac500_K5_KMCMC04/output.bson"
+  SIMDAT_PATH = "simdata/kills-flowsom/N5000/98/simdat.bson"
+  # SIMDAT_PATH = "simdata/kills-flowsom/N500/90/simdat.bson"
+
   # Where to put results from FlowSOM analysis
-  RESULTS_DIR = "results/sim-paper/flowsom/"
+  RESULTS_DIR = "results/sim-paper/flowsom/N5000/"
+  # RESULTS_DIR = "results/sim-paper/flowsom/N500/"
 else
   SIMDAT_PATH = ARGS[1]
   RESULTS_DIR = ARGS[2]
@@ -22,12 +25,15 @@ mkpath(RESULTS_DIR)
 
 # Load simulated data
 @time simdat = BSON.load(SIMDAT_PATH)[:simdat]
-@time y = simdat[:y]
 
 # replace missing values with `REPLACEMENT`
 REPLACEMENT = -6.0
-replaceMissing(yi, x) = (yi[isnan.(yi)] .= x)
-for yi in y; replaceMissing(yi, REPLACEMENT); end
+function replaceMissing(yi, x)
+  out = deepcopy(yi)
+  out[isnan.(out)] .= x
+  return out
+end
+y = [replaceMissing(yi, REPLACEMENT) for yi in simdat[:y]]
 
 # Combine into one matrix Y
 Y = vcat(y...)
@@ -45,7 +51,7 @@ ff_Y = R"colnames(Y) <- 1:NCOL(Y); flowCore::flowFrame(Y)"
                              #nClus = 20,
                              maxMeta=20,
                              # Seed for reproducible results:
-                             seed = 42);
+                             seed=42); # high ari for N500
 
 @rput fSOM I J N
 R"""
@@ -73,7 +79,7 @@ for (i in 1:$I) {
   clus = fsClus[idx[i,1]:idx[i,2]]
   print(length(unique(clus))) # Number of clusters learned
   clus = relabel_clusters(clus)
-  my.image($(y)[[i]][order(clus),], col=blueToRed(9), zlim=zlim, addL=TRUE,
+  my.image($(simdat[:y])[[i]][order(clus),], col=blueToRed(9), zlim=zlim, addL=TRUE,
            na.color='black', cex.y.leg=1, xlab='cell types',  ylab='cells',
            cex.lab=1.5, cex.axis=1.5, xaxt='n',
            f=function(z) {
