@@ -160,4 +160,4 @@ end
 
 # NOTE:
 # use SIM 90 for N_factor 500
-#     SO< 98 for N_factor 5000
+#     SIM 98 for N_factor 5000
