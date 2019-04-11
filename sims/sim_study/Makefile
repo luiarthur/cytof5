@@ -47,7 +47,4 @@ getsimdat:
 	aws s3 sync $(SIMDATA_AWS_BUCKET) $(SIMDATA_DIR)
 
 metrics:
-	@echo TODO	
-	# python3 parse_metrics.py results/$(EXP_NAME) elbo
-	# python3 parse_metrics.py results/$(EXP_NAME) ll
-	# python3 parse_metrics.py results/$(EXP_NAME) logpost
+	python3 metrics.py $(RESULTS_DIR)
