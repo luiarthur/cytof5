@@ -1,6 +1,7 @@
 using Cytof5
 using RCall, Distributions, Random
 using BSON
+include("../sim_study/util.jl")
 
 @rimport xtable
 @rimport FlowSOM
@@ -108,5 +109,20 @@ sink($RESULTS_DIR %+% "ari.txt")
   print(ARI_all)
 sink()
 """
+
+util.plotPdf("$RESULTS_DIR/Z.pdf")
+util.myImage(simdat[:Z], ylab="markers", xlab="cell types")
+util.devOff()
+
+open("$RESULTS_DIR/dat.txt", "w") do f
+  write(f, "mu*0: $(simdat[:mus][0]) \n")
+  write(f, "mu*1: $(simdat[:mus][1]) \n")
+  write(f, "sig2: $(simdat[:sig2]) \n")
+
+  for i in 1:I
+    write(f, "W$(i): $(simdat[:W][i, :]) \n")
+  end
+  write(f, "\n")
+end
 
 
