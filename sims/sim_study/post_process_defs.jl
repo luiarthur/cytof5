@@ -3,11 +3,8 @@ using Cytof5, Distributions
 
 using Random
 
-import Cytof5.Plot
-
 # TODO: Remove this dependency
 using RCall
-
 
 # TODO: remove these in favor of BSON
 # using JLD2, FileIO
@@ -23,10 +20,10 @@ include("util.jl")
 post_process("path/to/output.bson")
 ```
 """
-function post_process(PATH_TO_OUTPUT) # path/to/output.jld2
+function post_process(PATH_TO_OUTPUT, thresh=0.9, min_presences=[0, .01, .03, .05]) # bla/output.bson
   OUTDIR = join(split(PATH_TO_OUTPUT, "/")[1:end-1], "/")
   IMGDIR = "$OUTDIR/img/"
-  run(`mkdir -p $(IMGDIR)`)
+  mkpath(IMGDIR)
 
   println("Loading Data ...")
   BSON.@load "$PATH_TO_OUTPUT" out ll lastState c metrics init dden simdat
@@ -77,12 +74,19 @@ function post_process(PATH_TO_OUTPUT) # path/to/output.jld2
   Wpost = util.getPosterior(:W, out[1])
   Wpost = cat(Wpost..., dims=3) # I x K_MCMC x NMCMC
 
-  util.plotPdf("$IMGDIR/W_mean.pdf")
+  util.plotPdf("$IMGDIR/W.pdf")
   for i in 1:I
-    util.boxplot(Wpost[i, :, :]', xlab="Features", ylab="Samples", );
+    util.boxplot(Wpost[i, :, :]', xlab="Features", ylab="W$(i)", );
     # Plot data
     util.abline(h=simdat[:W][i, :], lty=2, col="grey")
   end
+  util.devOff()
+
+  # Plot alpha
+  alphaPost = util.getPosterior(:alpha, out[1])
+  println("Making alpha ...")
+  util.plotPdf("$(IMGDIR)/alpha.pdf")
+  util.plotPost(alphaPost, ylab="density", xlab="alpha", main="");
   util.devOff()
 
   # Get lam
@@ -157,12 +161,12 @@ function post_process(PATH_TO_OUTPUT) # path/to/output.jld2
   for i in 1:I
     util.plotPng("$IMGDIR/y_imputed$(i).png")
     util.yZ_inspect(out[1], i=i, lastState.y_imputed, zlim=[-4,4], using_zero_index=false,
-                    thresh=.9, fy=fy, fZ=fZ)
+                    thresh=thresh, fy=fy, fZ=fZ)
     util.devOff()
 
-    util.plotPng("$IMGDIR/y_dat$(i).png", typ="cairo", w=w_new, h=w_new, pointsize=ps_new)
+    util.plotPng("$IMGDIR/y_dat$(i).png")
     util.yZ_inspect(out[1], i=i, simdat[:y], zlim=[-4,4], na="black", using_zero_index=false,
-                    thresh=.9, fy=fy, fZ=fZ)
+                    thresh=thresh, fy=fy, fZ=fZ)
     util.devOff()
   end
   println("Done with png...")
@@ -194,37 +198,125 @@ function post_process(PATH_TO_OUTPUT) # path/to/output.jld2
   R"par(mfrow=c(1,1))"
   util.devOff()
 
-  # Plot QQ
-  util.plotPdf("$IMGDIR/qq.pdf")
-  R"par(mfrow=c(3, 3), mar=c(5.1, 4, 2, 1))"
-  y_obs_range = util.y_obs_range(y_dat)
-  for i in 1:I
-    for j in 1:J
-      println("i: $i, j: $j")
-      # QQ of observed expression levels
-      y_obs, y_pp = util.qq_yobs_postpred(y_dat, i, j, out)
-      util.myQQ(y_obs, y_pp, pch=20, ylab="post pred quantiles", xlab="y
-                (observed) quantiles", main="i: $i, j: $j", xlim=y_obs_range,
-                ylim=y_obs_range)
-    end
-  end
-  R"par(mfrow=c(1, 1), mar=mar.default())"
-  util.devOff()
+  # TODO: DO THIS
+  # Plot QQ 
+  # util.plotPdf("$IMGDIR/qq.pdf")
+  # R"par(mfrow=c(3, 3), mar=c(5.1, 4, 2, 1))"
+  # y_obs_range = util.y_obs_range(y_dat)
+  # for i in 1:I
+  #   for j in 1:J
+  #     print("\ri: $i, j: $j")
+  #     # QQ of observed expression levels
+  #     y_obs, y_pp = util.qq_yobs_postpred(y_dat, i, j, out)
+  #     util.myQQ(y_obs, y_pp, pch=20, ylab="post pred quantiles",
+  #               xlab="y (observed) quantiles", main="i: $i, j: $j", xlim=y_obs_range,
+  #               ylim=y_obs_range)
+  #   end
+  # end
+  # R"par(mfrow=c(1, 1), mar=mar.default())"
+  # println()
+  # util.devOff()
 
-  # QQ with observed values
-  util.plotPdf("$IMGDIR/qq_truedat.pdf")
-  R"par(mfrow=c(3, 3), mar=c(5.1, 4, 2, 1))"
-  y_obs_range = util.y_obs_range(simdat[:y_complete])
+  # # QQ with observed values
+  # util.plotPdf("$IMGDIR/qq_truedat.pdf")
+  # R"par(mfrow=c(3, 3), mar=c(5.1, 4, 2, 1))"
+  # y_obs_range = util.y_obs_range(simdat[:y_complete])
+  # for i in 1:I
+  #   for j in 1:J
+  #     println("i: $i, j: $j")
+  #     # QQ of observed expression levels
+  #     y_obs, y_pp = util.qq_yobs_postpred(simdat[:y_complete], i, j, out)
+  #     util.myQQ(y_obs, y_pp, pch=20, ylab="post pred quantiles", xlab="y
+  #               (observed) quantiles", main="i: $i, j: $j", xlim=y_obs_range,
+  #               ylim=y_obs_range)
+  #   end
+  # end
+  # R"par(mfrow=c(1, 1), mar=mar.default())"
+  # util.devOff()
+
+
+  # Plot Posterior Density for i, j observed
+  mkpath("$(IMGDIR)/dden")
   for i in 1:I
     for j in 1:J
-      println("i: $i, j: $j")
-      # QQ of observed expression levels
-      y_obs, y_pp = util.qq_yobs_postpred(simdat[:y_complete], i, j, out)
-      util.myQQ(y_obs, y_pp, pch=20, ylab="post pred quantiles", xlab="y
-                (observed) quantiles", main="i: $i, j: $j", xlim=y_obs_range,
-                ylim=y_obs_range)
+      println("Plot posterior density for (i: $i, j: $j) observed ...")
+      util.plotPdf("$(IMGDIR)/dden/dden_i$(i)_j$(j).pdf")
+      dyij = util.density(filter(yij -> !isnan(yij), y_dat[i][:, j]))
+      dd_ij = hcat([dd[i, j] for dd in dden]...)
+      pdyij_mean = R"rowMeans($dd_ij)" .+ 0
+      pdyij_lower = R"apply($dd_ij, 1, quantile, .025)" .+ 0
+      pdyij_upper = R"apply($dd_ij, 1, quantile, .975)" .+ 0
+      h = maximum([dyij[:y] .+ 0; pdyij_upper])
+      util.plot(c.y_grid, pdyij_mean, xlab="y", ylab="density", ylim=[0, h],
+                main="i: $i, j: $j", col="blue", lwd=2, typ="l")
+      util.colorBtwn(c.y_grid, pdyij_lower, pdyij_upper, from=-10, to=10,
+                     col=util.rgba("blue", .3))
+      util.lines(dyij, col="grey", lwd=2)
+      util.devOff()
     end
   end
-  R"par(mfrow=c(1, 1), mar=mar.default())"
-  util.devOff()
+
+
+  # Separate graphs
+  mkpath("$IMGDIR/sep")
+  for i in 1:I
+    println("Separate graphs for yZ $(i)...")
+    idx_best = R"estimate_ZWi_index($(out[1]), $i)"[1]
+    Zi = out[1][idx_best][:Z]
+    Wi = out[1][idx_best][:W][i,:]
+
+    # Point Est for Wi and Zi. txt and pdf.
+    open("$IMGDIR/sep/W_$(i)_hat.txt", "w") do file
+      write(file, "$(join(Wi, "\n"))\n")
+    end
+
+    open("$IMGDIR/sep/W$(i)_hat_ordered_cumsum.txt", "w") do file
+      ord = sortperm(Wi, rev=true)
+      cs_wi_sorted = cumsum(Wi[ord])
+      write(file, "num_features,k,wi,cumprop\n")
+      for k in 1:K_MCMC
+        write(file, "$(k),$(ord[k]),$(Wi[ord][k]),$(cs_wi_sorted[k])\n")
+      end
+    end
+
+    open("$IMGDIR/sep/Z$(i)_hat.txt", "w") do file
+      for j in 1:J
+        zj = join(Int.(Zi[j, :]), ",")
+        write(file, "$(zj)\n")
+      end
+    end
+
+    lami = out[1][idx_best][:lam][i]
+    ord = sortperm(Wi, rev=true)
+    lami = util.reorder_lami(ord, lami)
+
+    for min_presence in min_presences
+      common_celltypes = util.get_common_celltypes(Wi, thresh=min_presence,
+                                                   filter_by_min_presence=true)
+      println("common celltypes (min_presence > $min_presence): $common_celltypes")
+      K_trunc = length(common_celltypes)
+
+      util.plotPng("$IMGDIR/sep/y_dat$(i)_only_minpresence$(min_presence).png")
+      ord_yi = sortperm(lami)
+      util.myImage(y_dat[i][ord_yi[1 .<= lami[ord_yi] .<= K_trunc], :],
+                   addL=true, f=yi->util.addCut(lami, s_png),
+                   zlim=[-4,4], col=util.blueToRed(9), na="black", xlab="markers",
+                   ylab="cells");
+      util.devOff()
+
+      util.plotPdf("$IMGDIR/sep/Z_hat$(i)_minpresence$(min_presence).pdf", w=5, h=10)
+      util.myImage(Zi[:, common_celltypes], addL=false, ylab="markers", yaxt="n",
+                   f=Z->addGridLines(J, K_trunc), xaxt="n", xlab="celltypes");
+
+      perc = string.(round.(Wi[common_celltypes] * 100, digits=2), "%")
+      R"""
+      axis(3, at=1:$K_trunc, label=$(perc), las=2, fg="grey", cex.axis=1)
+      axis(1, at=1:$K_trunc, label=$(common_celltypes), las=1,
+           fg="grey", cex.axis=1)
+      axis(2, at=1:$J, label=1:$J, las=2, fg="grey", cex.axis=1)
+      """
+      util.devOff()
+    end
+  end # separate graphs
+
 end

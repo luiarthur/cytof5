@@ -103,23 +103,27 @@ function idx_observed_ij(y, i::Int, j::Int)
   return findall(yij -> !isnan(yij), y[i][:, j])
 end
 
-function get_mu_observed(i::Int, j::Int, y, o) 
-  z_ij = o[:Z][j, o[:lam][i]]
-  eta_ij = [o[:eta][zinj][i, j, :] for zinj in z_ij]
-  gam_ij = [Cytof5.MCMC.wsample(einj) for einj in eta_ij]
+function get_mu_observed(i::Int, j::Int, y, o, o2) 
   idx_observed = idx_observed_ij(y, i, j)
+  gam_ij = o2[rand(1:end)][:gam][i][:, j]
 
   result = [begin
-              l = gam_ij[n]
-              z = z_ij[n]
-              sum_delta = sum(o[:delta][z][1:l])
-              z == 0 ? -sum_delta : sum_delta
+              k = o[:lam][i][n]
+              if k == 0 # noisy class
+                0.0
+              else
+                z = o[:Z][j, k]
+                l = gam_ij[n]
+                sum_delta = sum(o[:delta][z][1:l])
+
+                z == 0 ? -sum_delta : sum_delta
+              end
             end for n in idx_observed]
   return result
 end
 
 function gen_post_pred(i, j, y, out)
-  y_pp = [rand.(Normal.(get_mu_observed(i, j, y, o), sqrt(o[:sig2][i])))
+  y_pp = [rand.(Normal.(get_mu_observed(i, j, y, o, out[2]), sqrt(o[:sig2][i])))
           for o in out[1]]
   return hcat(y_pp...)
 end

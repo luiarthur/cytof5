@@ -33,7 +33,7 @@ K_MCMC_GROUP=( [${N_factor[0]}]="`seq -w 2 10`" [${N_factor[1]}]="`seq -w 2 2 20
 
 # Create SEED dict
 declare -A SEED
-SEED=( [${N_factor[0]}]=90 [${N_factor[1]}]=98)
+SEED=( [${N_factor[0]}]=90 [${N_factor[1]}]=1)
 
 # Create K dict
 declare -A K

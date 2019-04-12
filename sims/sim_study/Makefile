@@ -1,5 +1,5 @@
 SHELL:=/bin/bash
-.PHONY: test run clean retrieve retrieveAll metrics flowsom getsimdat
+.PHONY: test run clean retrieve retrieveAll metrics flowsom getsimdat pullAndProcess
 
 # EXPERIMENT NAME
 EXP_NAME = sim-paper
@@ -48,3 +48,6 @@ getsimdat:
 
 metrics:
 	python3 metrics.py $(RESULTS_DIR)
+
+pullAndProcess:
+	julia pullAndGenResults.jl $(AWS_BUCKET)

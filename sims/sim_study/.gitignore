@@ -1,3 +1,4 @@
 bla/
 __pycache__/
 *.nfs*
+TMP_DIR/
