@@ -217,6 +217,7 @@ function post_process(PATH_TO_OUTPUT, thresh=0.9, min_presences=[0, .01, .03, .0
   # println()
   # util.devOff()
 
+  # TODO: consider removing this
   # # QQ with observed values
   # util.plotPdf("$IMGDIR/qq_truedat.pdf")
   # R"par(mfrow=c(3, 3), mar=c(5.1, 4, 2, 1))"
