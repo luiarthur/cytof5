@@ -89,6 +89,14 @@ function post_process(PATH_TO_OUTPUT, thresh=0.9, min_presences=[0, .01, .03, .0
   util.plotPost(alphaPost, ylab="density", xlab="alpha", main="");
   util.devOff()
 
+
+  # Posterior of eps
+  println("Making eps...")
+  epsPost = hcat(util.getPosterior(:eps, out[1])...)'
+  util.plotPdf("$IMGDIR/eps.pdf")
+  util.plotPosts(epsPost);
+  util.devOff()
+
   # Get lam
   lamPost = util.getPosterior(:lam, out[1])
   # unique(lamPost)
