@@ -302,29 +302,34 @@ function post_process(PATH_TO_OUTPUT, thresh=0.9, min_presences=[0, .01, .03, .0
     for min_presence in min_presences
       common_celltypes = util.get_common_celltypes(Wi, thresh=min_presence,
                                                    filter_by_min_presence=true)
-      println("common celltypes (min_presence > $min_presence): $common_celltypes")
-      K_trunc = length(common_celltypes)
 
-      util.plotPng("$IMGDIR/sep/y_dat$(i)_only_minpresence$(min_presence).png")
-      ord_yi = sortperm(lami)
-      util.myImage(y_dat[i][ord_yi[1 .<= lami[ord_yi] .<= K_trunc], :],
-                   addL=true, f=yi->util.addCut(lami, s_png),
-                   zlim=[-4,4], col=util.blueToRed(9), na="black", xlab="markers",
-                   ylab="cells");
-      util.devOff()
+      if all(isnan.(lami))
+        println("Sample too noisy.")
+      else
+        println("common celltypes (min_presence > $min_presence): $common_celltypes")
+        K_trunc = length(common_celltypes)
 
-      util.plotPdf("$IMGDIR/sep/Z_hat$(i)_minpresence$(min_presence).pdf", w=5, h=10)
-      util.myImage(Zi[:, common_celltypes], addL=false, ylab="markers", yaxt="n",
-                   f=Z->addGridLines(J, K_trunc), xaxt="n", xlab="celltypes");
+        util.plotPng("$IMGDIR/sep/y_dat$(i)_only_minpresence$(min_presence).png")
+        ord_yi = sortperm(lami)
+        util.myImage(y_dat[i][ord_yi[1 .<= lami[ord_yi] .<= K_trunc], :],
+                     addL=true, f=yi->util.addCut(lami, s_png),
+                     zlim=[-4,4], col=util.blueToRed(9), na="black", xlab="markers",
+                     ylab="cells");
+        util.devOff()
 
-      perc = string.(round.(Wi[common_celltypes] * 100, digits=2), "%")
-      R"""
-      axis(3, at=1:$K_trunc, label=$(perc), las=2, fg="grey", cex.axis=1)
-      axis(1, at=1:$K_trunc, label=$(common_celltypes), las=1,
-           fg="grey", cex.axis=1)
-      axis(2, at=1:$J, label=1:$J, las=2, fg="grey", cex.axis=1)
-      """
-      util.devOff()
+        util.plotPdf("$IMGDIR/sep/Z_hat$(i)_minpresence$(min_presence).pdf", w=5, h=10)
+        util.myImage(Zi[:, common_celltypes], addL=false, ylab="markers", yaxt="n",
+                     f=Z->addGridLines(J, K_trunc), xaxt="n", xlab="celltypes");
+
+        perc = string.(round.(Wi[common_celltypes] * 100, digits=2), "%")
+        R"""
+        axis(3, at=1:$K_trunc, label=$(perc), las=2, fg="grey", cex.axis=1)
+        axis(1, at=1:$K_trunc, label=$(common_celltypes), las=1,
+             fg="grey", cex.axis=1)
+        axis(2, at=1:$J, label=1:$J, las=2, fg="grey", cex.axis=1)
+        """
+        util.devOff()
+      end
     end
   end # separate graphs
 
