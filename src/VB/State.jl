@@ -13,6 +13,7 @@ struct State
   alpha
 end
 
+
 function rsample(s::State)
   out = Dict{Symbol, Any}()
 
@@ -27,3 +28,4 @@ function rsample(s::State)
 
   return out
 end
+

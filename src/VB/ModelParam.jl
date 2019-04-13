@@ -1,6 +1,9 @@
 using Flux, Flux.Tracker
 using Distributions
 
+include("StickBreak.jl")
+const SB = StickBreak
+
 struct ModelParam{T, S <: Union{Tuple, Integer}}
   m::T
   log_s::T
@@ -46,6 +49,18 @@ function vp(mp::ModelParam)
   end
 
   return (m, s)
+end
+
+function transform(mp::ModelParam, real::T) where T
+  if mp.support == "simplex"
+    return SB.transform(real)
+  elseif mp.support == "unit"
+    return 1.0 ./ (1.0 .+ exp.(real))
+  elseif mp.support == "positive"
+    return exp.(real)
+  else mp.support # "real"
+    return real
+  end
 end
 
 """

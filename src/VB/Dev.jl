@@ -5,8 +5,6 @@ module Dev
 include("custom_grads.jl")
 include("ModelParam.jl")
 include("State.jl")
-include("StickBreak.jl")
-const SB = StickBreak
 end # Dev
 
 # ModelParam.jl
