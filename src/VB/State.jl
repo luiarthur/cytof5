@@ -14,18 +14,44 @@ struct State
 end
 
 
+struct Sample
+  real
+  tran
+end
+
+
 function rsample(s::State)
-  out = Dict{Symbol, Any}()
+  out = Dict{Symbol, Sample}()
 
   for key in fieldnames(State)
     f = getfield(s, key)
     if typeof(f) <: Array
-      out[key] = [rsample(each_f) for each_f in f]
+      out[key] = [begin
+                    real = rsample(each_f)
+                    tran = transform(f, real)
+                    Sample(real, tran)
+                  end for each_f in f]
     else
-      out[key] = rsample(f)
+      real = rsample(f)
+      tran = transform(f, real)
+      out[key] = Sample(real, tran)
     end
   end
 
   return out
 end
 
+
+function loglike(params)
+  println("NotImplemented")
+end
+
+
+function logprior(reals, params)
+  println("NotImplemented")
+end
+
+
+function logq(reals)
+  println("NotImplemented")
+end

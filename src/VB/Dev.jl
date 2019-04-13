@@ -8,9 +8,9 @@ include("State.jl")
 end # Dev
 
 # ModelParam.jl
-@time s = Dev.ModelParam(Float32, "unit");
-@time v = Dev.ModelParam(Float32, 3, "unit");
-@time a = Dev.ModelParam(Float32, (3, 5), "unit");
+@time s = Dev.ModelParam(ElType, "unit");
+@time v = Dev.ModelParam(ElType, 3, "unit");
+@time a = Dev.ModelParam(ElType, (3, 5), "unit");
 
 @time Dev.vp(s);
 @time Dev.vp(v);
@@ -26,19 +26,21 @@ I = 3
 J = 20
 K = 4
 
-delta0 = Dev.ModelParam(Float32, L[0], "positive");
-delta1 = Dev.ModelParam(Float32, L[1], "positive");
-W = Dev.ModelParam(Float32, (I, K), "simplex");
-sig2 = Dev.ModelParam(Float32, I, "positive");
-eta0 = Dev.ModelParam(Float32, (I, J, L[0]), "simplex");
-eta1 = Dev.ModelParam(Float32, (I, J, L[1]), "simplex");
-v = Dev.ModelParam(Float32, K, "unit");
-H = Dev.ModelParam(Float32, (J, K), "real");
-alpha = Dev.ModelParam(Float32, "real");
+ElType = Float32 # Float64
+
+delta0 = Dev.ModelParam(ElType, L[0], "positive");
+delta1 = Dev.ModelParam(ElType, L[1], "positive");
+W = Dev.ModelParam(ElType, (I, K), "simplex");
+sig2 = Dev.ModelParam(ElType, I, "positive");
+eta0 = Dev.ModelParam(ElType, (I, J, L[0]), "simplex");
+eta1 = Dev.ModelParam(ElType, (I, J, L[1]), "simplex");
+v = Dev.ModelParam(ElType, K, "unit");
+H = Dev.ModelParam(ElType, (J, K), "real");
+alpha = Dev.ModelParam(ElType, "real");
 
 state = Dev.State(delta0, delta1, sig2, W, eta0, eta1, v, H, alpha);
 
 samp = Dev.rsample(state)
-Dev.SB.transform(samp[:W])
-Dev.SB.transform(samp[:eta0])
-
+sum(samp[:W].tran, dims=2)
+sum(samp[:eta0].tran, dims=3)
+samp[:delta0]
