@@ -6,11 +6,14 @@ x: real vector of dim K - 1
 return: simplex of dim K
 """
 function transform(x::T) where T
-  K = length(x) + 1
-  k_vec = collect(1:K-1)
-  z = sigmoid.(x .- log.(K .- k_vec))
-  one_minus_z_cumprod = cumprod(1.0 .- z)
-  p = vcat(z, [1.0]) .* vcat([1.0], one_minus_z_cumprod)
+  size_x = size(x)
+  ndim = ndims(x)
+  dim_head = size_x[1:end-1]
+  K = size_x[end] + 1
+  ks = cumsum(ones(size_x), dims=ndim)
+  z = sigmoid.(x .- log.(K .- ks))
+  one_minus_z_cumprod = cumprod(1.0 .- z, dims=ndim)
+  p = cat(z, ones(dim_head), dims=ndim) .* cat(ones(dim_head), one_minus_z_cumprod, dims=ndim)
 
   return p
 end
@@ -22,10 +25,11 @@ p: simplex of dim K
 return: log abs value of determinant of x
 """
 function logabsdetJ(x, p)
-  K = length(p)
-  k_vec = collect(1:K-1)
-  z = sigmoid.(x .- log.(K .- k_vec))
-  detJ = sum(log1p.(-z) .+ log.(p[1:end-1]))
+  ndim = ndims(x)
+  K = size(p)[end]
+  ks = cumsum(ones(size(x)), dims=ndim)
+  z = sigmoid.(x .- log.(K .- ks))
+  detJ = sum(log1p.(-z) .+ log.(head(p)), dims=ndim)
 
   return detJ
 end

@@ -35,7 +35,7 @@ function lpdf_logx(dist, logx)
 end
 
 function lpdf_real_simplex(alpha, x, p)
-  return logpdf(Dirichlet(alpha), p) + SB.logabsdetJ(x, p)
+  return logpdf(Dirichlet(alpha), p) + sum(SB.logabsdetJ(x, p))
 end
 
 # loglike

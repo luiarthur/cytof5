@@ -6,8 +6,8 @@ using Distributions
 
 x = param([.1, .2, .3])
 p = SB.transform(x)
-@assert abs(SB.logabsdetJ(x, p) - (-5.5850)) < 1e-4
-@assert abs(logpdf(Dirichlet(ones(4)), p) + SB.logabsdetJ(x, p) - (-3.7933)) < 1e-4
+@assert abs(SB.logabsdetJ(x, p)[1] - (-5.5850)) < 1e-4
+@assert abs(logpdf(Dirichlet(ones(4)), p) + SB.logabsdetJ(x, p)[1] - (-3.7933)) < 1e-4
 
 # TEST
 y = param(ones(3))
@@ -20,6 +20,13 @@ back!(z)
 # -0.7283506542974874
 # -0.4621171572600099
 
+x = cumsum(cumsum(cumsum(ones(2,3,4), dims=1), dims=2), dims=3)
+x = param(x / 24)
+p = SB.transform(x)
+z = sum(log.(p))
+back!(z)
+x.grad
+@assert abs(sum(x.grad) - (-4.8753)) < 1e-4
 
 #= Test
 # TODO: minus example with prints of Δ

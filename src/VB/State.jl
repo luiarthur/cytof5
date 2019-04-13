@@ -1,26 +1,29 @@
-module dev
-
 using Flux, Flux.Tracker
 using Distributions
 
-mutable struct State{A <: AbstractArray}
-  delta0::A
-  delta1::A
-
-  W::M
-
+struct State
+  delta0
+  delta1
+  sig2
+  W
+  eta0
+  eta1
+  v
+  H
+  alpha
 end
 
-mu0(s::State) = -cumsum(s)
-mu1(s::State) = cumsum(s)
+function rsample(s::State)
+  out = Dict{Symbol, Any}()
 
-end # dev
+  for key in fieldnames(State)
+    f = getfield(s, key)
+    if typeof(f) <: Array
+      out[key] = [rsample(each_f) for each_f in f]
+    else
+      out[key] = rsample(f)
+    end
+  end
 
-#=
-using .dev
-
-x = randn(Float32, 3, 5)
-typeof(param(x))
-
-
-=#
+  return out
+end

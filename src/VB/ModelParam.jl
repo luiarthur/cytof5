@@ -1,42 +1,45 @@
-module Bla
 using Flux, Flux.Tracker
 using Distributions
 
-# FIXME
-struct ModelParam{T, S <: Union{Integer, Vector{Integer}}}
+struct ModelParam{T, S <: Union{Tuple, Integer}}
   m::T
   log_s::T
   support::String # real, unit, simplex, positive
   size::S
 end
 
-# TR(T) = typeof(param(rand(T)))
+# TS(T) = typeof(param(rand(T)))
 # TV(T) = typeof(param(rand(T, 0)))
 # TM(T) = typeof(param(rand(T, 0)))
 
-function ModelParam(T::Type, K::Integer, support::String)
+# scalar param
+function ModelParam(T::Type, support::String)
   @assert(support in ["real", "unit", "simplex", "positive"])
-  return ModelParam(param(randn(T, K)), param(randn(T, K)), support, K)
+  return ModelParam(param(randn(T)), param(randn(T)), support, 0)
 end
 
-function ModelParam(T::Type, D::Array{Int64, 1}, support::String)
+# Vector param
+function ModelParam(ElType::Type, K::Integer, support::String)
   @assert(support in ["real", "unit", "simplex", "positive"])
-  return ModelParam(param(randn(T, D...)), param(randn(T, D...)), support, D)
+  return ModelParam(param(randn(ElType, K)), param(randn(ElType, K)), support, K)
 end
-end # BLA
 
-#= Test
-v = Bla.ModelParam(Float32, 3, "unit")
-a = Bla.ModelParam(Float32, [3, 5], "unit")
-=#
+# ND-Array param
+function ModelParam(ElType::Type, D::S, support::String) where {S <: Tuple}
+  @assert(support in ["real", "unit", "simplex", "positive"])
+  return ModelParam(param(randn(ElType, D...)), param(randn(ElType, D...)), support, D)
+end
+
 
 """
 Get variational parameters
 """
 function vp(mp::ModelParam)
+  # TODO:
+  # make the values non-hardcoded
   if mp.support in ["unit", "simplex"]
     m = sigmoid.(mp.m) .* 20.0 .- 10.0
-    s = sigmoid.(mp.log_s) * 10.0
+    s = sigmoid.(mp.log_s) .* 10.0
   else
     m = mp.m
     s = exp.(mp.log_s)

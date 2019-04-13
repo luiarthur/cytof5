@@ -41,6 +41,12 @@ Base.reverse(x::TrackedArray; dims=1) = track(reverse, x, dims)
   end
 end
 
+function head(x::T) where {T <: AbstractArray}
+  """
+  does the same thing as `x[..., :-1]` in pytorch.
+  """
+  return x[[axes(x, i) for i in 1:ndims(x)-1]..., 1:end-1]
+end
 
 # deprecated:
 # cumprod_pos(x::T; dims=1) where T = exp.(cumsum(log.(x), dims=dims))
