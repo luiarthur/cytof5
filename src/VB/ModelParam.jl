@@ -1,17 +1,34 @@
+module Bla
 using Flux, Flux.Tracker
 using Distributions
 
-struct ModelParam
-  m::TrackedArray
-  log_s::TrackedArray
+# FIXME
+struct ModelParam{T, S <: Union{Integer, Vector{Integer}}}
+  m::T
+  log_s::T
   support::String # real, unit, simplex, positive
-  size::Integer
-  
-  function ModelParam(K::Integer, support::String)
-    @assert(support in ["real", "unit", "simplex", "positive"])
-    return new(param(randn(K)), param(randn(K)), support, K)
-  end
+  size::S
 end
+
+# TR(T) = typeof(param(rand(T)))
+# TV(T) = typeof(param(rand(T, 0)))
+# TM(T) = typeof(param(rand(T, 0)))
+
+function ModelParam(T::Type, K::Integer, support::String)
+  @assert(support in ["real", "unit", "simplex", "positive"])
+  return ModelParam(param(randn(T, K)), param(randn(T, K)), support, K)
+end
+
+function ModelParam(T::Type, D::Array{Int64, 1}, support::String)
+  @assert(support in ["real", "unit", "simplex", "positive"])
+  return ModelParam(param(randn(T, D...)), param(randn(T, D...)), support, D)
+end
+end # BLA
+
+#= Test
+v = Bla.ModelParam(Float32, 3, "unit")
+a = Bla.ModelParam(Float32, [3, 5], "unit")
+=#
 
 """
 Get variational parameters
