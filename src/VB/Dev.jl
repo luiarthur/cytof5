@@ -8,6 +8,8 @@ include("State.jl")
 end # Dev
 
 # ModelParam.jl
+ElType = Float32 # Float64
+
 @time s = Dev.ModelParam(ElType, "unit");
 @time v = Dev.ModelParam(ElType, 3, "unit");
 @time a = Dev.ModelParam(ElType, (3, 5), "unit");
@@ -26,8 +28,6 @@ I = 3
 J = 20
 K = 4
 
-ElType = Float32 # Float64
-
 delta0 = Dev.ModelParam(ElType, L[0], "positive");
 delta1 = Dev.ModelParam(ElType, L[1], "positive");
 W = Dev.ModelParam(ElType, (I, K), "simplex");
@@ -44,3 +44,4 @@ samp = Dev.rsample(state)
 sum(samp[:W].tran, dims=2)
 sum(samp[:eta0].tran, dims=3)
 samp[:delta0]
+samp[:v].tran

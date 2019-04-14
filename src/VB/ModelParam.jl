@@ -42,8 +42,8 @@ function vp(mp::ModelParam)
   # TODO:
   # make the values non-hardcoded
   if mp.support in ["unit", "simplex"]
-    m = sigmoid.(mp.m) .* 20.0 .- 10.0
-    s = sigmoid.(mp.log_s) .* 10.0
+    m = sigmoid.(mp.m) .* mp.eltype(20.0 .- 10.0)
+    s = sigmoid.(mp.log_s) .* mp.eltype(10.0)
   else
     m = mp.m
     s = exp.(mp.log_s)
@@ -60,7 +60,7 @@ function transform(mp::ModelParam, real::T) where T
   if mp.support == "simplex"
     return SB.transform(real)
   elseif mp.support == "unit"
-    return 1 ./ (1 .+ exp.(real))
+    return one(mp.eltype) ./ (one(mp.eltype) .+ exp.(real))
   elseif mp.support == "positive"
     return exp.(real)
   else mp.support # "real"
