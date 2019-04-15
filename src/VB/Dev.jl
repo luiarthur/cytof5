@@ -45,3 +45,6 @@ sum(samp[:W].tran, dims=2)
 sum(samp[:eta0].tran, dims=3)
 samp[:delta0]
 samp[:v].tran
+samp[:H].tran
+samp[:alpha].tran
+samp[:sig2].tran

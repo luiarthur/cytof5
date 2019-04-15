@@ -72,8 +72,13 @@ end
 Reparameterized sampling from variational distribution
 """
 function rsample(mp::ModelParam)
+  # TODO: Optimize this
   m, s = vp(mp)
-  return randn(mp.eltype, mp.size) .* s .+ m
+  if mp.size == 0
+    return randn(mp.eltype) * s + m
+  else
+    return randn(mp.eltype, mp.size) .* s .+ m
+  end
 end
 
 #= TEST
