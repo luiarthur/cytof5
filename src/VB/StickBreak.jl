@@ -14,7 +14,7 @@ function transform(x::T) where T
   z = sigmoid.(x .- log.(K .- ks))
   one_minus_z_cumprod = cumprod(1 .- z, dims=ndim)
   ones_pad = one.(layer(x, 1))
-  println(ones_pad)
+  # println(ones_pad)
   p = cat(z, ones_pad, dims=ndim) .* cat(ones_pad, one_minus_z_cumprod, dims=ndim)
 
   return p
