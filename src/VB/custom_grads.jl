@@ -38,6 +38,12 @@ function head(x::T) where {T <: AbstractArray}
   return x[[axes(x, i) for i in 1:ndims(x)-1]..., 1:end-1]
 end
 
+function layer(x::T, l::Integer) where {T <: AbstractArray}
+  """
+  returns: x[[axes(x, i) for i in 1:ndims(x)-1]..., l]
+  """
+  return x[[axes(x, i) for i in 1:ndims(x)-1]..., l]
+end
 
 # deprecated:
 # cumprod_pos(x::T; dims=1) where T = exp.(cumsum(log.(x), dims=dims))

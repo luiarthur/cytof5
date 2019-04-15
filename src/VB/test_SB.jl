@@ -34,22 +34,4 @@ back!(z)
 x.grad
 @assert abs(sum(x.grad) - (-4.8753)) < 1e-4
 
-#= Test
-# TODO: minus example with prints of Δ
-using Flux.Tracker: TrackedArray, track, @grad
-mult(a, b) = a .* b
-mult(a::TrackedArray, b::TrackedArray) = track(mult, a, b)
-@grad function mult(a, b)
-  return mult(a.data, b.data), function(Δ)
-    println(Δ)
-    x = (Δ .* b.data, a ./ Δ)
-    println(x)
-    return x
-  end
-end
-a = param([1, 2, 3])
-b = param([3, 2, 1])
-back!(sum(mult(a, b) .^ 2))
-a.grad
-b.grad
-=#
+
