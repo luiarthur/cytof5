@@ -1,6 +1,9 @@
 using Flux
 using Flux.Tracker: TrackedArray, @grad, track
 
+# Also see this:
+# https://github.com/FluxML/Flux.jl/pull/524
+
 # TODO:
 # remove this file when Zygote.jl is officially the AD for Flux
 
@@ -45,13 +48,10 @@ function layer(x::T, l::Integer) where {T <: AbstractArray}
   return x[[axes(x, i) for i in 1:ndims(x)-1]..., l]
 end
 
-# deprecated:
-# cumprod_pos(x::T; dims=1) where T = exp.(cumsum(log.(x), dims=dims))
- 
-# Also see this:
-# https://github.com/FluxML/Flux.jl/pull/524
-
 function logsumexp(logx; dims::Integer=1)
+  """
+  logsumexp
+  """
   mx = maximum(logx, dims=dims)
   return mx .+ log.(sum(exp.(logx .- mx), dims=dims))
 end
