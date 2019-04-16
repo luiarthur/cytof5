@@ -48,6 +48,7 @@ function layer(x::T, l::Integer) where {T <: AbstractArray}
   return x[[axes(x, i) for i in 1:ndims(x)-1]..., l]
 end
 
+
 function logsumexp(logx; dims::Integer=1)
   """
   logsumexp
