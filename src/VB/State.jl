@@ -55,12 +55,12 @@ function loglike(params, c, data, idx)
     mu0 = reshape(-cumsum(params[:delta0], 1, 1, c.L[0]))
     lf0 = logpdf.(Normal(mu0, sig[i]), yi) .+ log.(params[:eta0][i:i, :, :])
 
-    mu1 = reshape(-cumsum(params[:delta1], 1, 1, c.L[1]))
+    mu1 = reshape(cumsum(params[:delta1], 1, 1, c.L[1]))
     lf1 = logpdf.(Normal(mu1, sig[i]), yi) .+ log.(params[:eta1][i:i, :, :])
 
     # Ni x J
-    logmix_L0 = logsumexp(lf0, 3)
-    logmix_L1 = logsumexp(lf1, 3)
+    logmix_L0 = logsumexp(lf0, dims=3)
+    logmix_L1 = logsumexp(lf1, dims=3)
 
     # Z: J x K
     # H: J x K
