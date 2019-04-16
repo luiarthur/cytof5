@@ -50,3 +50,10 @@ end
  
 # Also see this:
 # https://github.com/FluxML/Flux.jl/pull/524
+
+function logsumexp(logx; dims::Integer=1)
+  mx = maximum(logx, dims=dims)
+  return mx .+ log.(sum(exp.(logx .- mx), dims=dims))
+end
+
+
