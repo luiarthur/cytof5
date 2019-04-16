@@ -26,6 +26,13 @@ back!(z)
 # -0.7283506542974874
 # -0.4621171572600099
 
+y = param(ones(Float32, 3))
+p = SB.transform(y)
+z = SB.logsumexp(p)[1]
+back!(z)
+y.tracker.grad
+
+
 x = cumsum(cumsum(cumsum(ones(2,3,4), dims=1), dims=2), dims=3)
 x = param(x / 24)
 p = SB.transform(x)
@@ -33,5 +40,12 @@ z = sum(log.(p))
 back!(z)
 x.grad
 @assert abs(sum(x.grad) - (-4.8753)) < 1e-4
+
+x = cumsum(cumsum(cumsum(ones(2,3,4), dims=1), dims=2), dims=3)
+x = param(x / 24)
+p = SB.transform(x)
+z = SB.logsumexp(p, dims=3)
+back!(sum(z))
+x.grad
 
 
