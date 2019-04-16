@@ -90,7 +90,12 @@ function genData(; J::Int, N::Vector{Int}, K::Int, L::Dict{Int, Int},
                  Z::Matrix{Int}, beta::Vector{Float64},
                  sig2::Vector{Float64}, mus::Dict{Int, Vector{Float64}}, 
                  a_W::Vector{Float64}, a_eta::Dict{Int, Vector{Float64}},
-                 sortLambda::Bool=false, propMissingScale::Float64=0.7)
+                 sortLambda::Bool=false, propMissingScale::Float64=0.7,
+                 eps=zeros(length(N)))
+
+  # Check eps
+  @assert length(eps) == length(N)
+  @assert all(0 .<= eps .<= 1)
 
   # Check Z dimensions
   @assert ncol(Z) == K && nrow(Z) == J
@@ -124,8 +129,12 @@ function genData(; J::Int, N::Vector{Int}, K::Int, L::Dict{Int, Int},
     W[i,:] = rand(Dirichlet(Random.shuffle(a_W)))
   end
 
+
   # Simulate lambda
-  lam = [rand(Categorical(W[i,:]), N[i]) for i in 1:I]
+  lam = [begin
+           p = [eps[i]; (1 - eps[i]) * W[i, :]]
+           rand(Categorical(p), N[i]) .- 1
+         end for i in 1:I]
   if sortLambda
     lam = [sort(lami) for lami in lam]
   end
@@ -144,9 +153,13 @@ function genData(; J::Int, N::Vector{Int}, K::Int, L::Dict{Int, Int},
   for i in 1:I
     for j in 1:J
       for n in 1:N[i]
-        lin = lam[i][n]
-        z = Z[j, lin]
-        gam[i][n,j] = rand(Categorical(eta[z][i, j, :]))
+        k = lam[i][n]
+        if k > 0
+          z = Z[j, k]
+          gam[i][n,j] = rand(Categorical(eta[z][i, j, :]))
+        else
+          gam[i][n,j] = 0
+        end
       end
     end
   end
@@ -162,14 +175,20 @@ function genData(; J::Int, N::Vector{Int}, K::Int, L::Dict{Int, Int},
 
   function mu_get(i, n, j)
     l = gam[i][n, j]
-    z = z_get(i, n, j)
-    return mus[z][l] 
+    if l > 0
+      z = z_get(i, n, j)
+      out = mus[z][l] 
+    else
+      out = 0.0
+    end
+    return out
   end
 
   for i in 1:I
     for j in 1:J
       for n in 1:N[i]
-        y_complete[i][n, j] = rand(Normal(mu_get(i, n, j), sqrt(sig2[i])))
+        sig_i = lam[i][n] > 0 ? sqrt(sig2[i]) : 3.0
+        y_complete[i][n, j] = rand(Normal(mu_get(i, n, j), sig_i))
       end
 
       # Set some to be missing
@@ -184,7 +203,7 @@ function genData(; J::Int, N::Vector{Int}, K::Int, L::Dict{Int, Int},
 
   return Dict(:y=>y, :y_complete=>y_complete, :Z=>Z, :W=>W,
               :eta=>eta, :mus=>mus, :sig2=>sig2, :lam=>lam, :gam=>gam,
-              :beta=>beta)
+              :beta=>beta, :eps=>eps)
 end # genData
 
 #precompile(genData, (String, Int, Vector{Int}, Int, Int, Bool, Float64, Bool, Float64))
