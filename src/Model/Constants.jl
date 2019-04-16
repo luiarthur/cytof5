@@ -69,7 +69,7 @@ function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
 
   W_prior = Dirichlet(K, 1 / K)
   eta_prior = Dict(z => Dirichlet(L[z], 1 / L[z]) for z in 0:1)
-  eps_prior = [Beta(5.0, 95.0) for i in 1:data.I]
+  eps_prior = [Beta(1.0, 99.0) for i in 1:data.I]
 
   # TODO: use empirical bayes to find these priors
   y_negs = [filter(y_i -> !isnan(y_i) && y_i < 0, vec(data.y[i])) for i in 1:data.I]
