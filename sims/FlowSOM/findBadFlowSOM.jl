@@ -28,7 +28,7 @@ csrand(n; min=0) = cumsum(rand(n) * 2) .+ min
 flipbit(x; prob=.5) = [prob > rand() ? 1 - xi : xi for xi in x]
 
 function sim(jl_seed::Int, n_fac::Int; K=5, L=Dict(0=>3, 1=>3), J=20, fs_seed=42, save=false,
-             results_dir="results/flowSearch/")
+             results_dir="results/flowSearch/", eps=zeros(3))
   OUTPUT_DIR = "$(results_dir)/N$(n_fac)/K$(K)/$jl_seed"
   mkpath(OUTPUT_DIR)
 
@@ -56,7 +56,7 @@ function sim(jl_seed::Int, n_fac::Int; K=5, L=Dict(0=>3, 1=>3), J=20, fs_seed=42
                                 mus=mus,
                                 a_W=a_W,
                                 a_eta=a_eta,
-                                sortLambda=false, propMissingScale=0.7)
+                                sortLambda=false, propMissingScale=0.7, eps=eps)
   dat = Cytof5.Model.Data(simdat[:y])
 
   util.plotPdf("$OUTPUT_DIR/Z.pdf")
@@ -67,6 +67,7 @@ function sim(jl_seed::Int, n_fac::Int; K=5, L=Dict(0=>3, 1=>3), J=20, fs_seed=42
     write(f, "mu*0: $(simdat[:mus][0]) \n")
     write(f, "mu*1: $(simdat[:mus][1]) \n")
     write(f, "sig2: $(simdat[:sig2]) \n")
+    write(f, "eps: $(simdat[:eps]) \n")
 
     for i in 1:I
       write(f, "W$(i): $(simdat[:W][i, :]) \n")
@@ -185,7 +186,7 @@ for n_fac in N_FAC
     for k in K_DICT[n_fac]
       println("$(jl_seed) | n_fac: $(n_fac) | K_TRUE: $(k)")
       sim(jl_seed, n_fac, K=k, L=Dict(0=>3, 1=>3), J=20, fs_seed=FS_SEED, save=true,
-          results_dir="data/kills-flowsom/")
+          results_dir="data/kills-flowsom/", eps=fill(.005, 3))
     end
   end
 end

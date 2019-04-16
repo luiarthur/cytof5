@@ -1,4 +1,4 @@
-.PHONY: zip genResults litecp sendData getData
+.PHONY: zip genResults litecp sendData getData genData
 
 # AWS BUCKET for simulated data
 SIMDATA_AWS_BUCKET = s3://cytof-sim-results/simdata/
@@ -24,3 +24,6 @@ sendData:
 
 getData:
 	aws s3 sync $(SIMDATA_AWS_BUCKET) $(SIMDATA_DIR)
+
+genData:
+	julia findBadFlowSOM.jl
