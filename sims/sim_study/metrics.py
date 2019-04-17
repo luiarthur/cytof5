@@ -50,7 +50,7 @@ if __name__ == '__main__':
             Dmean = []
             LPML = []
             
-            sim_dirs_nfac = filter(lambda d: 'Nfac{}'.format(nfac) in d, sim_dirs)
+            sim_dirs_nfac = filter(lambda d: 'Nfac{}_'.format(nfac) in d, sim_dirs)
             sim_dirs_nfac = sorted(sim_dirs_nfac)
         
             K = np.array([int(re.findall(r'(?<=KMCMC)\d+', d)[0])
