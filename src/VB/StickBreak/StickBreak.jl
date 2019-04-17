@@ -13,9 +13,14 @@ function transform(x::T) where T
   ks = cumsum(one.(x), dims=ndim)
   z = sigmoid.(x .- log.(K .- ks))
   one_minus_z_cumprod = cumprod(1 .- z, dims=ndim)
-  ones_pad = one.(layer(x, 1))
-  # println(ones_pad)
-  p = cat(z, ones_pad, dims=ndim) .* cat(ones_pad, one_minus_z_cumprod, dims=ndim)
+
+  if ndim == 1
+    ones_pad =  Tracker.collect([one.(layer(x, 1))])
+    p = vcat(z, ones_pad) .* vcat(ones_pad, one_minus_z_cumprod)
+  else
+    ones_pad = one.(layer(x, 1))
+    p = cat(z, ones_pad, dims=ndim) .* cat(ones_pad, one_minus_z_cumprod, dims=ndim)
+  end
 
   return p
 end

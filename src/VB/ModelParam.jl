@@ -1,7 +1,7 @@
 using Flux, Flux.Tracker
 using Distributions
 
-include("StickBreak.jl")
+include("StickBreak/StickBreak.jl")
 const SB = StickBreak
 
 struct ModelParam{T, ET, S <: Union{Tuple, Integer}}
@@ -38,12 +38,11 @@ end
 """
 Get variational parameters
 """
-function vp(mp::ModelParam)
-  # TODO:
-  # make the values non-hardcoded
+function vp(mp::ModelParam; m_min::Float64=-10.0, m_max::Float64=10.0, s_max::Float64=10.0)
   if mp.support in ["unit", "simplex"]
-    m = sigmoid.(mp.m) .* mp.eltype(20.0 .- 10.0)
-    s = sigmoid.(mp.log_s) .* mp.eltype(10.0)
+    param_range = mp.eltype(m_max - m_min)
+    m = sigmoid.(mp.m) .* param_range .+ mp.eltype(m_min)
+    s = sigmoid.(mp.log_s) .* mp.eltype(s_max)
   else
     m = mp.m
     s = exp.(mp.log_s)
@@ -53,7 +52,15 @@ function vp(mp::ModelParam)
 end
 
 function logabsdetJ(mp::ModelParam, real::R, tran::T) where {R, T}
-  println("NotImplemented")
+  if mp.support == "simplex"
+    println("NotImplemented")
+  elseif mp.support == "unit"
+    println("NotImplemented")
+  elseif mp.support == "positive"
+    println("NotImplemented")
+  else # "real"
+    return zero(mp.m)
+  end
 end
 
 function transform(mp::ModelParam, real::T) where T
@@ -63,7 +70,7 @@ function transform(mp::ModelParam, real::T) where T
     return one(mp.eltype) ./ (one(mp.eltype) .+ exp.(real))
   elseif mp.support == "positive"
     return exp.(real)
-  else mp.support # "real"
+  else # "real"
     return real
   end
 end

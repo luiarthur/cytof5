@@ -1,9 +1,12 @@
 module VB
 
 using Distributions
-import Random # suffle, seed
 using Flux, Flux.Tracker
+
+import Random # suffle, seed
+
 include("State.jl")
+include("ModelParam.jl")
 
 """
 This enables the backward gradient computations via Z.
