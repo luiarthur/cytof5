@@ -3,6 +3,7 @@ module VB
 using Distributions
 import Random # suffle, seed
 using Flux, Flux.Tracker
+include("State.jl")
 
 """
 This enables the backward gradient computations via Z.
@@ -24,19 +25,53 @@ function prob_miss_logit(y::S, b0::T, b1::T, b2::T) where {S, T}
 end
 
 
-# TODO
-function loglike(s, c, d)
-  y = s.y
-  sig = sqrt.(s.sig2)
-  ll = Tracker.TrackedReal(0.)
+function loglike(params, c, data, idx)
+  y = params[:y]
+  sig = sqrt.(params[:sig2])
 
+  ll = zero(params[:alpha])
   for i in 1:c.I
-    mu0 = -cumsum(s.delta0, 1)
-    mu1 = cumsum(s.delta1, 1)
-    # TODO
+    # Ni x J x Lz
+    yi = reshape(y[i], c.N[i], c.J, 1)
+
+    mu0 = reshape(-cumsum(params[:delta0], 1, 1, c.L[0]))
+    lf0 = logpdf.(Normal(mu0, sig[i]), yi) .+ log.(params[:eta0][i:i, :, :])
+
+    mu1 = reshape(cumsum(params[:delta1], 1, 1, c.L[1]))
+    lf1 = logpdf.(Normal(mu1, sig[i]), yi) .+ log.(params[:eta1][i:i, :, :])
+
+    # Ni x J
+    logmix_L0 = logsumexp(lf0, dims=3)
+    logmix_L1 = logsumexp(lf1, dims=3)
+
+    # Z: J x K
+    # H: J x K
+    # v: K
+    # c: Ni x J x K
+    # d: Ni x K
+    # Ni x J x K
+
+    if c.use_stickbreak
+      v = cumprod(params[:v])
+    else
+      v = params[:v]
+    end
+
+
   end
 
+  println("NotImplemented")
   return ll
+end
+
+
+function logprior(reals, params)
+  println("NotImplemented")
+end
+
+
+function logq(reals)
+  println("NotImplemented")
 end
 
 end # VB
