@@ -88,7 +88,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
 
   # CPO
   if computeLPML
-    invLike = [[1.0 / compute_like(i, n, j, init, c, d) for n in 1:d.N[i]]
+    invLike = [[1.0 / compute_like(i, n, init, c, d) for n in 1:d.N[i]]
                for i in 1:d.I ]
     invLikeType = typeof(invLike)
     cpoStream = MCMC.CPOstream{invLikeType}(invLike)
@@ -161,7 +161,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
 
     if computeLPML && iter > nburn
       # Inverse likelihood for each data point
-      invLike = [[1.0 / compute_like(i, n, j, s, c, d) for n in 1:d.N[i]]
+      invLike = [[1.0 / compute_like(i, n, s, c, d) for n in 1:d.N[i]]
                  for i in 1:d.I ]
 
       # Update COP
