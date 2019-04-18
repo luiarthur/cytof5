@@ -1,7 +1,7 @@
 import Dates
 
 const monitor_default = Vector{Vector{Symbol}}([])
-const thin_default = Vector{Int}()
+const thin_default = Int[]
 
 function deepcopyFields(state::T, fields::Vector{Symbol}) where T
   substate = Dict{Symbol, Any}()

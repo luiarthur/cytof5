@@ -33,7 +33,7 @@ printFreq: defaults to 0 => prints every 10%. turn off printing by setting to -1
 function cytof5_fit(init::State, c::Constants, d::Data;
                     nmcmc::Int=1000, nburn::Int=1000, 
                     monitors=[[:Z, :lam, :W, :v, :sig2, :delta, :alpha, :v, :eta, :eps]],
-                    fix::Vector{Symbol}=Vector{Symbol}(),
+                    fix::Vector{Symbol}=Symbol[],
                     thins::Vector{Int}=[1],
                     thin_dden::Int=1,
                     printFreq::Int=0, flushOutput::Bool=false,
@@ -78,7 +78,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
                   v=[MCMC.TuningParam(1.0) for k in 1:c.K])
 
   # Loglike
-  loglike = Vector{Float64}()
+  loglike = Float64[]
 
   function printMsg(iter::Int, msg::String)
     if printFreq > 0 && iter % printFreq == 0
@@ -149,7 +149,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
   end
 
 
-  dden = Vector{Matrix{Vector{Float64}}}()
+  dden = Matrix{Vector{Float64}}[]
 
   function update(s::State, iter::Int, out)
     update_state(s, c, d, tuners, loglike, fix, use_repulsive, joint_update_Z, sb_ibp)
