@@ -30,6 +30,17 @@ function compute_like(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)::
   return exp(compute_loglike(i, n, j, s, c, d))
 end
 
+function compute_like(i::Int, n::Int, s::State, c::Constants, d::Data)::Float64
+  ll_in = 0.0
+
+  for j in 1:d.J
+    ll_in += compute_loglike(i, n, j, s, c, d)
+  end
+
+  return exp(ll_in)
+end
+
+
 function compute_loglike(s::State, c::Constants, d::Data; normalize::Bool=true)::Float64
   ll = 0.0
 
