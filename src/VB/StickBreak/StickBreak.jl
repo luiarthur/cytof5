@@ -15,10 +15,10 @@ function transform(x::T) where T
   one_minus_z_cumprod = cumprod(1 .- z, dims=ndim)
 
   if ndim == 1
-    ones_pad =  Tracker.collect([one.(layer(x, 1))])
+    ones_pad =  Tracker.collect([one.(slice(x, 1))])
     p = vcat(z, ones_pad) .* vcat(ones_pad, one_minus_z_cumprod)
   else
-    ones_pad = one.(layer(x, 1))
+    ones_pad = one.(slice(x, 1))
     p = cat(z, ones_pad, dims=ndim) .* cat(ones_pad, one_minus_z_cumprod, dims=ndim)
   end
 

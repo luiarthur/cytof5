@@ -1,7 +1,12 @@
 using Flux, Flux.Tracker
 using Distributions
 
-struct State
+abstract type Advi end
+abstract type VP <: Advi end
+abstract type RealSpace <: Advi end
+abstract type TranSpace <: Advi end
+
+mutable struct State{T <: Advi}
   delta0
   delta1
   sig2
@@ -13,33 +18,38 @@ struct State
   alpha
 end
 
-
-struct Sample
-  real
-  tran
-end
+State{T}() where {T <: Advi} = State{T}(nothing, nothing, nothing,
+                                        nothing, nothing, nothing,
+                                        nothing, nothing, nothing)
 
 
-function rsample(s::State)
-  out = Dict{Symbol, Sample}()
+function rsample(s::State{VP})
+  real = State{RealSpace}()
+  tran = State{TranSpace}()
 
   for key in fieldnames(State)
     f = getfield(s, key)
     if typeof(f) <: Array
-      out[key] = [begin
-                    real = rsample(each_f)
-                    tran = transform(f, real)
-                    Sample(real, tran)
-                  end for each_f in f]
+      # TODO: optimize
+      rs = []
+      ts = []
+      for each_f in f
+        println(f)
+        r = rsample(f)
+        t = transform(f, r)
+        append!(rs, r)
+        append!(ts, t)
+      end
+      setfield!(real, key, rs)
+      setfield!(tran, key, ts)
+
     else
-      real = rsample(f)
-      tran = transform(f, real)
-      out[key] = Sample(real, tran)
+      r = rsample(f)
+      t = transform(f, r)
+      setfield!(real, key, r)
+      setfield!(tran, key, t)
     end
   end
 
-  return out
+  return real, tran
 end
-
-
-

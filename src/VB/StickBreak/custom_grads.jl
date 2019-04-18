@@ -41,7 +41,7 @@ function head(x::T) where {T <: AbstractArray}
   return x[[axes(x, i) for i in 1:ndims(x)-1]..., 1:end-1]
 end
 
-function layer(x::T, l::Integer) where {T <: AbstractArray}
+function slice(x::T, l::Integer) where {T <: AbstractArray}
   """
   returns: x[[axes(x, i) for i in 1:ndims(x)-1]..., l]
   """
@@ -49,7 +49,7 @@ function layer(x::T, l::Integer) where {T <: AbstractArray}
 end
 
 
-function logsumexp(logx; dims::Integer=1)
+function logsumexp(logx::T; dims::Integer=1) where T
   """
   logsumexp
   """
