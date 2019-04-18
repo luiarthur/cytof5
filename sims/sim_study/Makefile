@@ -2,6 +2,7 @@ SHELL:=/bin/bash
 .PHONY: test run clean retrieve retrieveAll metrics flowsom getsimdat pullAndProcess
 
 # EXPERIMENT NAME
+# EXP_NAME = sim-paper-flat # flatter noisy dist
 EXP_NAME = sim-paper
 
 # RESULTS DIRECTORY
