@@ -15,15 +15,14 @@ function update_lam_logpostvec(i::Int, n::Int, s::State, c::Constants, d::Data)
   end
 
   logPostVec = logpriorVec .+ loglikeVec
-  append!(logPostVec, logPost0)
 
-  return logPostVec
+  return [logPost0; logPostVec]
 end
 
 function update_lam(i::Int, n::Int, s::State, c::Constants, d::Data)
   logPostVec = update_lam_logpostvec(i, n, s, c, d)
-  k = MCMC.wsample_logprob(logPostVec)
-  s.lam[i][n] = (k <= c.K ? k : 0)
+  k = MCMC.wsample_logprob(logPostVec) - 1
+  s.lam[i][n] = k
 end
 
 function update_lam(s::State, c::Constants, d::Data)
