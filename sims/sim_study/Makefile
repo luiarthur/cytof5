@@ -3,7 +3,8 @@ SHELL:=/bin/bash
 
 # EXPERIMENT NAME
 # EXP_NAME = sim-paper-flat # flatter noisy dist
-EXP_NAME = sim-paper
+# EXP_NAME = sim-paper
+EXP_NAME = sim-paper-fixed-lpml
 
 # RESULTS DIRECTORY
 RESULTS_DIR = results/$(EXP_NAME)

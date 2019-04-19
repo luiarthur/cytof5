@@ -13,7 +13,7 @@ AWS_BUCKET=$2
 MAX_CORES=20
 
 # STAGGER_TIME in seconds. To avoid mass dumping to disk simultaneously. 
-STAGGER_TIME=100
+STAGGER_TIME=0
 
 # Experiment Settings
 L0_MCMC=5
