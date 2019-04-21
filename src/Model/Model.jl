@@ -123,7 +123,8 @@ function cytof5_fit(init::State, c::Constants, d::Data;
             y_inj_is_missing = (d.m[i][n, j] == 1)
 
             if y_inj_is_missing
-              ll += logpdf(Bernoulli(param.p[i][n, j]), d.m[i][n, j])
+              # ll += logpdf(Bernoulli(param.p[i][n, j]), d.m[i][n, j])
+              ll += log(param.p[i][n, j])
             else
               ll += logpdf(Normal(param.mu[i][n, j], param.sig[i][n]), d.y[i][n, j])
             end

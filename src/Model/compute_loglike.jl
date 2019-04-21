@@ -6,17 +6,17 @@ function compute_loglike(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data
     p = prob_miss(s.y_imputed[i][n, j], c.beta[:, i])
     # Don't compute this if it's observed because missing mechanism is fixed
     # because this will be a constant 
-    # ll += logpdf(Bernoulli(p), d.m[i][n, j])
-    ll += log(p)
-  end
-
-  k = s.lam[i][n]
-  if k > 0
-    z = s.Z[j, k]
-    l = s.gam[i][n, j]
-    ll += logpdf(Normal(mus(z, l, s, c, d), sqrt(s.sig2[i])), s.y_imputed[i][n, j])
-  else
-    ll += logpdf(c.noisyDist, s.y_imputed[i][n, j])
+    ll = log(p)
+  else # y_inj is observed
+    k = s.lam[i][n]
+    y_inj = d.y[i][n, j]
+    if k > 0 # cell is not noisy 
+      z = s.Z[j, k]
+      l = s.gam[i][n, j]
+      ll = logpdf(Normal(mus(z, l, s, c, d), sqrt(s.sig2[i])), y_inj)
+    else # cell is noisy and observed
+      ll = logpdf(c.noisyDist, y_inj)
+    end
   end
 
   if isinf(ll)
