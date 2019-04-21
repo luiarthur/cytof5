@@ -2,11 +2,7 @@ SHELL:=/bin/bash
 .PHONY: test run clean retrieve retrieveAll metrics flowsom getsimdat pullAndProcess
 
 # EXPERIMENT NAME
-# EXP_NAME = sim-paper-flat# flatter noisy dist
-# EXP_NAME = sim-paper
-# EXP_NAME = sim-paper-fixed-lpml
-# EXP_NAME = sim-paper-fixed-lpml-2#includes p(y_inj | \theta) for missing y
-EXP_NAME = sim-paper-fixed-lpml-3# includes the previous fixes & correction to sig2
+EXP_NAME = sim-paper
 
 # RESULTS DIRECTORY
 RESULTS_DIR = results/$(EXP_NAME)
@@ -25,7 +21,10 @@ SIMDATA_DIR = simdata/
 
 # OLD EXPERIMENTS
 #{{{1
-# EXP_NAME = NONE
+# EXP_NAME = sim-paper-flat# flatter noisy dist
+# EXP_NAME = sim-paper-fixed-lpml
+# EXP_NAME = sim-paper-fixed-lpml-2#includes p(y_inj | \theta) for missing y
+# EXP_NAME = sim-paper-fixed-lpml-3# includes the previous fixes & correction to sig2
 #}}}1
 
 run:
