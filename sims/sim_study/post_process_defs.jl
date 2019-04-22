@@ -126,6 +126,44 @@ function post_process(PATH_TO_OUTPUT, thresh=0.9, min_presences=[0, .01, .03, .0
   util.abline(h=simdat[:sig2], lty=2, col="grey")
   util.devOff()
 
+  # Plot posterior predictive of expressed cells (blue)
+  # Compared against observed positive expressions, with kde bw=0.1
+  function plot_dden_expressed(; y_dat, out1, bw=.1, ygridsize=200, ygrid_range=[-1, 6])
+    mkpath("$(IMGDIR)/dden-expressed")
+    # Get eta post
+    eta1Post = cat([m[:eta][1] for m in out1]..., dims=4) # I x J x L1 x NMCMC
+    ygrid = collect(range(ygrid_range[1], stop=ygrid_range[2], length=ygridsize))
+    ygrid = reshape(ygrid, 1, ygridsize)
+    for i in 1:I
+      for j in 1:J
+        print("\ri: $i, j: $j   ")
+        ddij = [begin
+                  eta1_ij = eta1Post[i, j, :, b:b]
+                  comp2 = pdf.(Normal.(mus1Post[:, b:b], sqrt(sig2Post[i, b])), ygrid)
+                  vec(sum(eta1_ij .* comp2, dims=1))
+                end for b in 1:MCMC_ITER]
+        ddij = hcat(ddij...) # ygridsize x NMCMC
+        ddij_mean = mean(ddij, dims=2)
+        ddij_lower = [quantile(ddij[g, :], .025) for g in 1:ygridsize]
+        ddij_upper = [quantile(ddij[g, :], .975) for g in 1:ygridsize]
+
+        util.plotPdf("$(IMGDIR)/dden-expressed/dden_i$(i)_j$(j).pdf")
+        util.plot(ygrid, ddij_mean, lwd=2, col="blue",
+                  typ="l", xlab="y", ylab="density", main="",
+                  xlim=[-1, 6], ylim=[0, maximum(ddij_upper)])
+        util.colorBtwn(ygrid, ddij_lower, ddij_upper, from=-10, to=10,
+                       col=util.rgba("blue", .3))
+        yij = y_dat[i][:, j]
+        yij_pos = yij[yij .> 0]
+        util.lines(util.density(yij_pos, bw=bw))
+        util.devOff()
+      end
+    end
+    println()
+  end
+  plot_dden_expressed(y_dat=simdat[:y], out1=out[1])
+
+
   # Posterior of y_imputed
   y_imputed = [ o[:y_imputed] for o in out[2] ]
   util.plotPdf("$(IMGDIR)/ydatPost.pdf")
@@ -250,7 +288,7 @@ function post_process(PATH_TO_OUTPUT, thresh=0.9, min_presences=[0, .01, .03, .0
     for j in 1:J
       println("Plot posterior density for (i: $i, j: $j) observed ...")
       util.plotPdf("$(IMGDIR)/dden/dden_i$(i)_j$(j).pdf")
-      dyij = util.density(filter(yij -> !isnan(yij), y_dat[i][:, j]))
+      dyij = util.density(filter(yij -> !isnan(yij), y_dat[i][:, j]), bw=.1)
       dd_ij = hcat([dd[i, j] for dd in dden]...)
       pdyij_mean = R"rowMeans($dd_ij)" .+ 0
       pdyij_lower = R"apply($dd_ij, 1, quantile, .025)" .+ 0
@@ -260,7 +298,7 @@ function post_process(PATH_TO_OUTPUT, thresh=0.9, min_presences=[0, .01, .03, .0
                 main="i: $i, j: $j", col="blue", lwd=2, typ="l")
       util.colorBtwn(c.y_grid, pdyij_lower, pdyij_upper, from=-10, to=10,
                      col=util.rgba("blue", .3))
-      util.lines(dyij, col="grey", lwd=2)
+      util.lines(dyij)
       util.devOff()
     end
   end
