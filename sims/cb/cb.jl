@@ -13,6 +13,10 @@ end
 
 #{{{1
 # ARG PARSING
+
+# Define behavior for vector numerical args (input as space delimited string)
+ArgParse.parse_item(::Type{Vector{T}}, x::AbstractString) where {T <: Number} = parse.(T, split(x))
+
 function parse_cmd()
   s = ArgParseSettings()
 
@@ -57,6 +61,14 @@ function parse_cmd()
       arg_type = Float64
       default = 10.0
 
+    # Missin mechanism
+    "--pBounds"
+      arg_type = Vector{Float64}
+      default = [.05, .8, .05]
+    "--yQuantiles"
+      arg_type = Vector{Float64}
+      default = [0.0, .25, .5]
+
     "--RESULTS_DIR"
       arg_type = String
       required = true
@@ -94,6 +106,10 @@ subsample = PARSED_ARGS["subsample"]
 SMARTINIT = PARSED_ARGS["smartinit"]
 noisy_scale = PARSED_ARGS["noisy_scale"]
 dnoisy = PARSED_ARGS["dnoisy"] == "normal" ? Normal(0.0, noisy_scale) : Cauchy(0.0, noisy_scale)
+
+# missing mechanism
+yQuantiles = PARSED_ARGS["yQuantiles"]
+pBounds = PARSED_ARGS["pBounds"]
 
 Random.seed!(SEED);
 # End of ArgParse
@@ -138,7 +154,8 @@ Cytof5.Model.logger("\nGenerating priors ...");
                                         # yQuantiles=[.1, .25, .4], pBounds=[.05, .8, .05],
                                         # yQuantiles=[0.0, .01, .05], pBounds=[.05, .8, .05], # far
                                         # yQuantiles=[0.0, .35, .7], pBounds=[.05, .8, .05], # near
-                                        yQuantiles=[0.0, .25, .5], pBounds=[.05, .8, .05], # near
+                                        # yQuantiles=[0.0, .25, .5], pBounds=[.05, .8, .05], # paper
+                                        yQuantiles=yQuantiles, pBounds=pBounds,
                                         # yBounds=[-5., -3.5, -2.], pBounds=[.05, .8, .05], # custom
                                         # TODO: CHECK
                                         similarity_Z=Cytof5.Model.sim_fn_abs(10000),

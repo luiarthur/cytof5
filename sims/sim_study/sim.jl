@@ -14,6 +14,10 @@ println("Done loading packages.")
 
 # TODO: review
 # ARG PARSING
+
+# Define behavior for vector numerical args (input as space delimited string)
+ArgParse.parse_item(::Type{Vector{T}}, x::AbstractString) where {T <: Number} = parse.(T, split(x))
+
 function parse_cmd()
   s = ArgParseSettings()
 
@@ -36,6 +40,15 @@ function parse_cmd()
     "--L1_MCMC"
       arg_type = Int
       required = true
+
+    # Missin mechanism
+    "--pBounds"
+      arg_type = Vector{Float64}
+      default = [.05, .8, .05] # paper
+    "--yQuantiles"
+      arg_type = Vector{Float64}
+      default = [0.0, .25, .5] # paper
+
     "--RESULTS_DIR"
       arg_type = String
       required = true
@@ -75,6 +88,10 @@ L0_MCMC = PARSED_ARGS["L0_MCMC"]
 L1_MCMC = PARSED_ARGS["L1_MCMC"]
 L_MCMC = Dict(0 => L0_MCMC, 1 => L1_MCMC)
 
+# missing mechanism
+yQuantiles = PARSED_ARGS["yQuantiles"]
+pBounds = PARSED_ARGS["pBounds"]
+
 EXP_NAME = PARSED_ARGS["EXP_NAME"]
 SEED = PARSED_ARGS["SEED"]
 RESULTS_DIR = PARSED_ARGS["RESULTS_DIR"]
@@ -97,7 +114,7 @@ logger("Generating priors ...");
                                         tau0=10.0, tau1=10.0,
                                         sig2_prior=InverseGamma(3.0, 2.0),
                                         alpha_prior=Gamma(0.1, 10.0),
-                                        yQuantiles=[0.0, .25, .5], pBounds=[.05, .8, .05], # near
+                                        yQuantiles=yQuantiles, pBounds=pBounds,
                                         similarity_Z=Cytof5.Model.sim_fn_abs(10000),
                                         probFlip_Z=2.0 / (dat.J * K_MCMC),
                                         noisyDist=Normal(0.0, 3.16))

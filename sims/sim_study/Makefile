@@ -1,5 +1,5 @@
 SHELL:=/bin/bash
-.PHONY: test run clean retrieve retrieveAll metrics flowsom getsimdat pullAndProcess
+.PHONY: test run clean retrieve retrieveAll metrics flowsom getsimdat pullAndProcess missmechsen
 
 # EXPERIMENT NAME
 EXP_NAME = sim-paper
@@ -29,6 +29,9 @@ SIMDATA_DIR = simdata/
 
 run:
 	bash run.sh  $(RESULTS_DIR)/  $(AWS_BUCKET)
+
+missmechsen:
+	bash missmechsen.sh  $(RESULTS_DIR)/  $(AWS_BUCKET)
 
 test:
 	bash run.sh  $(TEST_DIR)/  $(AWS_BUCKET)  --test
