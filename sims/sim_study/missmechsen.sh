@@ -13,7 +13,7 @@ AWS_BUCKET=$2
 MAX_CORES=20
 
 # STAGGER_TIME in seconds. To avoid mass dumping to disk simultaneously. 
-STAGGER_TIME=0
+STAGGER_TIME=100
 
 # Experiment Settings
 L0_MCMC=5
@@ -69,8 +69,8 @@ for n_factor in ${N_factor[@]}; do
       --L0_MCMC=${L0_MCMC} \
       --L1_MCMC=${L1_MCMC} \
       --K_MCMC=${k} \
-      --yQuantiles=\'${YQUANTILES[$((m-1))]}\' \
-      --pBounds=\'${PBOUNDS}\' \
+      --yQuantiles='${YQUANTILES[$((m-1))]}' \
+      --pBounds='${PBOUNDS}' \
       --RESULTS_DIR=$RESULTS_DIR \
       --EXP_NAME=$EXP_NAME \
       --MCMC_ITER=$MCMC_ITER \
