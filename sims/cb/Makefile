@@ -1,9 +1,9 @@
-.PHONY: send retrieve retrieveall litecp 
+.PHONY: send retrieve retrieveall litecp clean
 .PHONY: run pullAndProcess postProcess repFamTest test testlocal testplots metrics runAndProcess
 .PHONY: genpreprocessGraphs sendPreprocessedGraphs getPreprocessedGraphs getRData sendRData
 
 # Current run name
-DIR_CB_RUN = cb_smartinit_randeps_zmarg_delta_imputenear_sweep_fulldata2
+DIR_CB_RUN = cb-paper
 # Current run dir
 RESULTS_DIR_CB_RUN = results/$(DIR_CB_RUN)/
 # Current AWS bucket
@@ -14,9 +14,10 @@ AWS_BUCKET_CB_PREPROCESSED = s3://cytof-cb-results/cb-preprocessed
 
 # {{{1
 # NOTE: (for paper)
-# DIR_CB_RUN = cb_smartinit_randeps_zmarg_delta_imputenear_sweep_fulldata2
+# DIR_CB_RUN = cb-paper
 #
 # NOTE: (other runs)
+# DIR_CB_RUN = cb_smartinit_randeps_zmarg_delta_imputenear_sweep_fulldata2
 # DIR_CB_RUN = cb_smartinit_randeps_zmarg_delta_imputenear_sweep_fulldata
 # DIR_CB_RUN = cb_smartinit_randeps_zmarg_delta_imputenear_sweep
 # DIR_CB_RUN = cb_smartinit_randeps_zmarg_delta_customimpute
@@ -136,3 +137,6 @@ sendNimbleGmm:
 getNimbleGmm:
 	aws s3 sync s3://cytof-cb-results/numble-gmm/ results/gmm/ 
 
+# Clean results
+clean:
+	rm -rf $(RESULTS_DIR_CB_RUN)/*
