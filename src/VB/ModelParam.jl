@@ -12,10 +12,6 @@ struct ModelParam{T, ET, S <: Union{Tuple, Integer}}
   eltype::ET
 end
 
-# TS(T) = typeof(param(rand(T)))
-# TV(T) = typeof(param(rand(T, 0)))
-# TM(T) = typeof(param(rand(T, 0)))
-
 # scalar param
 function ModelParam(T::Type, support::String)
   @assert(support in ["real", "unit", "simplex", "positive"])

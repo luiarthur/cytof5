@@ -1,3 +1,8 @@
+function lpdf_normal(x, m, s)
+  z = (x - m) / s
+  return -0.5 * log(2*pi) - z^2 * 0.5 - log(s)
+end
+
 function loglike(s::State{TranSpace}, y, c)
   sig = sqrt.(s.sig2)
 
@@ -9,10 +14,12 @@ function loglike(s::State{TranSpace}, y, c)
     yi = reshape(y[i], Ni, c.J, 1)
 
     mu0 = reshape(-cumsum(s.delta0), 1, 1, c.L[0])
-    lf0 = logpdf.(Normal.(mu0, sig[i]), yi) .+ log.(s.eta0[i:i, :, :])
+    # lf0 = logpdf.(Normal.(mu0, sig[i]), yi) .+ log.(s.eta0[i:i, :, :])
+    lf0 = lpdf_normal.(yi, mu0, sig[i]) .+ log.(s.eta0[i:i, :, :])
 
     mu1 = reshape(cumsum(s.delta1), 1, 1, c.L[1])
-    lf1 = logpdf.(Normal.(mu1, sig[i]), yi) .+ log.(s.eta1[i:i, :, :])
+    # lf1 = logpdf.(Normal.(mu1, sig[i]), yi) .+ log.(s.eta1[i:i, :, :])
+    lf1 = lpdf_normal.(yi, mu1, sig[i]) .+ log.(s.eta1[i:i, :, :])
 
     # Ni x J
     logmix_L0 = SB.logsumexp(lf0, dims=3)
@@ -44,5 +51,3 @@ function loglike(s::State{TranSpace}, y, c)
 
   return ll
 end
-
-

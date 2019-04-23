@@ -61,12 +61,12 @@ struct Constants
   use_stickbreak
 end
 
-N = [3, 1, 2] * 10
+N = [3, 1, 2] * 10000
 I = length(N)
 tau = .1
 c = Constants(I, N, J, K, L, tau, false)
 
 y = [randn(c.N[i], c.J) for i in 1:c.I]
-ll = VB.loglike(tranp, y, c)
+@time ll = VB.loglike(tranp, y, c)
 @time back!(ll)
-W.m.grad
+W.m.grad;

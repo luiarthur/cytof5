@@ -1,6 +1,11 @@
 using Flux, Flux.Tracker
 using Distributions
 
+TS(T) = typeof(param(rand(T)))
+TV(T) = typeof(param(rand(T, 0)))
+TM(T) = typeof(param(rand(T, 0, 0)))
+TC(T) = typeof(param(rand(T, 0, 0, 0)))
+
 abstract type Advi end
 abstract type VP <: Advi end
 abstract type RealSpace <: Advi end
