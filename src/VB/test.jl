@@ -1,33 +1,31 @@
 using Flux, Flux.Tracker
 
-struct Theta
-  delta0
-  delta1
-  sig2
-  W
-  eta0
-  eta1
-  v
-  H
-  alpha
-end
-
-(d::Dict)(x) = println(x)
-
-##########################
-using Flux, Flux.Tracker
 module Test
+using Flux, Flux.Tracker
 
-mutable struct Bob{T <: AbstractFloat, A <: AbstractArray{T}}
-  a::A
-  Bob(TT::Type, AA::Type) = new{TT, AA{TT}}()
-end
+TA{F, N} = TrackedArray{F, N, Array{F, N}}
+
+mutable struct Bob{F <: AbstractFloat,
+                   A1 <: AbstractArray{F, 1} , A2 <: AbstractArray{F, 2}}
+  a1::A1
+  a2::A2
+  Bob(FT::Type, AT::Type) = new{FT, AT{FT, 1}, AT{FT, 2}}()
 end
 
-b1 = Test.Bob(Float16, Array)
-b1.a = randn(2)
+end
+
+
+# Test
+b1 = Test.Bob(Float64, Array)
+println(typeof(b1))
+b1.a1 = randn(2)
+b1.a2 = randn(3, 2)
+println(typeof(b1))
+ 
+b1 = Test.Bob(Float64, Test.TA)
+println(typeof(b1))
+b1.a1 = randn(2)
+b1.a2 = randn(3, 2)
 println(typeof(b1))
 
-b2 = Test.Bob(Float32, TrackedArray)
-b2.a = param(randn(Float32, 3))
-println(typeof(b2))
+
