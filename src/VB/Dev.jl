@@ -79,6 +79,10 @@ tau = .1
 c = Constants{Float64}(I, N, J, K, L, tau, false)
 
 y = [randn(c.N[i], c.J) for i in 1:c.I]
-@time ll = VB.loglike(tranp, y, c)
+ll = VB.loglike(tranp, y, c)
+println("Time ll computation...")
+for q in 1:3
+  @time ll = VB.loglike(tranp, y, c)
+end
 @time back!(ll)
 W.m.grad;
