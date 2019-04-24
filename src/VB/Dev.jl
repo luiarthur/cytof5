@@ -39,9 +39,21 @@ v = VB.ModelParam(ElType, K, "unit");
 H = VB.ModelParam(ElType, (J, K), "real");
 alpha = VB.ModelParam(ElType, "real");
 
-state = VB.State{VB.VP}(delta0, delta1, sig2, W, eta0, eta1, v, H, alpha);
+# state = VB.State{VB.VP, VB.ModelParam, VB.ModelParam, VB.ModelParam, VB.ModelParam}(delta0, delta1, sig2, W, eta0, eta1, v, H, alpha);
+state = VB.State(VB.VP,
+                 VB.MPR{ElType},
+                 VB.MPA{ElType})
+state.delta0=delta0
+state.delta1=delta1
+state.W=W
+state.sig2=sig2
+state.eta0=eta0
+state.eta1=eta1
+state.v=v
+state.H=H
+state.alpha=alpha
 
-realp, tranp = VB.rsample(state)
+@time realp, tranp = VB.rsample(state);
 sum(tranp.W, dims=2)
 sum(tranp.eta0, dims=3)
 tranp.delta0

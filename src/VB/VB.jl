@@ -5,8 +5,8 @@ using Flux, Flux.Tracker
 
 import Random # suffle, seed
 
-include("State.jl")
 include("ModelParam.jl")
+include("State.jl")
 
 """
 This enables the backward gradient computations via Z.

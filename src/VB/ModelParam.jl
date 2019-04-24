@@ -4,28 +4,31 @@ using Distributions
 include("StickBreak/StickBreak.jl")
 const SB = StickBreak
 
-struct ModelParam{T, ET, S <: Union{Tuple, Integer}}
+struct ModelParam{T, ET, S <: NTuple{N, Int} where N}
   m::T
   log_s::T
   support::String # real, unit, simplex, positive
   size::S
-  eltype::ET
+  eltype::Type{ET}
 end
+
+MPA{F, N} = ModelParam{TrackedArray{F, N, Array{F, N}}, F, NTuple{N, Int}}
+MPR{F} = ModelParam{Tracker.TrackedReal{F}, F, NTuple{0, Int}}
 
 # scalar param
 function ModelParam(T::Type, support::String)
   @assert(support in ["real", "unit", "simplex", "positive"])
-  return ModelParam(param(randn(T)), param(randn(T)), support, 0, T)
+  return ModelParam(param(randn(T)), param(randn(T)), support, (), T)
 end
 
 # Vector param
 function ModelParam(ElType::Type, K::Integer, support::String)
   @assert(support in ["real", "unit", "simplex", "positive"])
-  return ModelParam(param(randn(ElType, K)), param(randn(ElType, K)), support, K, ElType)
+  return ModelParam(param(randn(ElType, K)), param(randn(ElType, K)), support, (K, ), ElType)
 end
 
 # ND-Array param
-function ModelParam(ElType::Type, D::S, support::String) where {S <: Tuple}
+function ModelParam(ElType::Type, D::Tuple, support::String)
   @assert(support in ["real", "unit", "simplex", "positive"])
   return ModelParam(param(randn(ElType, D...)), param(randn(ElType, D...)), support, D, ElType)
 end

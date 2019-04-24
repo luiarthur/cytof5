@@ -1,10 +1,8 @@
 using Flux, Flux.Tracker
 using Distributions
 
-TS(T) = typeof(param(rand(T)))
-TV(T) = typeof(param(rand(T, 0)))
-TM(T) = typeof(param(rand(T, 0, 0)))
-TC(T) = typeof(param(rand(T, 0, 0, 0)))
+TA{F, N} = Tracker.TrackedArray{F, N, Array{F, N}}
+TR{F} = Tracker.TrackedReal{F}
 
 abstract type Advi end
 abstract type VP <: Advi end
@@ -12,26 +10,34 @@ abstract type RealSpace <: Advi end
 abstract type TranSpace <: Advi end
 
 # TODO: upperbound fields with AbstractArray & Real
-mutable struct State{T <: Advi}
-  delta0
-  delta1
-  sig2
-  W
-  eta0
-  eta1
-  v
-  H
-  alpha
+mutable struct State{T <: Advi, F, A1, A2, A3}
+  delta0::A1
+  delta1::A1
+  sig2::A1
+  W::A2
+  eta0::A3
+  eta1::A3
+  v::A1
+  H::A2
+  alpha::F
+  
+  State(T::Type, F::Type, A::Type) = new{T, F, A{1}, A{2}, A{3}}()
 end
 
-State{T}() where {T <: Advi} = State{T}(nothing, nothing, nothing,
-                                        nothing, nothing, nothing,
-                                        nothing, nothing, nothing)
+# State{T}() where {T <: Advi} = State{T}(nothing, nothing, nothing,
+#                                         nothing, nothing, nothing,
+#                                         nothing, nothing, nothing)
 
 
-function rsample(s::State{VP})
-  real = State{RealSpace}()
-  tran = State{TranSpace}()
+function rsample(s::State{VP, MPR{F}, MPA{F, 1}, MPA{F, 2}, MPA{F, 3}};
+                 tracking::Bool=true) where {F <: AbstractFloat}
+  if tracking
+    real = State(RealSpace, TR{F}, TA{F})
+    tran = State(TranSpace, TR{F}, TA{F})
+  else
+    real = State(RealSpace, F, Array{F})
+    tran = State(TranSpace, F, Array{F})
+  end
 
   for key in fieldnames(State)
     f = getfield(s, key)
