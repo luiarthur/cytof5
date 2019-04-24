@@ -9,7 +9,6 @@ abstract type VP <: Advi end
 abstract type RealSpace <: Advi end
 abstract type TranSpace <: Advi end
 
-# TODO: upperbound fields with AbstractArray & Real
 mutable struct State{T <: Advi, F, A1, A2, A3}
   delta0::A1
   delta1::A1
@@ -24,20 +23,15 @@ mutable struct State{T <: Advi, F, A1, A2, A3}
   State(T::Type, F::Type, A::Type) = new{T, F, A{1}, A{2}, A{3}}()
 end
 
-# State{T}() where {T <: Advi} = State{T}(nothing, nothing, nothing,
-#                                         nothing, nothing, nothing,
-#                                         nothing, nothing, nothing)
-
 
 function rsample(s::State{VP, MPR{F}, MPA{F, 1}, MPA{F, 2}, MPA{F, 3}};
-                 tracking::Bool=true) where {F <: AbstractFloat}
-  if tracking
-    real = State(RealSpace, TR{F}, TA{F})
-    tran = State(TranSpace, TR{F}, TA{F})
-  else
-    real = State(RealSpace, F, Array{F})
-    tran = State(TranSpace, F, Array{F})
-  end
+                 RT::Type=TR{F}, AT::Type=TA{F}) where {F <: AbstractFloat}
+
+  # Or, RT=Float64, AT=Array{Float64}
+
+  real = State(RealSpace, RT, AT)
+  tran = State(TranSpace, RT, AT)
+
 
   for key in fieldnames(State)
     f = getfield(s, key)
