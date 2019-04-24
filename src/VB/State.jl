@@ -11,6 +11,7 @@ abstract type VP <: Advi end
 abstract type RealSpace <: Advi end
 abstract type TranSpace <: Advi end
 
+# TODO: upperbound fields with AbstractArray & Real
 mutable struct State{T <: Advi}
   delta0
   delta1

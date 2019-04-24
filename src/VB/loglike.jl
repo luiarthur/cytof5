@@ -1,4 +1,4 @@
-function lpdf_normal(x, m, s)
+function lpdf_normal(x::X, m::M, s::S) where {X <: Real, M <: Real, S<:Real}
   z = (x - m) / s
   return -0.5 * log(2*pi) - z^2 * 0.5 - log(s)
 end

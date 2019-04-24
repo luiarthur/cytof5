@@ -51,20 +51,20 @@ tranp.alpha
 tranp.sig2
 
 # Model Constants
-struct Constants
-  I
-  N
-  J
-  K
-  L
-  tau
-  use_stickbreak
+struct Constants{F <: AbstractFloat}
+  I::Int
+  N::Vector{Int}
+  J::Int
+  K::Int
+  L::Dict{Bool, Int}
+  tau::F
+  use_stickbreak::Bool
 end
 
 N = [3, 1, 2] * 10000
 I = length(N)
 tau = .1
-c = Constants(I, N, J, K, L, tau, false)
+c = Constants{Float64}(I, N, J, K, L, tau, false)
 
 y = [randn(c.N[i], c.J) for i in 1:c.I]
 @time ll = VB.loglike(tranp, y, c)

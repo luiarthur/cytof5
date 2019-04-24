@@ -49,7 +49,7 @@ function slice(x::T, l::Integer) where {T <: AbstractArray}
 end
 
 
-function logsumexp(logx::T; dims::Integer=1) where T
+function logsumexp(logx::T; dims::Integer=1) where {T <: AbstractArray}
   """
   logsumexp
   """
