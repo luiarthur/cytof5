@@ -17,7 +17,7 @@ We detach (Z - smoothed_Z) so that the gradients are not
 computed, and then add back smoothed_Z for the return.
 The only gradient will then be that of smoothed Z.
 """
-function compute_Z(logit::T, tau::Float64) where T
+function compute_Z(logit::T, tau::Float64=.001) where T
   smoothed_Z = sigmoid.((logit / tau))
   Z = (smoothed_Z .> 0.5) * 1.0
   return (Z - smoothed_Z).data + smoothed_Z
