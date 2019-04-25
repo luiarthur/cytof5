@@ -7,6 +7,7 @@ import Random # suffle, seed
 
 include("ModelParam.jl")
 include("State.jl")
+include("Constants.jl")
 
 """
 This enables the backward gradient computations via Z.

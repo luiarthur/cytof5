@@ -5,6 +5,8 @@ using Distributions
 # include("custom_grads.jl")
 # include("ModelParam.jl")
 # include("State.jl")
+
+
 include("VB.jl")
 # end # Dev
 
@@ -62,21 +64,10 @@ tranp.H
 tranp.alpha
 tranp.sig2
 
-# Model Constants
-struct Constants{F <: AbstractFloat}
-  I::Int
-  N::Vector{Int}
-  J::Int
-  K::Int
-  L::Dict{Bool, Int}
-  tau::F
-  use_stickbreak::Bool
-end
-
 N = [3, 1, 2] * 10000
 I = length(N)
 tau = .1
-c = Constants{Float64}(I, N, J, K, L, tau, false)
+c = VB.Constants(I, N, J, K, L, tau, false)
 
 y = [randn(c.N[i], c.J) for i in 1:c.I]
 ll = VB.loglike(tranp, y, c)

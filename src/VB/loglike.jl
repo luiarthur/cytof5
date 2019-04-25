@@ -3,7 +3,8 @@ function lpdf_normal(x::X, m::M, s::S) where {X <: Real, M <: Real, S<:Real}
   return -0.5 * log(2*pi) - z^2 * 0.5 - log(s)
 end
 
-function loglike(s::State{TranSpace, F, A1, A2, A3}, y, c) where {F, A1, A2, A3}
+function loglike(s::State{TranSpace, F, A1, A2, A3},
+                 y::Vector{Matrix{Float64}}, c::Constants) where {F, A1, A2, A3}
   sig = sqrt.(s.sig2)
 
   ll = zero(s.alpha)
