@@ -55,6 +55,14 @@ function layer(x::T, l::Integer) where {T <: AbstractArray}
   return x[[axes(x, i) for i in 1:ndims(x)-1]..., l]
 end
 
+function tail(x::T) where {T <: AbstractArray}
+  """
+  returns: last layer
+  """
+  return x[[axes(x, i) for i in 1:ndims(x)-1]..., end]
+end
+
+
 # deprecated:
 # cumprod_pos(x::T; dims=1) where T = exp.(cumsum(log.(x), dims=dims))
  

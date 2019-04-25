@@ -20,6 +20,9 @@ function vp(mp::ModelParam)
   if mp.support in ["unit", "simplex"]
     m = sigmoid.(mp.m) .* 20.0 .- 10.0
     s = sigmoid.(mp.log_s) * 10.0
+  elseif mp.support == "positive"
+    m = exp.(mp.m)
+    s = exp.(mp.log_s)
   else
     m = mp.m
     s = exp.(mp.log_s)
