@@ -65,31 +65,35 @@ tranp.H
 tranp.alpha
 tranp.sig2
 
-N = [3, 1, 2] * 10000
+N = [3, 1, 2] * 100
 I = length(N)
 tau = .1
 c = VB.Constants(I, N, J, K, L, tau, false)
 
 y = [randn(c.N[i], c.J) for i in 1:c.I]
-@time ll = VB.loglike(tranp, y, c)
 
-opt = ADAM(1e-1)
-minibatch_size = 500
-niters = 10
-
-loss(y) = -VB.loglike(tranp, y, c) / sum(N)
+function elbo(y)
+  realp, tranp = VB.rsample(state);
+  return VB.loglike(tranp, y, c)
+end
+loss(y) = -elbo(y) / sum(N)
 
 ps = []
 for fn in fieldnames(typeof(state))
   append!(ps, [getfield(state, fn).m])
   append!(ps, [getfield(state, fn).log_s])
 end
-ps= Tracker.Params(ps)
+ps = Tracker.Params(ps)
 
 ShowTime() = Dates.format(Dates.now(), "yyyy-mm-dd HH:MM:SS")
 
+opt = ADAM(1e-1)
+minibatch_size = 500
+niters = 10
+
 # wtf???
-# for i in 1:niters
-#   @time Flux.train!(loss, ps, [(y, )], opt)
-#   println("$(ShowTime()) -- $(i)/$(niters)")
-# end
+println("training...")
+for i in 1:niters
+  @time Flux.train!(elbo, ps, [(y, )], opt)
+  println("$(ShowTime()) -- $(i)/$(niters)")
+end
