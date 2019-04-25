@@ -1,5 +1,6 @@
 using Flux, Flux.Tracker
 using Distributions
+import Dates
 
 # module Dev
 # include("custom_grads.jl")
@@ -70,10 +71,25 @@ tau = .1
 c = VB.Constants(I, N, J, K, L, tau, false)
 
 y = [randn(c.N[i], c.J) for i in 1:c.I]
-ll = VB.loglike(tranp, y, c)
-println("Time ll computation...")
-for q in 1:3
-  @time ll = VB.loglike(tranp, y, c)
+@time ll = VB.loglike(tranp, y, c)
+
+opt = ADAM(1e-1)
+minibatch_size = 500
+niters = 10
+
+loss(y) = -VB.loglike(tranp, y, c) / sum(N)
+
+params = []
+for fn in fieldnames(typeof(state))
+  append!(params, [getfield(state, fn).m])
+  append!(params, [getfield(state, fn).log_s])
 end
-@time back!(ll)
-W.m.grad;
+params = Tracker.Params(params)
+
+ShowTime() = Dates.format(Dates.now(), "yyyy-mm-dd HH:MM:SS")
+
+# wtf???
+# for i in 1:niters
+#   @time Flux.train!(loss, params, [(y, )], opt)
+#   println("$(ShowTime()) -- $(i)/$(niters)")
+# end
