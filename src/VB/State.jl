@@ -18,7 +18,7 @@ mutable struct State{T <: Advi, F, A1, A2, A3}
   eta1::A3
   v::A1
   H::A2
-  alpha::F
+  alpha::A1 # F won't work, TrackedReals don't work as expected
   
   State(T::Type, F::Type, A::Type) = new{T, F, A{1}, A{2}, A{3}}()
 end

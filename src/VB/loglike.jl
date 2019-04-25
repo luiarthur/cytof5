@@ -7,7 +7,8 @@ function loglike(s::State{TranSpace, F, A1, A2, A3},
                  y::Vector{Matrix{Float64}}, c::Constants) where {F, A1, A2, A3}
   sig = sqrt.(s.sig2)
 
-  ll = zero(s.alpha)
+  # ll = zero(s.alpha)
+  ll = 0
   for i in 1:c.I
     Ni = size(y[i], 1)
 

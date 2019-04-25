@@ -40,7 +40,7 @@ eta0 = VB.ModelParam(ElType, (I, J, L[0] - 1), "simplex");
 eta1 = VB.ModelParam(ElType, (I, J, L[1] - 1), "simplex");
 v = VB.ModelParam(ElType, K, "unit");
 H = VB.ModelParam(ElType, (J, K), "real");
-alpha = VB.ModelParam(ElType, "real");
+alpha = VB.ModelParam(ElType, 1, "positive");
 
 # state = VB.State{VB.VP, VB.ModelParam, VB.ModelParam, VB.ModelParam, VB.ModelParam}(delta0, delta1, sig2, W, eta0, eta1, v, H, alpha);
 state = VB.State(VB.VP,
@@ -80,14 +80,15 @@ loss(y) = -elbo(y) / sum(N)
 
 ps = []
 for fn in fieldnames(typeof(state))
-  append!(ps, [getfield(state, fn).m])
-  append!(ps, [getfield(state, fn).log_s])
+  f = getfield(state, fn)
+  append!(ps, [f.m])
+  append!(ps, [f.log_s])
 end
 ps = Tracker.Params(ps)
 
 ShowTime() = Dates.format(Dates.now(), "yyyy-mm-dd HH:MM:SS")
 
-opt = ADAM(1e-1)
+opt = ADAM(1e-5)
 minibatch_size = 500
 niters = 10
 
