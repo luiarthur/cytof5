@@ -79,17 +79,17 @@ niters = 10
 
 loss(y) = -VB.loglike(tranp, y, c) / sum(N)
 
-params = []
+ps = []
 for fn in fieldnames(typeof(state))
-  append!(params, [getfield(state, fn).m])
-  append!(params, [getfield(state, fn).log_s])
+  append!(ps, [getfield(state, fn).m])
+  append!(ps, [getfield(state, fn).log_s])
 end
-params = Tracker.Params(params)
+ps= Tracker.Params(ps)
 
 ShowTime() = Dates.format(Dates.now(), "yyyy-mm-dd HH:MM:SS")
 
 # wtf???
 # for i in 1:niters
-#   @time Flux.train!(loss, params, [(y, )], opt)
+#   @time Flux.train!(loss, ps, [(y, )], opt)
 #   println("$(ShowTime()) -- $(i)/$(niters)")
 # end
