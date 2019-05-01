@@ -1,9 +1,3 @@
-using Flux, Flux.Tracker
-using Distributions
-
-include("StickBreak/StickBreak.jl")
-const SB = StickBreak
-
 struct ModelParam{T, ET, S <: NTuple{N, Int} where N}
   m::T
   log_s::T
@@ -11,9 +5,6 @@ struct ModelParam{T, ET, S <: NTuple{N, Int} where N}
   size::S
   eltype::Type{ET}
 end
-
-MPA{F, N} = ModelParam{TrackedArray{F, N, Array{F, N}}, F, NTuple{N, Int}}
-MPR{F} = ModelParam{Tracker.TrackedReal{F}, F, NTuple{0, Int}}
 
 # scalar param
 function ModelParam(T::Type, support::String)
@@ -64,7 +55,7 @@ end
 
 function transform(mp::ModelParam, real::T) where T
   if mp.support == "simplex"
-    return SB.transform(real)
+    return SB_transform(real)
   elseif mp.support == "unit"
     return one(mp.eltype) ./ (one(mp.eltype) .+ exp.(real))
   elseif mp.support == "positive"

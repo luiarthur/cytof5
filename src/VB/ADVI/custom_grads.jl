@@ -1,6 +1,3 @@
-using Flux
-using Flux.Tracker: TrackedArray, @grad, track
-
 # Also see this:
 # https://github.com/FluxML/Flux.jl/pull/524
 

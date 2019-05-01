@@ -1,23 +1,23 @@
 # https://github.com/FluxML/Flux.jl/issues/136
-include("StickBreak.jl"); SB = StickBreak
+include("ADVI.jl")
 
 using Flux, Flux.Tracker
 using Distributions
 
 x = param([.1])
-p = SB.transform(x)
-SB.logabsdetJ(x, p)
+p = ADVI.SB_transform(x)
+ADVI.SB_logabsdetJ(x, p)
 
 
 
 x = param([.1, .2, .3])
-p = SB.transform(x)
-@assert abs(SB.logabsdetJ(x, p)[1] - (-5.5850)) < 1e-4
-@assert abs(logpdf(Dirichlet(ones(4)), p) + SB.logabsdetJ(x, p)[1] - (-3.7933)) < 1e-4
+p = ADVI.SB_transform(x)
+@assert abs(ADVI.SB_logabsdetJ(x, p)[1] - (-5.5850)) < 1e-4
+@assert abs(logpdf(Dirichlet(ones(4)), p) + ADVI.SB_logabsdetJ(x, p)[1] - (-3.7933)) < 1e-4
 
 # TEST
 y = param(ones(Float32, 3))
-p = SB.transform(y)
+p = ADVI.SB_transform(y)
 z = sum(log.(p))
 back!(z)
 @assert all(abs.(y.tracker.grad - [-0.9015, -0.7284, -0.4621]) .< 1e-4)
@@ -27,15 +27,15 @@ back!(z)
 # -0.4621171572600099
 
 y = param(ones(Float32, 3))
-p = SB.transform(y)
-z = SB.logsumexp(p)[1]
+p = ADVI.SB_transform(y)
+z = ADVI.logsumexp(p)[1]
 back!(z)
 y.tracker.grad
 
 
 x = cumsum(cumsum(cumsum(ones(2,3,4), dims=1), dims=2), dims=3)
 x = param(x / 24)
-p = SB.transform(x)
+p = ADVI.SB_transform(x)
 z = sum(log.(p))
 back!(z)
 x.grad
@@ -43,9 +43,9 @@ x.grad
 
 x = cumsum(cumsum(cumsum(ones(2,3,4), dims=1), dims=2), dims=3)
 x = param(x / 24)
-p = SB.transform(x)
-z = SB.logsumexp(p, dims=3)
+p = ADVI.SB_transform(x)
+z = ADVI.logsumexp(p, dims=3)
 back!(sum(z))
 x.grad
 
-
+println("Done.")

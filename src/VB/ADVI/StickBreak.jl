@@ -1,11 +1,8 @@
-module StickBreak
-include("custom_grads.jl") # cumsum, cumprod
-   
 """
 x: real vector of dim K - 1
 return: simplex of dim K
 """
-function transform(x::T) where T
+function SB_transform(x::T) where T
   size_x = size(x)
   ndim = ndims(x)
   dim_head = size_x[1:end-1]
@@ -31,7 +28,7 @@ x: real vector of dim K - 1
 p: simplex of dim K
 return: log abs value of determinant of x
 """
-function logabsdetJ(x, p)
+function SB_logabsdetJ(x, p)
   ndim = ndims(x)
   K = size(p)[end]
   ks = cumsum(one.(x), dims=ndim)
@@ -40,6 +37,3 @@ function logabsdetJ(x, p)
 
   return detJ
 end
-
-end # StickBreak
-

@@ -24,8 +24,8 @@ function loglike(s::State{TranSpace, F, A1, A2, A3},
     lf1 = lpdf_normal.(yi, mu1, sig[i]) .+ log.(s.eta1[i:i, :, :])
 
     # Ni x J
-    logmix_L0 = SB.logsumexp(lf0, dims=3)
-    logmix_L1 = SB.logsumexp(lf1, dims=3)
+    logmix_L0 = ADVI.logsumexp(lf0, dims=3)
+    logmix_L1 = ADVI.logsumexp(lf1, dims=3)
 
     # Z: J x K
     # H: J x K
@@ -45,7 +45,7 @@ function loglike(s::State{TranSpace, F, A1, A2, A3},
     f = Z_mix .+ log.(s.W[i:i, :])
 
     # Ni - dimensional
-    lli = SB.logsumexp(f, dims=2)
+    lli = ADVI.logsumexp(f, dims=2)
 
     # add to ll
     ll += mean(lli) * c.N[i]

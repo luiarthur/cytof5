@@ -3,9 +3,9 @@ module VB
 using Distributions
 using Flux, Flux.Tracker
 
-import Random # suffle, seed
+import Random # shuffle, seed
 
-include("ModelParam.jl")
+include("ADVI/ADVI.jl")
 include("State.jl")
 include("Constants.jl")
 

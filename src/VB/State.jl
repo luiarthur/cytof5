@@ -24,7 +24,7 @@ mutable struct State{T <: Advi, F, A1, A2, A3}
 end
 
 
-function rsample(s::State{VP, MPR{F}, MPA{F, 1}, MPA{F, 2}, MPA{F, 3}};
+function rsample(s::State{VP, ADVI.MPR{F}, ADVI.MPA{F, 1}, ADVI.MPA{F, 2}, ADVI.MPA{F, 3}};
                  RT::Type=TR{F}, AT::Type=TA{F}) where {F <: AbstractFloat}
 
   # Or, RT=Float64, AT=Array{Float64}
@@ -41,8 +41,8 @@ function rsample(s::State{VP, MPR{F}, MPA{F, 1}, MPA{F, 2}, MPA{F, 3}};
       ts = []
       for each_f in f
         println(f)
-        r = rsample(f)
-        t = transform(f, r)
+        r = ADVI.rsample(f)
+        t = ADVI.transform(f, r)
         append!(rs, r)
         append!(ts, t)
       end
@@ -50,8 +50,8 @@ function rsample(s::State{VP, MPR{F}, MPA{F, 1}, MPA{F, 2}, MPA{F, 3}};
       setfield!(tran, key, ts)
 
     else
-      r = rsample(f)
-      t = transform(f, r)
+      r = ADVI.rsample(f)
+      t = ADVI.transform(f, r)
       setfield!(real, key, r)
       setfield!(tran, key, t)
     end
