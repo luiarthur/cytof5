@@ -85,9 +85,12 @@ opt = ADAM(1e-5)
 minibatch_size = 500
 niters = 10
 
+# compute loss
+@time loss(y)
+
 # wtf???
 # println("training...")
 # for i in 1:niters
-#   @time Flux.train!(elbo, ps, [(y, )], opt)
+#   @time Flux.train!(loss, ps, [(y, )], opt)
 #   println("$(ShowTime()) -- $(i)/$(niters)")
 # end
