@@ -17,7 +17,9 @@ We detach (Z - smoothed_Z) so that the gradients are not
 computed, and then add back smoothed_Z for the return.
 The only gradient will then be that of smoothed Z.
 """
-function compute_Z(logit::T, tau::Float64=.001) where T
+# function compute_Z(logit::T, tau::Float64=.001) where T
+function compute_Z(v::AbstractArray, H::AbstractArray, tau::Float64=.001) where T
+  logit = v .- H
   smoothed_Z = sigmoid.((logit / tau))
   Z = (smoothed_Z .> 0.5) * 1.0
   return (Z - smoothed_Z).data + smoothed_Z
@@ -28,15 +30,23 @@ function prob_miss_logit(y::S, b0::T, b1::T, b2::T) where {S, T}
   return b0 .+ b1 .* y .+ b2 .* y .^ 2
 end
 
-include("loglike.jl")
-
-function logprior(reals, params)
-  println("NotImplemented")
+function lpdf_normal(x::X, m::M, s::S) where {X <: Real, M <: Real, S<:Real}
+  z = (x - m) / s
+  return -0.5 * log(2*pi) - z^2 * 0.5 - log(s)
 end
 
+include("loglike.jl")
+include("logprior.jl")
+include("logq.jl")
 
-function logq(reals)
-  println("NotImplemented")
+function compute_elbo(state, y::Vector{Matrix{AbstractFloat}}, c::Constants)
+  real, tran = rsample(state);
+  # TODO
+  ll = loglike(tran, y, c)
+  lp = logprior(real, tran, c)
+  lq = logq(real, c)
+  elbo = ll + lp - lq
+  return elbo / sum(c.N)
 end
 
 end # VB

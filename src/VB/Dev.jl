@@ -32,7 +32,7 @@ sig2 = VB.ADVI.ModelParam(ElType, I, "positive");
 eta0 = VB.ADVI.ModelParam(ElType, (I, J, L[0] - 1), "simplex");
 eta1 = VB.ADVI.ModelParam(ElType, (I, J, L[1] - 1), "simplex");
 v = VB.ADVI.ModelParam(ElType, K, "unit");
-H = VB.ADVI.ModelParam(ElType, (J, K), "real");
+H = VB.ADVI.ModelParam(ElType, (J, K), "unit");
 alpha = VB.ADVI.ModelParam(ElType, 1, "positive");
 
 # state = VB.State{VB.VP, VB.ModelParam, VB.ModelParam, VB.ModelParam, VB.ModelParam}(delta0, delta1, sig2, W, eta0, eta1, v, H, alpha);
@@ -86,8 +86,8 @@ minibatch_size = 500
 niters = 10
 
 # wtf???
-println("training...")
-for i in 1:niters
-  @time Flux.train!(elbo, ps, [(y, )], opt)
-  println("$(ShowTime()) -- $(i)/$(niters)")
-end
+# println("training...")
+# for i in 1:niters
+#   @time Flux.train!(elbo, ps, [(y, )], opt)
+#   println("$(ShowTime()) -- $(i)/$(niters)")
+# end
