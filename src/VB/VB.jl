@@ -6,6 +6,7 @@ using Flux, Flux.Tracker
 import Random # shuffle, seed
 
 include("ADVI/ADVI.jl")
+include("vae.jl")
 include("State.jl")
 include("Constants.jl")
 

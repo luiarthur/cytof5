@@ -6,10 +6,10 @@ mutable struct VAE{A <: AbstractArray}
 end
 
 # return standard deviation
-sd(vae::VAE, i::Integer) = exp.(vae.log_sd[i:i, :])
+_sd(vae::VAE, i::Integer) = exp.(vae.log_sd[i:i, :])
 
 # return mean
-mean(vae::VAE, i::Integer) = vae.mean[i:i, :]
+_mean(vae::VAE, i::Integer) = vae.mean[i:i, :]
 
 # return (mean_function, sd_function)
 function (vae::VAE)(i::Integer, y_mini::Matrix, m_mini::Matrix)
@@ -20,10 +20,10 @@ function (vae::VAE)(i::Integer, y_mini::Matrix, m_mini::Matrix)
   y[m_mini] .= 0
 
   # mean function
-  mean_fn = y .* (1 .- m_mini) .+ mean(vae, i) .* m_mini
+  mean_fn = y .* (1 .- m_mini) .+ _mean(vae, i) .* m_mini
 
   # sd function
-  sd_fn = sd(vae, i) .* m_mini
+  sd_fn = _sd(vae, i) .* m_mini
 
   # get random draw for imputed y (and observed y)
   z = randn(size(y))
