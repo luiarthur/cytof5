@@ -1,34 +1,26 @@
 TA{F, N} = Tracker.TrackedArray{F, N, Array{F, N}}
 TR{F} = Tracker.TrackedReal{F}
 
-abstract type Advi end
-abstract type VP <: Advi end
-abstract type RealSpace <: Advi end
-abstract type TranSpace <: Advi end
-
-mutable struct State{T <: Advi, F, A1, A2, A3}
-  delta0::A1
-  delta1::A1
-  sig2::A1
-  W::A2
-  eta0::A3
-  eta1::A3
-  v::A1
-  H::A2
-  alpha::A1 # F won't work, TrackedReals don't work as expected
+mutable struct State{A1, A2, A3}
+  delta0::A1 # L0
+  delta1::A1 # L1
+  sig2::A1 # I
+  W::A2 # I x K
+  eta0::A3 # I x J x K
+  eta1::A3 # I x J x K
+  v::A1 # K
+  H::A2 # J x K
+  alpha::A1 # 1 (F won't work, TrackedReals don't work as expected)
+  # y_ms_fn::A2 # I x J
   
-  State(T::Type, F::Type, A::Type) = new{T, F, A{1}, A{2}, A{3}}()
+  State(A::Type) = new{A{1}, A{2}, A{3}}()
 end
 
+function rsample(s::State{ADVI.MPA{F, 1}, ADVI.MPA{F, 2}, ADVI.MPA{F, 3}};
+                 AT::Type=TA{F}) where {F <: AbstractFloat}
 
-function rsample(s::State{VP, ADVI.MPR{F}, ADVI.MPA{F, 1}, ADVI.MPA{F, 2}, ADVI.MPA{F, 3}};
-                 RT::Type=TR{F}, AT::Type=TA{F}) where {F <: AbstractFloat}
-
-  # Or, RT=Float64, AT=Array{Float64}
-
-  real = State(RealSpace, RT, AT)
-  tran = State(TranSpace, RT, AT)
-
+  real = State(AT)
+  tran = State(AT)
 
   for key in fieldnames(State)
     f = getfield(s, key)

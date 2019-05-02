@@ -7,6 +7,7 @@ include("VB.jl")
 # ModelParam.jl
 ElType = Float32 # Float64
 
+println("test ModelParam")
 @time s = VB.ADVI.ModelParam(ElType, "unit");
 @time v = VB.ADVI.ModelParam(ElType, 3, "unit");
 @time a = VB.ADVI.ModelParam(ElType, (3, 5), "unit");
@@ -25,30 +26,19 @@ I = 3
 J = 20
 K = 4
 
-delta0 = VB.ADVI.ModelParam(ElType, L[0], "positive");
-delta1 = VB.ADVI.ModelParam(ElType, L[1], "positive");
-W = VB.ADVI.ModelParam(ElType, (I, K - 1), "simplex");
-sig2 = VB.ADVI.ModelParam(ElType, I, "positive");
-eta0 = VB.ADVI.ModelParam(ElType, (I, J, L[0] - 1), "simplex");
-eta1 = VB.ADVI.ModelParam(ElType, (I, J, L[1] - 1), "simplex");
-v = VB.ADVI.ModelParam(ElType, K, "unit");
-H = VB.ADVI.ModelParam(ElType, (J, K), "unit");
-alpha = VB.ADVI.ModelParam(ElType, 1, "positive");
+println("test state assignment")
+state = VB.State(VB.ADVI.MPA{ElType})
+state.delta0 = VB.ADVI.ModelParam(ElType, L[0], "positive");
+state.delta1 = VB.ADVI.ModelParam(ElType, L[1], "positive");
+state.W = VB.ADVI.ModelParam(ElType, (I, K - 1), "simplex");
+state.sig2 = VB.ADVI.ModelParam(ElType, I, "positive");
+state.eta0 = VB.ADVI.ModelParam(ElType, (I, J, L[0] - 1), "simplex");
+state.eta1 = VB.ADVI.ModelParam(ElType, (I, J, L[1] - 1), "simplex");
+state.v = VB.ADVI.ModelParam(ElType, K, "unit");
+state.H = VB.ADVI.ModelParam(ElType, (J, K), "unit");
+state.alpha = VB.ADVI.ModelParam(ElType, 1, "positive");
 
-# state = VB.State{VB.VP, VB.ModelParam, VB.ModelParam, VB.ModelParam, VB.ModelParam}(delta0, delta1, sig2, W, eta0, eta1, v, H, alpha);
-state = VB.State(VB.VP,
-                 VB.ADVI.MPR{ElType},
-                 VB.ADVI.MPA{ElType})
-state.delta0=delta0
-state.delta1=delta1
-state.W=W
-state.sig2=sig2
-state.eta0=eta0
-state.eta1=eta1
-state.v=v
-state.H=H
-state.alpha=alpha
-
+println("test rsample of state")
 @time realp, tranp = VB.rsample(state);
 sum(tranp.W, dims=2)
 sum(tranp.eta0, dims=3)
@@ -58,12 +48,12 @@ tranp.H
 tranp.alpha
 tranp.sig2
 
-N = [3, 1, 2] * 100
+N = [3, 1, 2] * 1000
 I = length(N)
-tau = .1
-c = VB.Constants(I, N, J, K, L, tau, false)
+tau = ElType(.001)
+c = VB.Constants{typeof(tau)}(I, N, J, K, L, tau, false)
 
-y = [randn(c.N[i], c.J) for i in 1:c.I]
+y = [randn(ElType, c.N[i], c.J) for i in 1:c.I]
 
 function elbo(y)
   realp, tranp = VB.rsample(state);
@@ -86,7 +76,12 @@ minibatch_size = 500
 niters = 10
 
 # compute loss
-@time loss(y)
+loss_y = loss(y)
+println("loss: $(loss_y) | type: $(typeof(loss_y))")
+println("Time $niters elbo computation")
+@time for i in 1:niters
+  loss(y)
+end
 
 # wtf???
 # println("training...")

@@ -1,11 +1,11 @@
 # Model Constants
-struct Constants
+struct Constants{F <: AbstractFloat}
   I::Int
   N::Vector{Int}
   J::Int
   K::Int
   L::Dict{Bool, Int}
-  tau::Float64
+  tau::F
   use_stickbreak::Bool
 end
 

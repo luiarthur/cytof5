@@ -30,7 +30,7 @@ function (vae::VAE)(i::Integer, y_mini::Matrix, m_mini::Matrix)
   y_imputed = z .* sd_fn .+ mean_fn 
 
   # compute log_q(y_imputed | m_ini)
-  log_q = sum(lpdf_normal.(y_imputed[m_mini], mean_fn[m_mini], sd_fn[m_mini]))
+  log_q = sum(ADVI.lpdf_normal.(y_imputed[m_mini], mean_fn[m_mini], sd_fn[m_mini]))
   
   return y_imputed, log_q
 end

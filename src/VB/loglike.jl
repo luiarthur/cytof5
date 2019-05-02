@@ -1,5 +1,5 @@
-function loglike(s::State{TranSpace, F, A1, A2, A3},
-                 y::Vector{Matrix{Float64}}, c::Constants) where {F, A1, A2, A3}
+function loglike(s::State{A1, A2, A3},
+                 y::Vector{Matrix{F}}, c::Constants) where {F <: AbstractFloat, A1, A2, A3}
   sig = sqrt.(s.sig2)
 
   # ll = zero(s.alpha)
@@ -25,8 +25,7 @@ function loglike(s::State{TranSpace, F, A1, A2, A3},
     # d: Ni x K
     # Ni x J x K
 
-    v = c.use_stickbreak ? cumprod(s.v, dims=1) : s.v
-    Z = compute_Z(reshape(v, 1, c.K), s.H, c.tau)
+    Z = compute_Z(s.v, s.H, tau=c.tau, use_stickbreak=c.use_stickbreak)
     Z_rs = reshape(Z, 1, c.J, c.K)
     lg0_rs = reshape(logmix_L0, Ni, c.J, 1)
     lg1_rs = reshape(logmix_L1, Ni, c.J, 1)

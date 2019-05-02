@@ -17,22 +17,19 @@ We detach (Z - smoothed_Z) so that the gradients are not
 computed, and then add back smoothed_Z for the return.
 The only gradient will then be that of smoothed Z.
 """
-# function compute_Z(logit::T, tau::Float64=.001) where T
-function compute_Z(v::AbstractArray, H::AbstractArray, tau::Float64=.001) where T
-  logit = v .- H
-  smoothed_Z = sigmoid.((logit / tau))
-  Z = (smoothed_Z .> 0.5) * 1.0
+function compute_Z(v::AbstractArray, H::AbstractArray;
+                   use_stickbreak::Bool=false, tau::T=.001) where T
+  v_rs = reshape(v, 1, length(v))
+  p = use_stickbreak ? cumprod(v_rs, dims=1) : v_rs
+  logit = p .- H
+  smoothed_Z = sigmoid.(logit / tau)
+  Z = (smoothed_Z .> T(0.5)) * T(1.0)
   return (Z - smoothed_Z).data + smoothed_Z
 end
 
 
 function prob_miss_logit(y::S, b0::T, b1::T, b2::T) where {S, T}
   return b0 .+ b1 .* y .+ b2 .* y .^ 2
-end
-
-function lpdf_normal(x::X, m::M, s::S) where {X <: Real, M <: Real, S<:Real}
-  z = (x - m) / s
-  return -0.5 * log(2*pi) - z^2 * 0.5 - log(s)
 end
 
 include("loglike.jl")

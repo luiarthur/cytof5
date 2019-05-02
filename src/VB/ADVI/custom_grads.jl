@@ -56,7 +56,7 @@ end
 
 function lpdf_normal(x::X, m::M, s::S) where {X <: Real, M <: Real, S<:Real}
   z = (x - m) / s
-  return -0.5 * log(2*pi) - z^2 * 0.5 - log(s)
+  return -0.5f0 * log(2f0*pi) - z^2 * 0.5f0 - log(s)
 end
 
 function lpdf_gmm(x::TX, m::TM, s::TS, w::TW; dims::Integer) where {TX, TW, TM, TS}
