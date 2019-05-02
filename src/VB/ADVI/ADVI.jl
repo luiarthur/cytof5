@@ -11,6 +11,9 @@ export MPA, MPR, rsample, vp, ModelParam, logabsdetJ, transform  # ModelParam.jl
 # Custom gradient definitions
 include("custom_grads.jl")
 
+# Custom functions
+include("custom_functions.jl")
+
 # Stick breaking transform of simplexes
 include("StickBreak.jl")
 

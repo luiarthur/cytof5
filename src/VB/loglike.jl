@@ -1,5 +1,4 @@
-function loglike(s::State{A1, A2, A3},
-                 y::Vector{Y}, c::Constants) where {F <: AbstractFloat, A1, A2, A3, Y}
+function loglike(s::State{A1, A2, A3}, y::Vector{Y}, c::Constants) where {A1, A2, A3, Y}
   sig = sqrt.(s.sig2)
 
   # ll = zero(s.alpha)

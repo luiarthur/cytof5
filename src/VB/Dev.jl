@@ -27,7 +27,7 @@ J = 20
 K = 4
 
 println("test state assignment")
-state = VB.State(VB.ADVI.MPA{ElType})
+state = VB.State(VB.ADVI.MPR{ElType}, VB.ADVI.MPA{ElType})
 state.delta0 = VB.ADVI.ModelParam(ElType, L[0], "positive");
 state.delta1 = VB.ADVI.ModelParam(ElType, L[1], "positive");
 state.W = VB.ADVI.ModelParam(ElType, (I, K - 1), "simplex");
@@ -36,7 +36,7 @@ state.eta0 = VB.ADVI.ModelParam(ElType, (I, J, L[0] - 1), "simplex");
 state.eta1 = VB.ADVI.ModelParam(ElType, (I, J, L[1] - 1), "simplex");
 state.v = VB.ADVI.ModelParam(ElType, K, "unit");
 state.H = VB.ADVI.ModelParam(ElType, (J, K), "unit");
-state.alpha = VB.ADVI.ModelParam(ElType, 1, "positive");
+state.alpha = VB.ADVI.ModelParam(ElType, (), "positive");
 
 println("test rsample of state")
 @time realp, tranp = VB.rsample(state);
@@ -48,10 +48,10 @@ tranp.H
 tranp.alpha
 tranp.sig2
 
-N = [3, 1, 2] * 1000
+N = [3, 1, 2] * 2000
 I = length(N)
-tau = ElType(.001)
-c = VB.Constants{typeof(tau)}(I, N, J, K, L, tau, false)
+tau = .001
+c = VB.Constants{ElType}(I, N, J, K, L, tau, false)
 
 y = [randn(ElType, c.N[i], c.J) for i in 1:c.I]
 
@@ -61,13 +61,7 @@ function elbo(y)
 end
 loss(y) = -elbo(y) / sum(N)
 
-ps = []
-for fn in fieldnames(typeof(state))
-  f = getfield(state, fn)
-  append!(ps, [f.m])
-  append!(ps, [f.log_s])
-end
-ps = Tracker.Params(ps)
+ps = VB.ADVI.vparams(state)
 
 ShowTime() = Dates.format(Dates.now(), "yyyy-mm-dd HH:MM:SS")
 
@@ -83,9 +77,15 @@ println("Time $niters elbo computation")
   loss(y)
 end
 
+#=Test
+back!(loss_y)
+state.alpha.log_s.tracker.grad
+=#
+
 # wtf???
 # println("training...")
 # for i in 1:niters
 #   @time Flux.train!(loss, ps, [(y, )], opt)
 #   println("$(ShowTime()) -- $(i)/$(niters)")
 # end
+

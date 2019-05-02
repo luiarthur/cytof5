@@ -43,13 +43,15 @@ end
 
 function logabsdetJ(mp::ModelParam, real::R, tran::T) where {R, T}
   if mp.support == "simplex"
-    println("NotImplemented")
+    return SB_logabsdetJ(real, tran)
   elseif mp.support == "unit"
-    println("NotImplemented")
+    return log.(tran) + log1p.(-tran)
   elseif mp.support == "positive"
-    println("NotImplemented")
-  else # "real"
+    return real
+  elseif mp.support == "real"
     return zero(mp.m)
+  else
+    ErrorException("ADVI.ModelParam.logabsdet is not implemented for support=$(mp.support)")
   end
 end
 
@@ -60,8 +62,10 @@ function transform(mp::ModelParam, real::T) where T
     return one(mp.eltype) ./ (one(mp.eltype) .+ exp.(real))
   elseif mp.support == "positive"
     return exp.(real)
-  else # "real"
+  elseif mp.support == "real"
     return real
+  else
+    ErrorException("ADVI.ModelParam.transform is not implemented for support=$(mp.support)")
   end
 end
 
@@ -84,3 +88,19 @@ vp(mp)
 rsample(mp)
 =#
 
+"""
+Get variational parameters
+"""
+vparams(mp::ModelParam) = Flux.params(mp.m, mp.log_s)
+
+function vparams(s::S) where S
+  ps = []
+  for key in fieldnames(S)
+    f = getfield(s, key)
+    if typeof(f) <: ModelParam
+      append!(ps, [f.m])
+      append!(ps, [f.log_s])
+    end
+  end
+  return Flux.params(ps...)
+end
