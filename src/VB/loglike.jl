@@ -1,10 +1,11 @@
-function loglike(s::State{A1, A2, A3}, y::Vector{MA}, c::Constants) where {A1, A2, A3, MA}
+function loglike(s::State{A1, A2, A3}, y::Vector{MA}, m::Vector{BitArray{2}}, c::Constants) where {A1, A2, A3, MA}
   sig = sqrt.(s.sig2)
   noisy_sd = sqrt(c.noisy_var)
 
   # ll = zero(s.alpha)
   ll = 0
   for i in 1:c.I
+    mi = m[i]
     Ni = size(y[i], 1)
 
     # Ni x J x Lz
@@ -44,8 +45,13 @@ function loglike(s::State{A1, A2, A3}, y::Vector{MA}, c::Constants) where {A1, A
     lli = ADVI.logsumexpdd(ADVI.stack(lli_quiet, lli_noisy), dims=-1)
     # @assert size(lli) == (size(y[i], 1), )
 
+    # p(m | y)
+    pm_i = prob_miss.(y[i], c.beta[i]...)
+    logprob_mi_given_yi = sum(log.(pm_i[mi]))
+
     # add to ll
-    ll += mean(lli) * c.N[i]
+    fac = c.N[i] / size(y[i], 1)
+    ll += (sum(lli) + logprob_mi_given_yi) * fac
   end
 
   return ll

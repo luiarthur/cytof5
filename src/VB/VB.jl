@@ -29,21 +29,24 @@ function compute_Z(v::AbstractArray, H::AbstractArray;
   return (Z - smoothed_Z).data + smoothed_Z
 end
 
-
-function prob_miss_logit(y::S, b0::T, b1::T, b2::T) where {S, T}
-  return b0 .+ b1 .* y .+ b2 .* y .^ 2
+function prob_miss(y::AbstractFloat, beta::AbstractFloat...)
+  n = length(beta)
+  x = sum([y^(i-1) * beta[i] for i in 1:n])
+  return sigmoid(x)
 end
+
 
 include("loglike.jl")
 include("logprior.jl")
 include("logq.jl")
 
-function compute_elbo(state, y::Vector{M}, c::Constants; normalize::Bool=true) where M
+function compute_elbo(state::StateMP{F}, y::Vector{M}, c::Constants; normalize::Bool=true) where {M, F}
   real, tran, yout, log_qy = rsample(state, y, c);
-  # TODO
-  ll = loglike(tran, yout, c)
-  lp = logprior(real, tran, c)
-  lq = logq(real, c) + log_qy
+
+  m = [isnan.(yi) for yi in y]
+  ll = loglike(tran, yout, m, c)
+  lp = logprior(real, tran, state, c)
+  lq = logq(real, state, c) + log_qy
   elbo = ll + lp - lq
 
   denom = normalize ? sum(c.N) : 1

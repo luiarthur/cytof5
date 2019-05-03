@@ -5,7 +5,7 @@ import Dates, Random
 include("VB.jl")
 
 # ModelParam.jl
-ElType = Float32 # Float64
+ElType = Float64 # Float64
 
 println("test ModelParam")
 @time s = VB.ADVI.ModelParam(ElType, "unit");
@@ -47,7 +47,8 @@ tau = .001
 use_stickbreak = false
 priors = VB.Priors(K, L, use_stickbreak=use_stickbreak, T=ElType)
 noisy_var = 10.0
-c = VB.Constants{ElType}(I, N, J, K, L, tau, use_stickbreak, noisy_var, priors)
+beta = [randn(3) for i in 1:I]
+c = VB.Constants{ElType}(I, N, J, K, L, tau, beta, use_stickbreak, noisy_var, priors)
 y = [randn(ElType, c.N[i], c.J) for i in 1:c.I]
 
 
@@ -87,9 +88,11 @@ state.alpha.log_s.tracker.grad
 =#
 
 # wtf???
-# println("training...")
-# for i in 1:niters
-#   @time Flux.train!(loss, ps, [(y, )], opt)
-#   println("$(ShowTime()) -- $(i)/$(niters)")
-# end
+println("training...")
+for i in 1:niters
+  idx = [Distributions.sample(1:N[i], minibatch_size, replace=false) for i in 1:I]
+  y_mini = [y[i][idx[i], :] for i in 1:I]
+  @time Flux.train!(loss, ps, [(y_mini, )], opt)
+  println("$(ShowTime()) -- $(i)/$(niters)")
+end
 

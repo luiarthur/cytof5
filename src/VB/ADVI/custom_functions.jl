@@ -75,3 +75,11 @@ function stack(a::A, b::B) where {A, B}
   @assert size(a) == size(b)
   return cat(a, b, dims=ndims(a) + 1)
 end
+
+function lpdf_dirichlet(a::AbstractArray, p::AbstractArray)
+  if size(a) != size(p)
+    a = reshape(a, (one.(size(p)[1:end-1])..., length(a)))
+  end
+  K = ndims(p)
+  return Tracker.lgamma.(sumdd(a, dims=K)) .- sumdd(Tracker.lgamma.(a), dims=K) .+ sumdd((a .- 1) .* log.(p), dims=K)
+end

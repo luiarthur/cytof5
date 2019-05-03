@@ -25,6 +25,11 @@ function ModelParam(ElType::Type, D::Tuple, support::String)
 end
 
 
+function log_q(mp::ModelParam, r::R; args...) where R
+  m, s = vp(mp; args...)
+  return lpdf_normal.(r, m, s)
+end
+
 """
 Get variational parameters
 """
