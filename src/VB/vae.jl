@@ -12,25 +12,26 @@ _sd(vae::VAE, i::Integer) = exp.(vae.log_sd[i:i, :])
 _mean(vae::VAE, i::Integer) = vae.mean[i:i, :]
 
 # return (mean_function, sd_function)
-function (vae::VAE)(i::Integer, y_mini::Matrix, m_mini::Matrix)
-  # Make a copy of y_mini
-  y = deepcopy(y_mini)
+function (vae::VAE)(i::Integer, yi_minibatch::Matrix)
+  # Make a copy of yi_minibatch
+  yi = deepcopy(yi_minibatch)
+  m_mini = isnan.(yi)
 
   # set missing values to be 0 (to ensure not NaN)
-  y[m_mini] .= 0
+  yi[m_mini] .= 0
 
   # mean function
-  mean_fn = y .* (1 .- m_mini) .+ _mean(vae, i) .* m_mini
+  mean_fn = yi .* (1 .- m_mini) .+ _mean(vae, i) .* m_mini
 
   # sd function
   sd_fn = _sd(vae, i) .* m_mini
 
   # get random draw for imputed y (and observed y)
-  z = randn(size(y))
-  y_imputed = z .* sd_fn .+ mean_fn 
+  z = randn(size(yi))
+  yi_imputed = z .* sd_fn .+ mean_fn 
 
   # compute log_q(y_imputed | m_ini)
-  log_q = sum(ADVI.lpdf_normal.(y_imputed[m_mini], mean_fn[m_mini], sd_fn[m_mini]))
+  log_qyi = sum(ADVI.lpdf_normal.(yi_imputed[m_mini], mean_fn[m_mini], sd_fn[m_mini]))
   
-  return y_imputed, log_q
+  return yi_imputed, log_qyi
 end

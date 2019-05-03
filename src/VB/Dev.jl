@@ -1,6 +1,6 @@
 using Flux, Flux.Tracker
 using Distributions
-import Dates
+import Dates, Random
 
 include("VB.jl")
 
@@ -21,7 +21,7 @@ println("test ModelParam")
 @time VB.ADVI.rsample(a);
 
 # State
-L = Dict(0=>5, 1=>3)
+L = Dict(false=>5, true=>3)
 I = 3
 J = 20
 K = 4
@@ -37,9 +37,22 @@ state.eta1 = VB.ADVI.ModelParam(ElType, (I, J, L[1] - 1), "simplex");
 state.v = VB.ADVI.ModelParam(ElType, K, "unit");
 state.H = VB.ADVI.ModelParam(ElType, (J, K), "unit");
 state.alpha = VB.ADVI.ModelParam(ElType, (), "positive");
+state.eps = VB.ADVI.ModelParam(ElType, I, "unit");
+state.y_m = param(randn(I, J))
+state.y_log_s = param(randn(I, J))
+
+N = [3, 1, 2] * 10000
+I = length(N)
+tau = .001
+use_stickbreak = false
+priors = VB.Priors(K, L, use_stickbreak=use_stickbreak, T=ElType)
+noisy_var = 10.0
+c = VB.Constants{ElType}(I, N, J, K, L, tau, use_stickbreak, noisy_var, priors)
+y = [randn(ElType, c.N[i], c.J) for i in 1:c.I]
+
 
 println("test rsample of state")
-@time realp, tranp = VB.rsample(state);
+@time realp, tranp, yout, log_qy = VB.rsample(state, y, c);
 sum(tranp.W, dims=2)
 sum(tranp.eta0, dims=3)
 tranp.delta0
@@ -48,25 +61,14 @@ tranp.H
 tranp.alpha
 tranp.sig2
 
-N = [3, 1, 2] * 2000
-I = length(N)
-tau = .001
-c = VB.Constants{ElType}(I, N, J, K, L, tau, false)
-
-y = [randn(ElType, c.N[i], c.J) for i in 1:c.I]
-
-function elbo(y)
-  realp, tranp = VB.rsample(state);
-  return VB.loglike(tranp, y, c)
-end
-loss(y) = -elbo(y) / sum(N)
+loss(y) = -VB.compute_elbo(state, y, c, normalize=true)
 
 ps = VB.ADVI.vparams(state)
 
 ShowTime() = Dates.format(Dates.now(), "yyyy-mm-dd HH:MM:SS")
 
 opt = ADAM(1e-5)
-minibatch_size = 500
+minibatch_size = 50
 niters = 10
 
 # compute loss
@@ -74,7 +76,9 @@ loss_y = loss(y)
 println("loss: $(loss_y) | type: $(typeof(loss_y))")
 println("Time $niters elbo computation")
 @time for i in 1:niters
-  loss(y)
+  idx = [Distributions.sample(1:N[i], minibatch_size, replace=false) for i in 1:I]
+  y_mini = [y[i][idx[i], :] for i in 1:I]
+  loss(y_mini)
 end
 
 #=Test

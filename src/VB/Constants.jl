@@ -7,6 +7,8 @@ struct Constants{F <: AbstractFloat}
   L::Dict{Bool, Int}
   tau::F
   use_stickbreak::Bool
+  noisy_var::F
+  priors::Priors
 end
 
 

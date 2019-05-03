@@ -1,5 +1,6 @@
 function logq(reals, c::Constants)
-  println("NotImplemented")
+  println("logq: NotImplemented")
+  return 0
 end
 
 

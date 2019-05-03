@@ -96,10 +96,16 @@ vparams(mp::ModelParam) = Flux.params(mp.m, mp.log_s)
 function vparams(s::S) where S
   ps = []
   for key in fieldnames(S)
-    f = getfield(s, key)
-    if typeof(f) <: ModelParam
-      append!(ps, [f.m])
-      append!(ps, [f.log_s])
+    if isdefined(s, key)
+      f = getfield(s, key)
+      if typeof(f) <: ModelParam
+        append!(ps, [f.m])
+        append!(ps, [f.log_s])
+      elseif Tracker.istracked(f)
+        append!(ps, [f])
+      end
+    else
+      @warn "Field $key is undefined in $(S.name)"
     end
   end
   return Flux.params(ps...)

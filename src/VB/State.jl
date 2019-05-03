@@ -11,7 +11,9 @@ mutable struct State{F, A1, A2, A3}
   v::A1 # K
   H::A2 # J x K
   alpha::F # 1 (F won't work, TrackedReals don't work as expected)
-  # y_ms_fn::A2 # I x J
+  eps::A1 # I
+  y_m # I x J
+  y_log_s # I x J
   
   State(F::Type, A::Type) = new{F, A{1}, A{2}, A{3}}()
 end
@@ -20,35 +22,45 @@ const StateMP{F} = State{ADVI.MPR{F}, ADVI.MPA{F, 1}, ADVI.MPA{F, 2}, ADVI.MPA{F
 
 (s::StateMP{F})(AT::Type=TA{F}) where {F <: AbstractFloat} = rsample(s, AT=AT)
 
-function rsample(s::StateMP{F}; AT::Type=TA{F}) where {F <: AbstractFloat}
-
+function rsample(s::StateMP{F}, y::Vector{M}, c; AT::Type=TA{F}) where {F <: AbstractFloat, M}
   FT = typeof(s.alpha.m)
   real = State(FT, AT)
   tran = State(FT, AT)
 
   for key in fieldnames(State)
-    f = getfield(s, key)
-    if typeof(f) <: Array
-      # TODO: optimize
-      rs = []
-      ts = []
-      for each_f in f
-        println(f)
+    if !(key in (:y_m, :y_log_s))
+      f = getfield(s, key)
+      if typeof(f) <: Array
+        # TODO: optimize
+        rs = []
+        ts = []
+        for each_f in f
+          println(f)
+          r = ADVI.rsample(f)
+          t = ADVI.transform(f, r)
+          append!(rs, r)
+          append!(ts, t)
+        end
+        setfield!(real, key, rs)
+        setfield!(tran, key, ts)
+      else
         r = ADVI.rsample(f)
         t = ADVI.transform(f, r)
-        append!(rs, r)
-        append!(ts, t)
+        setfield!(real, key, r)
+        setfield!(tran, key, t)
       end
-      setfield!(real, key, rs)
-      setfield!(tran, key, ts)
-
-    else
-      r = ADVI.rsample(f)
-      t = ADVI.transform(f, r)
-      setfield!(real, key, r)
-      setfield!(tran, key, t)
     end
   end
 
-  return real, tran
+  # Draw y and compute log q(y|m) 
+  yout = []
+  log_qy = 0
+  vae = VAE(s.y_m, s.y_log_s)
+  for i in 1:c.I
+    yi, log_qyi = vae(i, y[i])
+    append!(yout, [yi])
+    log_qy += log_qyi * c.N[i] / size(y[i], 1)
+  end
+
+  return real, tran, yout, log_qy
 end

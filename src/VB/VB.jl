@@ -8,6 +8,7 @@ import Random # shuffle, seed
 include("ADVI/ADVI.jl")
 include("vae.jl")
 include("State.jl")
+include("Priors.jl")
 include("Constants.jl")
 
 """
@@ -37,14 +38,16 @@ include("loglike.jl")
 include("logprior.jl")
 include("logq.jl")
 
-function compute_elbo(state, y::Vector{Matrix{AbstractFloat}}, c::Constants)
-  real, tran = rsample(state);
+function compute_elbo(state, y::Vector{M}, c::Constants; normalize::Bool=true) where M
+  real, tran, yout, log_qy = rsample(state, y, c);
   # TODO
-  ll = loglike(tran, y, c)
+  ll = loglike(tran, yout, c)
   lp = logprior(real, tran, c)
-  lq = logq(real, c)
+  lq = logq(real, c) + log_qy
   elbo = ll + lp - lq
-  return elbo / sum(c.N)
+
+  denom = normalize ? sum(c.N) : 1
+  return elbo / denom
 end
 
 end # VB

@@ -1,5 +1,6 @@
-function loglike(s::State{A1, A2, A3}, y::Vector{Y}, c::Constants) where {A1, A2, A3, Y}
+function loglike(s::State{A1, A2, A3}, y::Vector{MA}, c::Constants) where {A1, A2, A3, MA}
   sig = sqrt.(s.sig2)
+  noisy_sd = sqrt(c.noisy_var)
 
   # ll = zero(s.alpha)
   ll = 0
@@ -20,8 +21,6 @@ function loglike(s::State{A1, A2, A3}, y::Vector{Y}, c::Constants) where {A1, A2
     # Z: J x K
     # H: J x K
     # v: K
-    # c: Ni x J x K
-    # d: Ni x K
     # Ni x J x K
 
     Z = compute_Z(s.v, s.H, tau=c.tau, use_stickbreak=c.use_stickbreak)
@@ -29,12 +28,19 @@ function loglike(s::State{A1, A2, A3}, y::Vector{Y}, c::Constants) where {A1, A2
     lg0_rs = reshape(logmix_L0, Ni, c.J, 1)
     lg1_rs = reshape(logmix_L1, Ni, c.J, 1)
 
-    # Ni x 1
-    Z_mix = sum(Z_rs .* lg1_rs .+ (1 .- Z_rs) .* lg0_rs, dims=2)
+    # Ni x K
+    Z_mix = dropdims(sum(Z_rs .* lg1_rs .+ (1 .- Z_rs) .* lg0_rs, dims=2), dims=2)
     f = Z_mix .+ log.(s.W[i:i, :])
 
     # Ni - dimensional
-    lli = ADVI.logsumexp(f, dims=2)
+    lli_pre = dropdims(ADVI.logsumexp(f, dims=2), dims=2)
+
+    # mix with noisy
+    lli_quiet = lli_pre .+ log1p(-s.eps[i])
+    lli_noisy = sum(ADVI.lpdf_normal.(y[i], 0, noisy_sd), dims=2) .+ log(s.eps[i])
+
+    # Ni - dimensional
+    lli = ADVI.logsumexp(cat(lli_quiet, lli_noisy, dims=2), dims=2)
 
     # add to ll
     ll += mean(lli) * c.N[i]
