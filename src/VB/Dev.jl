@@ -85,7 +85,7 @@ state.y_log_s.grad
 # wtf???
 println("training...")
 opt = ADAM(1e-2)
-minibatch_size = 200
+minibatch_size = 500
 niters = 200
 state_hist = typeof(state)[]
 for t in 1:niters

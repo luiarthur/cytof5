@@ -85,16 +85,28 @@ function lpdf_dirichlet(p::AbstractArray, a::AbstractArray)
 end
 
 function lpdf_beta(p::P, a::A, b::B) where {P <: Real, A <: Real, B <: Real}
-  return Tracker.lgamma(a + b) - Tracker.lgamma(a) - Tracker.lgamma(b) + (a-1)*log(p) + (b-1)*log1p(-p)
+  if 0 < p < 1
+    return Tracker.lgamma(a + b) - Tracker.lgamma(a) - Tracker.lgamma(b) + (a-1)*log(p) + (b-1)*log1p(-p)
+  else
+    return P(-Inf)
+  end
 end
 
 function lpdf_gamma(x::X, shape::A, scale::B) where {X <: Real, A <: Real, B <: Real}
-  return -(Tracker.lgamma(shape) + shape*log(scale)) + (shape - 1)*log(x) - x / scale
+  if x <= 0
+    return X(-Inf)
+  else
+    return -(Tracker.lgamma(shape) + shape*log(scale)) + (shape - 1)*log(x) - x / scale
+  end
 end
 
 function lpdf_lognormal(x::X, m::A, s::B) where {X <: Real, A <: Real, B <: Real}
-  lx = log(x)
-  return lpdf_normal(lx, m, s) - lx
+  if x <= 0
+    return X(-Inf)
+  else
+    lx = log(x)
+    return lpdf_normal(lx, m, s) - lx
+  end
 end
 
 function lpdf_uniform(x::X, a::A, b::B) where {X <: Real, A <: Real, B <: Real}

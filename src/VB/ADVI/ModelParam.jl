@@ -51,7 +51,7 @@ end
 Get variational parameters
 """
 function vp(mp::ModelParam; m_min::Float64=-10.0, m_max::Float64=10.0, s_max::Float64=10.0)
-  if mp.support in ["unit", "simplex"]
+  if mp.support in ("unit", "simplex")
     param_range = m_max - m_min
     m = sigmoid.(mp.m) .* param_range .+ m_min
     s = sigmoid.(mp.log_s) .* s_max
@@ -81,7 +81,7 @@ function transform(mp::ModelParam, real::T) where T
   if mp.support == "simplex"
     return SB_transform(real)
   elseif mp.support == "unit"
-    return 1 ./ (1 .+ exp.(real))
+    return sigmoid.(real)
   elseif mp.support == "positive"
     return exp.(real)
   elseif mp.support == "real"
