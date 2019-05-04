@@ -93,8 +93,8 @@ function lpdf_gamma(x::X, shape::A, scale::B) where {X <: Real, A <: Real, B <: 
 end
 
 function lpdf_lognormal(x::X, m::A, s::B) where {X <: Real, A <: Real, B <: Real}
-  z = (log(x) - m) / s
-  return X(-log(x + s) - 0.5*log(2*pi) - z^2 / 2)
+  lx = log(x)
+  return lpdf_normal(lx, m, s) - lx
 end
 
 function lpdf_uniform(x::X, a::A, b::B) where {X <: Real, A <: Real, B <: Real}
