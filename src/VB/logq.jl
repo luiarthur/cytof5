@@ -12,5 +12,3 @@ function logq(real::State{A1, A2, A3}, mps::StateMP) where {A1, A2, A3}
 
   return lq
 end
-
-

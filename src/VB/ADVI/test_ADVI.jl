@@ -48,4 +48,8 @@ z = ADVI.logsumexp(p, dims=3)
 back!(sum(z))
 x.grad
 
+# These were tested against pytorch
+# ADVI.SB_logabsdetJ(x, p)
+# ADVI.compute_lpdf(Dirichlet(collect(1:5)), p)
+
 println("Done.")

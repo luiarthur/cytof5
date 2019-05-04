@@ -25,9 +25,8 @@ function compute_Z(v::AbstractArray, H::AbstractArray;
   p = use_stickbreak ? cumprod(v_rs, dims=2) : v_rs
   logit = p .- H
   smoothed_Z = sigmoid.(logit / tau)
-  Z = (smoothed_Z .> 0.5) * 1.0
-  # println(smoothed_Z)
-  return (Z - smoothed_Z).data + smoothed_Z
+  Z = (smoothed_Z .> 0.5) # becomes non-tracked
+  return (Z - smoothed_Z.data) + smoothed_Z
 end
 
 # function prob_miss(y::R, beta::AbstractFloat...) where {R <: Real}
@@ -57,7 +56,11 @@ function compute_elbo(state::StateMP, y::Vector{M}, c::Constants; normalize::Boo
   elbo_normalized = elbo / denom
 
   if .1 > rand()
-    println("ll: $(round.(ll)) | lp: $(round.(lp)) | lq: $(round.(lq)) | elbo: $(round.(elbo_normalized, digits=3))")
+    ll_short = round.(ll / denom, digits=3)
+    lp_short = round.(lp / denom, digits=3)
+    lq_short = round.(lq / denom, digits=3)
+    elbo_short = round.(elbo / denom, digits=3)
+    println("ll: $ll_short | lp: $lp_short | lq: $lq_short | elbo: $elbo_short")
   end
 
   return elbo_normalized

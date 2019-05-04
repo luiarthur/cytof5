@@ -71,5 +71,8 @@ function loglike(s::State{A1, A2, A3}, y::Vector{MA}, m::Vector{BitArray{2}}, c:
     ll += (sum(lli) + logprob_mi_given_yi) * fac
   end
 
+  @assert !isinf(ll)
+  @assert !isnan(ll)
+
   return ll
 end

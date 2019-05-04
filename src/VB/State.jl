@@ -10,7 +10,6 @@ mutable struct State{A1, A2, A3}
   eta1::A3 # I x J x K
   v::A1 # K
   H::A2 # J x K
-  # alpha::F # 1 (F won't work, TrackedReals don't work as expected)
   alpha::A1 # 1 (F won't work, TrackedReals don't work as expected)
   eps::A1 # I
   y_m::TA{Float64, 2} # I x J
@@ -20,6 +19,25 @@ mutable struct State{A1, A2, A3}
 end
 
 const StateMP = State{ADVI.MPA{Float64, 1}, ADVI.MPA{Float64, 2}, ADVI.MPA{Float64, 3}}
+
+function State(c::Constants)
+  s = State(ADVI.MPA{Float64})
+  s.delta0 = ADVI.ModelParam(c.L[0], "positive")
+  s.delta1 = ADVI.ModelParam(c.L[1], "positive")
+  s.W = ADVI.ModelParam((c.I, c.K - 1), "simplex")
+  s.sig2 = ADVI.ModelParam(c.I, "positive", m=param(fill(-1.0, c.I)), log_s=param(fill(-1.0, c.I)))
+  s.eta0 = ADVI.ModelParam((c.I, c.J, c.L[0] - 1), "simplex")
+  s.eta1 = ADVI.ModelParam((c.I, c.J, c.L[1] - 1), "simplex")
+  s.v = ADVI.ModelParam(c.K, "unit")
+  s.H = ADVI.ModelParam((c.J, c.K), "unit")
+  s.alpha = VB.ADVI.ModelParam("positive")
+  s.eps = ADVI.ModelParam(c.I, "unit", m=param(fill(-3., c.I)), log_s=param(fill(-3., c.I)))
+  s.y_m = param(fill(-3.0, c.I, c.J))
+  s.y_log_s = param(fill(log(.1), c.I, c.J))
+
+  return s
+end
+
 
 function rsample(s::StateMP, y::Vector{M}, c::Constants; AT::Type=TA{Float64}) where {M}
   real = State(AT)
@@ -51,7 +69,7 @@ function rsample(s::StateMP, y::Vector{M}, c::Constants; AT::Type=TA{Float64}) w
   end
 
   # Draw y and compute log q(y|m) 
-  yout = []
+  yout = AT[]
   log_qy = 0
   vae = VAE(s.y_m, s.y_log_s)
   for i in 1:c.I
