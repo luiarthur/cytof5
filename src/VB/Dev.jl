@@ -79,7 +79,7 @@ for t in 1:niters
   Flux.train!(loss, ps, [(y_mini, )], opt)
   if t % 10 == 0
     println("$(ShowTime()) -- $(t)/$(niters)")
-    append!(state_hist, [state])
+    append!(state_hist, [deepcopy(state)])
   end
 end
 
