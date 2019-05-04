@@ -41,14 +41,10 @@ c = VB.Constants(I, N, J, K, L, tau, beta, use_stickbreak, noisy_var, priors)
 y = dat[:y]
 
 println("test state assignment")
+Random.seed!(10)
 state = VB.State(c)
-
-
-
 loss(y) = -VB.compute_elbo(state, y, c, normalize=true)
-
 ps = VB.ADVI.vparams(state)
-
 ShowTime() = Dates.format(Dates.now(), "yyyy-mm-dd HH:MM:SS")
 
 # compute loss
