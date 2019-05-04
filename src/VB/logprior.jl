@@ -1,7 +1,7 @@
-function logprior(real::State{F, A1, A2, A3},
-                  tran::State{F, A1, A2, A3},
-                  mps, #::StateMP{F},
-                  c::Constants{E}) where {E, F, A1, A2, A3}
+function logprior(real::State{A1, A2, A3},
+                  tran::State{A1, A2, A3},
+                  mps::StateMP,
+                  c::Constants) where {A1, A2, A3}
 
   lp = 0
   for key in fieldnames(State)

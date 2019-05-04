@@ -1,7 +1,7 @@
 const TA{F, N} = Tracker.TrackedArray{F, N, Array{F, N}}
 const TR{F} = Tracker.TrackedReal{F}
 
-mutable struct State{F, A1, A2, A3}
+mutable struct State{A1, A2, A3}
   delta0::A1 # L0
   delta1::A1 # L1
   sig2::A1 # I
@@ -16,17 +16,14 @@ mutable struct State{F, A1, A2, A3}
   y_m::TA{Float64, 2} # I x J
   y_log_s::TA{Float64, 2} # I x J
   
-  State(F::Type, A::Type) = new{F, A{1}, A{2}, A{3}}()
+  State(A::Type) = new{A{1}, A{2}, A{3}}()
 end
 
-const StateMP{F} = State{ADVI.MPR{F}, ADVI.MPA{F, 1}, ADVI.MPA{F, 2}, ADVI.MPA{F, 3}} where {F <: AbstractFloat} 
+const StateMP = State{ADVI.MPA{Float64, 1}, ADVI.MPA{Float64, 2}, ADVI.MPA{Float64, 3}}
 
-(s::StateMP{F})(AT::Type=TA{F}) where {F <: AbstractFloat} = rsample(s, AT=AT)
-
-function rsample(s::StateMP{F}, y::Vector{M}, c; AT::Type=TA{F}) where {F <: AbstractFloat, M}
-  FT = typeof(s.alpha.m)
-  real = State(FT, AT)
-  tran = State(FT, AT)
+function rsample(s::StateMP, y::Vector{M}, c::Constants; AT::Type=TA{Float64}) where {M}
+  real = State(AT)
+  tran = State(AT)
 
   for key in fieldnames(State)
     if !(key in (:y_m, :y_log_s))

@@ -7,9 +7,9 @@ import Random # shuffle, seed
 
 include("ADVI/ADVI.jl")
 include("vae.jl")
-include("State.jl")
 include("Priors.jl")
 include("Constants.jl")
+include("State.jl")
 
 """
 This enables the backward gradient computations via Z.
@@ -20,12 +20,13 @@ computed, and then add back smoothed_Z for the return.
 The only gradient will then be that of smoothed Z.
 """
 function compute_Z(v::AbstractArray, H::AbstractArray;
-                   use_stickbreak::Bool=false, tau::T=.001) where T
+                   use_stickbreak::Bool=false, tau::Float64=.001)
   v_rs = reshape(v, 1, length(v))
-  p = use_stickbreak ? cumprod(v_rs, dims=1) : v_rs
+  p = use_stickbreak ? cumprod(v_rs, dims=2) : v_rs
   logit = p .- H
   smoothed_Z = sigmoid.(logit / tau)
-  Z = (smoothed_Z .> T(0.5)) * T(1.0)
+  Z = (smoothed_Z .> 0.5) * 1.0
+  # println(smoothed_Z)
   return (Z - smoothed_Z).data + smoothed_Z
 end
 
@@ -35,7 +36,7 @@ end
 #   return sigmoid(x)
 # end
 
-function prob_miss(y::A, b0::B, b1::B, b2::B) where {A <: AbstractArray, B <: AbstractFloat}
+function prob_miss(y::A, b0::Float64, b1::Float64, b2::Float64) where {A <: AbstractArray}
   return sigmoid.(b0 .+ b1 .* y .+ b2 .* y .^ 2)
 end
 
@@ -43,7 +44,7 @@ include("loglike.jl")
 include("logprior.jl")
 include("logq.jl")
 
-function compute_elbo(state::StateMP{F}, y::Vector{M}, c::Constants; normalize::Bool=true) where {M, F}
+function compute_elbo(state::StateMP, y::Vector{M}, c::Constants; normalize::Bool=true) where M
   real, tran, yout, log_qy = rsample(state, y, c);
 
   m = [isnan.(yi) for yi in y]

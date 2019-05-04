@@ -1,4 +1,4 @@
-function logq(real::State{F, A1, A2, A3}, mps) where {F, A1, A2, A3}
+function logq(real::State{A1, A2, A3}, mps::StateMP) where {A1, A2, A3}
   lq = 0
 
   for key in fieldnames(State)

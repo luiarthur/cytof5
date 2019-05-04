@@ -19,7 +19,7 @@ include("StickBreak.jl")
 
 # Model Parameters
 include("ModelParam.jl")
-MPA{F, N} = ModelParam{TrackedArray{F, N, Array{F, N}}, F, NTuple{N, Int}}
-MPR{F} = ModelParam{Tracker.TrackedReal{F}, F, NTuple{0, Int}}
+MPA{F, N} = ModelParam{TrackedArray{F, N, Array{F, N}}, NTuple{N, Int}}
+MPR{F} = ModelParam{Tracker.TrackedReal{F}, NTuple{0, Int}}
 
 end

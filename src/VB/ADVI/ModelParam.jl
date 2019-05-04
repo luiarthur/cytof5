@@ -1,28 +1,44 @@
-struct ModelParam{T, ET, S <: NTuple{N, Int} where N}
+struct ModelParam{T, S <: NTuple{N, Int} where N}
   m::T
   log_s::T
   support::String # real, unit, simplex, positive
   size::S
-  eltype::Type{ET}
 end
 
 # scalar param
-function ModelParam(T::Type, support::String)
+function ModelParam(support::String; m=nothing, log_s=nothing)
   @assert(support in ["real", "unit", "simplex", "positive"])
-  # return ModelParam(param(randn(T)), param(randn(T)), support, (), T)
-  return ModelParam(param(randn(T, 1)), param(randn(T, 1)), support, (1, ), T)
+  if m==nothing
+    m = param(randn(1))
+  end
+  if log_s==nothing
+    log_s = param(randn(1))
+  end
+  return ModelParam(m, log_s, support, (1, ))
 end
 
 # Vector param
-function ModelParam(ElType::Type, K::Integer, support::String)
+function ModelParam(K::Integer, support::String; m=nothing, log_s=nothing)
   @assert(support in ["real", "unit", "simplex", "positive"])
-  return ModelParam(param(randn(ElType, K)), param(randn(ElType, K)), support, (K, ), ElType)
+  if m==nothing
+    m = param(randn(K))
+  end
+  if log_s==nothing
+    log_s = param(randn(K))
+  end
+  return ModelParam(m, log_s, support, (K, ))
 end
 
 # ND-Array param
-function ModelParam(ElType::Type, D::Tuple, support::String)
+function ModelParam(D::Tuple, support::String; m=nothing, log_s=nothing)
   @assert(support in ["real", "unit", "simplex", "positive"])
-  return ModelParam(param(randn(ElType, D...)), param(randn(ElType, D...)), support, D, ElType)
+  if m==nothing
+    m = param(randn(D...))
+  end
+  if log_s==nothing
+    log_s = param(randn(D...))
+  end
+  return ModelParam(m, log_s, support, D)
 end
 
 
@@ -36,9 +52,9 @@ Get variational parameters
 """
 function vp(mp::ModelParam; m_min::Float64=-10.0, m_max::Float64=10.0, s_max::Float64=10.0)
   if mp.support in ["unit", "simplex"]
-    param_range = mp.eltype(m_max - m_min)
-    m = sigmoid.(mp.m) .* param_range .+ mp.eltype(m_min)
-    s = sigmoid.(mp.log_s) .* mp.eltype(s_max)
+    param_range = m_max - m_min
+    m = sigmoid.(mp.m) .* param_range .+ m_min
+    s = sigmoid.(mp.log_s) .* s_max
   else
     m = mp.m
     s = exp.(mp.log_s)
@@ -65,7 +81,7 @@ function transform(mp::ModelParam, real::T) where T
   if mp.support == "simplex"
     return SB_transform(real)
   elseif mp.support == "unit"
-    return one(mp.eltype) ./ (one(mp.eltype) .+ exp.(real))
+    return 1 ./ (1 .+ exp.(real))
   elseif mp.support == "positive"
     return exp.(real)
   elseif mp.support == "real"
@@ -81,11 +97,7 @@ Reparameterized sampling from variational distribution
 function rsample(mp::ModelParam)
   # TODO: Optimize this
   m, s = vp(mp)
-  if mp.size == 0
-    return randn(mp.eltype) * s + m
-  else
-    return randn(mp.eltype, mp.size) .* s .+ m
-  end
+  return randn(mp.size) .* s .+ m
 end
 
 #= TEST

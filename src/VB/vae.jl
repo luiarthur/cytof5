@@ -1,5 +1,3 @@
-# TODO: Test
-
 mutable struct VAE{A <: AbstractArray}
   mean::A    # I x J
   log_sd::A  # I x J
