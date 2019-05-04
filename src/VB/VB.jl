@@ -29,12 +29,15 @@ function compute_Z(v::AbstractArray, H::AbstractArray;
   return (Z - smoothed_Z).data + smoothed_Z
 end
 
-function prob_miss(y::AbstractFloat, beta::AbstractFloat...)
-  n = length(beta)
-  x = sum([y^(i-1) * beta[i] for i in 1:n])
-  return sigmoid(x)
-end
+# function prob_miss(y::R, beta::AbstractFloat...) where {R <: Real}
+#   n = length(beta)
+#   x = sum([y^(i-1) * beta[i] for i in 1:n])
+#   return sigmoid(x)
+# end
 
+function prob_miss(y::A, b0::B, b1::B, b2::B) where {A, B}
+  return sigmoid.(b0 .+ b1 .* y .+ b2 .* y .^ 2)
+end
 
 include("loglike.jl")
 include("logprior.jl")
@@ -46,8 +49,10 @@ function compute_elbo(state::StateMP{F}, y::Vector{M}, c::Constants; normalize::
   m = [isnan.(yi) for yi in y]
   ll = loglike(tran, yout, m, c)
   lp = logprior(real, tran, state, c)
-  lq = logq(real, state, c) + log_qy
+  lq = logq(real, state) + log_qy
   elbo = ll + lp - lq
+
+  println("ll: $ll | lp: $lp | lq: $lq")
 
   denom = normalize ? sum(c.N) : 1
   return elbo / denom

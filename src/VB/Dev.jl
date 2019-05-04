@@ -1,6 +1,9 @@
+using Cytof5
 using Flux, Flux.Tracker
 using Distributions
 import Dates, Random
+
+Random.seed!(0)
 
 include("VB.jl")
 
@@ -36,20 +39,23 @@ state.eta0 = VB.ADVI.ModelParam(ElType, (I, J, L[0] - 1), "simplex");
 state.eta1 = VB.ADVI.ModelParam(ElType, (I, J, L[1] - 1), "simplex");
 state.v = VB.ADVI.ModelParam(ElType, K, "unit");
 state.H = VB.ADVI.ModelParam(ElType, (J, K), "unit");
-state.alpha = VB.ADVI.ModelParam(ElType, (), "positive");
+state.alpha = VB.ADVI.ModelParam(ElType, "positive");
 state.eps = VB.ADVI.ModelParam(ElType, I, "unit");
 state.y_m = param(randn(I, J))
 state.y_log_s = param(randn(I, J))
 
+# simulate data
 N = [3, 1, 2] * 10000
+@time dat = Cytof5.Model.genData(J, N, K, Dict{Int,Int}(L))
 I = length(N)
 tau = .001
 use_stickbreak = false
 priors = VB.Priors(K, L, use_stickbreak=use_stickbreak, T=ElType)
 noisy_var = 10.0
-beta = [randn(3) for i in 1:I]
+mc = Cytof5.Model.defaultConstants(Cytof5.Model.Data(dat[:y]), K, Dict{Int64,Int64}(L))
+beta = [mc.beta[:, i] for i in 1:I]
 c = VB.Constants{ElType}(I, N, J, K, L, tau, beta, use_stickbreak, noisy_var, priors)
-y = [randn(ElType, c.N[i], c.J) for i in 1:c.I]
+y = Matrix{ElType}.(dat[:y])
 
 
 println("test rsample of state")

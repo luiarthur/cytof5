@@ -10,7 +10,8 @@ mutable struct State{F, A1, A2, A3}
   eta1::A3 # I x J x K
   v::A1 # K
   H::A2 # J x K
-  alpha::F # 1 (F won't work, TrackedReals don't work as expected)
+  # alpha::F # 1 (F won't work, TrackedReals don't work as expected)
+  alpha::A1 # 1 (F won't work, TrackedReals don't work as expected)
   eps::A1 # I
   y_m # I x J
   y_log_s # I x J

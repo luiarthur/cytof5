@@ -3,7 +3,7 @@ module ADVI
 using Distributions
 using Flux
 using Flux.Tracker
-using Flux.Tracker: TrackedArray, @grad, track
+using Flux.Tracker: TrackedArray, @grad, track, lgamma
 
 export MPA, MPR, rsample, vp, ModelParam, logabsdetJ, transform  # ModelParam.jl
 

@@ -1,5 +1,5 @@
-function logq(real::State{F, A1, A2, A3}, mps, c::Constants{E}) where {E, F, A1, A2, A3}
-  lq = zero(F)
+function logq(real::State{F, A1, A2, A3}, mps) where {F, A1, A2, A3}
+  lq = 0
 
   for key in fieldnames(State)
     if !(key in (:y_m, :y_log_s))

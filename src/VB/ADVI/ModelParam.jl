@@ -9,7 +9,8 @@ end
 # scalar param
 function ModelParam(T::Type, support::String)
   @assert(support in ["real", "unit", "simplex", "positive"])
-  return ModelParam(param(randn(T)), param(randn(T)), support, (), T)
+  # return ModelParam(param(randn(T)), param(randn(T)), support, (), T)
+  return ModelParam(param(randn(T, 1)), param(randn(T, 1)), support, (1, ), T)
 end
 
 # Vector param
