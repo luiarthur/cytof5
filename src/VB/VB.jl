@@ -43,7 +43,8 @@ include("loglike.jl")
 include("logprior.jl")
 include("logq.jl")
 
-function compute_elbo(state::StateMP, y::Vector{M}, c::Constants; normalize::Bool=true) where M
+function compute_elbo(state::StateMP, y::Vector{M}, c::Constants, elbo_hist::Vector{Float64};
+                      normalize::Bool=true) where M
   real, tran, yout, log_qy = rsample(state, y, c);
 
   m = [isnan.(yi) for yi in y]
@@ -62,6 +63,8 @@ function compute_elbo(state::StateMP, y::Vector{M}, c::Constants; normalize::Boo
     elbo_short = round.(elbo / denom, digits=3)
     println("ll: $ll_short | lp: $lp_short | lq: $lq_short | elbo: $elbo_short")
   end
+
+  append!(elbo_hist, elbo_normalized.data)
 
   return elbo_normalized
 end

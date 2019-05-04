@@ -63,7 +63,7 @@ function loglike(s::State{A1, A2, A3}, y::Vector{MA}, m::Vector{BitArray{2}}, c:
     # p(m | y)
     # pm_i = prob_miss(y[i], c.beta[i][1], c.beta[i][2], c.beta[i][3])
     # logprob_mi_given_yi = sum(log.(pm_i[mi]))
-    pm_i = prob_miss(y[i][mi], c.beta[i][1], c.beta[i][2], c.beta[i][3])
+    pm_i = prob_miss(y[i][mi], c.beta[i]...)
     logprob_mi_given_yi = sum(log.(pm_i))
 
     # add to ll
