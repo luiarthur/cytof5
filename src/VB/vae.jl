@@ -32,6 +32,10 @@ function (vae::VAE)(i::Integer, yi_minibatch::Matrix)
 
   # compute log_q(y_imputed | m_ini)
   log_qyi = sum(ADVI.lpdf_normal.(yi_imputed[m_mini], mean_fn[m_mini], sd_fn[m_mini]))
+
+  # TODO: remove these
+  @assert !isinf(log_qyi)
+  @assert !isnan(log_qyi)
   
   return yi_imputed, log_qyi
 end

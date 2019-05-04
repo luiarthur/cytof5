@@ -41,14 +41,16 @@ state.v = VB.ADVI.ModelParam(ElType, K, "unit");
 state.H = VB.ADVI.ModelParam(ElType, (J, K), "unit");
 state.alpha = VB.ADVI.ModelParam(ElType, "positive");
 state.eps = VB.ADVI.ModelParam(ElType, I, "unit");
-state.y_m = param(randn(I, J))
-state.y_log_s = param(randn(I, J))
+# state.y_m = param(fill(ElType(-3.0), I, J))
+# state.y_log_s = param(fill(log(ElType(.1)), I, J))
+state.y_m = param(fill(-3.0, I, J))
+state.y_log_s = param(fill(log(.1), I, J))
 
 # simulate data
 N = [3, 1, 2] * 10000
 @time dat = Cytof5.Model.genData(J, N, K, Dict{Int,Int}(L))
 I = length(N)
-tau = .001
+tau = .01
 use_stickbreak = false
 priors = VB.Priors(K, L, use_stickbreak=use_stickbreak, T=ElType)
 noisy_var = 10.0
@@ -74,8 +76,8 @@ ps = VB.ADVI.vparams(state)
 
 ShowTime() = Dates.format(Dates.now(), "yyyy-mm-dd HH:MM:SS")
 
-opt = ADAM(1e-5)
-minibatch_size = 50
+opt = ADAM(1e-1)
+minibatch_size = 500
 niters = 10
 
 # compute loss
@@ -95,10 +97,13 @@ state.alpha.log_s.tracker.grad
 
 # wtf???
 println("training...")
+niters = 1000
 for i in 1:niters
   idx = [Distributions.sample(1:N[i], minibatch_size, replace=false) for i in 1:I]
   y_mini = [y[i][idx[i], :] for i in 1:I]
-  @time Flux.train!(loss, ps, [(y_mini, )], opt)
-  println("$(ShowTime()) -- $(i)/$(niters)")
+  Flux.train!(loss, ps, [(y_mini, )], opt)
+  if i % 10 == 0
+    println("$(ShowTime()) -- $(i)/$(niters)")
+  end
 end
 

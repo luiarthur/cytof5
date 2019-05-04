@@ -13,8 +13,8 @@ mutable struct State{F, A1, A2, A3}
   # alpha::F # 1 (F won't work, TrackedReals don't work as expected)
   alpha::A1 # 1 (F won't work, TrackedReals don't work as expected)
   eps::A1 # I
-  y_m # I x J
-  y_log_s # I x J
+  y_m::TA{Float64, 2} # I x J
+  y_log_s::TA{Float64, 2} # I x J
   
   State(F::Type, A::Type) = new{F, A{1}, A{2}, A{3}}()
 end

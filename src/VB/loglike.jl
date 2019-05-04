@@ -1,4 +1,7 @@
 function loglike(s::State{A1, A2, A3}, y::Vector{MA}, m::Vector{BitArray{2}}, c::Constants) where {A1, A2, A3, MA}
+
+  # TODO: remove asserts
+
   sig = sqrt.(s.sig2)
   noisy_sd = sqrt(c.noisy_var)
 
@@ -18,20 +21,30 @@ function loglike(s::State{A1, A2, A3}, y::Vector{MA}, m::Vector{BitArray{2}}, c:
     # Ni x J x 1
     logmix_L0 = ADVI.lpdf_gmm(yi, mu0, sig[i], s.eta0[i:i, :, :], dims=3, dropdim=false)
     logmix_L1 = ADVI.lpdf_gmm(yi, mu1, sig[i], s.eta1[i:i, :, :], dims=3, dropdim=false)
+    @assert !(isinf(sum(logmix_L1)) || isinf(sum(logmix_L0)))
+    @assert !(isnan(sum(logmix_L1)) || isnan(sum(logmix_L0)))
 
     # Z: J x K
     # H: J x K
     # v: K
     Z = compute_Z(s.v, s.H, tau=c.tau, use_stickbreak=c.use_stickbreak)
+    @assert !isinf(sum(Z))
+    @assert !isnan(sum(Z))
     Z_rs = reshape(Z, 1, c.J, c.K)
 
     # Ni x J x K -> Ni x K
     Z_mix = ADVI.sumdd(Z_rs .* logmix_L1 .+ (1 .- Z_rs) .* logmix_L0, dims=2)
+    @assert !isinf(sum(Z_mix))
+    @assert !isnan(sum(Z_mix))
     # Ni x K
     f = Z_mix .+ log.(s.W[i:i, :])
+    @assert !isinf(sum(f))
+    @assert !isnan(sum(f))
 
     # Ni - dimensional
     lli_pre = ADVI.logsumexpdd(f, dims=2)
+    @assert !isinf(sum(lli_pre))
+    @assert !isnan(sum(lli_pre))
 
     # mix with noisy
     lli_quiet = lli_pre .+ log1p(-s.eps[i])
@@ -43,11 +56,14 @@ function loglike(s::State{A1, A2, A3}, y::Vector{MA}, m::Vector{BitArray{2}}, c:
     # TODO: - make stack function
     #       - implement logsumexp(dims=-1)
     lli = ADVI.logsumexpdd(ADVI.stack(lli_quiet, lli_noisy), dims=-1)
+    @assert !isinf(sum(lli))
+    @assert !isnan(sum(lli))
     # @assert size(lli) == (size(y[i], 1), )
 
     # p(m | y)
     # pm_i = prob_miss.(y[i], c.beta[i]...)
     pm_i = prob_miss(y[i], c.beta[i][1], c.beta[i][2], c.beta[i][3])
+    # println(pm_i[mi])
     logprob_mi_given_yi = sum(log.(pm_i[mi]))
 
     # add to ll

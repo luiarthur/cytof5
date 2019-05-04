@@ -35,7 +35,7 @@ end
 #   return sigmoid(x)
 # end
 
-function prob_miss(y::A, b0::B, b1::B, b2::B) where {A, B}
+function prob_miss(y::A, b0::B, b1::B, b2::B) where {A <: AbstractArray, B <: AbstractFloat}
   return sigmoid.(b0 .+ b1 .* y .+ b2 .* y .^ 2)
 end
 
@@ -52,10 +52,14 @@ function compute_elbo(state::StateMP{F}, y::Vector{M}, c::Constants; normalize::
   lq = logq(real, state) + log_qy
   elbo = ll + lp - lq
 
-  println("ll: $ll | lp: $lp | lq: $lq")
-
   denom = normalize ? sum(c.N) : 1
-  return elbo / denom
+  elbo_normalized = elbo / denom
+
+  if .1 > rand()
+    println("ll: $(round.(ll)) | lp: $(round.(lp)) | lq: $(round.(lq)) | elbo: $(round.(elbo_normalized, digits=3))")
+  end
+
+  return elbo_normalized
 end
 
 end # VB
