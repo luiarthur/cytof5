@@ -107,7 +107,7 @@ println("test rsample of state")
 # samples= [VB.rsample(s, y, c)[2] for s in state_hist[1:4:end]]
 samples= [VB.rsample(s, y, c)[2] for s in state_hist]
 
-R"plot"(elbo_hist[5:end], xlab="iter", ylab="elbo", typ="l")
+R"plot"(metrics[:elbo][5:end]/sum(c.N), xlab="iter", ylab="elbo", typ="l")
 
 v = hcat([s.v for s in samples]...).data
 v = reshape(v, 1, K, length(samples))
