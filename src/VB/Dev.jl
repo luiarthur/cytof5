@@ -43,8 +43,9 @@ y = dat[:y]
 println("test state assignment")
 Random.seed!(10)
 state = VB.State(c)
-elbo_hist = Float64[]
-loss(y) = -VB.compute_elbo(state, y, c, elbo_hist, normalize=true)
+metrics = Dict{Symbol, Vector{Float64}}()
+for m in (:ll, :lp, :lq, :elbo) metrics[m] = Float64[] end
+loss(y) = -VB.compute_elbo(state, y, c, metrics) / sum(c.N)
 ps = VB.ADVI.vparams(state)
 ShowTime() = Dates.format(Dates.now(), "yyyy-mm-dd HH:MM:SS")
 
@@ -86,14 +87,15 @@ state.y_log_s.grad
 println("training...")
 opt = ADAM(1e-2)
 minibatch_size = 500
-niters = 200
+niters = 2000
 state_hist = typeof(state)[]
 for t in 1:niters
   idx = [Distributions.sample(1:N[i], minibatch_size, replace=false) for i in 1:I]
   y_mini = [y[i][idx[i], :] for i in 1:I]
   Flux.train!(loss, ps, [(y_mini, )], opt)
   if t % 10 == 0
-    println("$(ShowTime()) -- $(t)/$(niters)")
+    m = ["$(key): $(round(metrics[key][end] / sum(c.N), digits=3))" for key in keys(metrics)]
+    println("$(ShowTime()) | $(t)/$(niters) | $(join(m, " | "))")
     append!(state_hist, [deepcopy(state)])
   end
 end
@@ -102,9 +104,15 @@ end
 using RCall
 println("test rsample of state")
 @time realp, tranp, yout, log_qy = VB.rsample(state, y, c);
-samples= [VB.rsample(s, y, c)[2] for s in state_hist[1:4:end]]
+# samples= [VB.rsample(s, y, c)[2] for s in state_hist[1:4:end]]
+samples= [VB.rsample(s, y, c)[2] for s in state_hist]
 
 R"plot"(elbo_hist[5:end], xlab="iter", ylab="elbo", typ="l")
+
+v = hcat([s.v for s in samples]...).data
+v = reshape(v, 1, K, length(samples))
+H = cat([s.H for s in samples]..., dims=3).data
+Z = Int.(v .- H .> 0)
 
 sig2 = hcat([s.sig2 for s in samples]...).data
 R"plot"(sig2[1,:], typ="l", xlab="", ylab="")

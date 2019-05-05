@@ -18,11 +18,12 @@ function Priors(K::Int, L::Dict{Bool, Int}; use_stickbreak::Bool=false)
   return Priors(Gamma(1, 1),# delta0
                 Gamma(1, 1), # delta1
                 LogNormal(-1, .1), # sig2
+                # Gamma(2, .1), # sig2
                 Dirichlet(ones(K) / K), # W
                 Dirichlet(ones(L[0]) / L[0]), # eta0
                 Dirichlet(ones(L[1]) / L[1]), # eta1
                 v_prior, # v
                 Uniform(0, 1), # H
-                Gamma(0.1, 0.1), # alpha
+                Gamma(0.1, 10.0), # alpha
                 Beta(1, 99)) # eps
 end

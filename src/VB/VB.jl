@@ -43,8 +43,8 @@ include("loglike.jl")
 include("logprior.jl")
 include("logq.jl")
 
-function compute_elbo(state::StateMP, y::Vector{M}, c::Constants, elbo_hist::Vector{Float64};
-                      normalize::Bool=true) where M
+function compute_elbo(state::StateMP, y::Vector{M}, c::Constants,
+                      metrics::Dict{Symbol, Vector{Float64}}) where M
   real, tran, yout, log_qy = rsample(state, y, c);
 
   m = [isnan.(yi) for yi in y]
@@ -53,20 +53,13 @@ function compute_elbo(state::StateMP, y::Vector{M}, c::Constants, elbo_hist::Vec
   lq = logq(real, state) + log_qy
   elbo = ll + lp - lq
 
-  denom = normalize ? sum(c.N) : 1
-  elbo_normalized = elbo / denom
+  # store metrics
+  append!(metrics[:ll], ll.data)
+  append!(metrics[:lp], lp.data)
+  append!(metrics[:lq], lq.data)
+  append!(metrics[:elbo], elbo.data)
 
-  if .1 > rand()
-    ll_short = round.(ll / denom, digits=3)
-    lp_short = round.(lp / denom, digits=3)
-    lq_short = round.(lq / denom, digits=3)
-    elbo_short = round.(elbo / denom, digits=3)
-    println("ll: $ll_short | lp: $lp_short | lq: $lq_short | elbo: $elbo_short")
-  end
-
-  append!(elbo_hist, elbo_normalized.data)
-
-  return elbo_normalized
+  return elbo
 end
 
 end # VB

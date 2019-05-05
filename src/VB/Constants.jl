@@ -11,4 +11,3 @@ struct Constants
   noisy_var::Float64
   priors::Priors
 end
-

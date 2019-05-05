@@ -6,7 +6,7 @@ function loglike(s::State{A1, A2, A3}, y::Vector{MA}, m::Vector{BitArray{2}}, c:
   noisy_sd = sqrt(c.noisy_var)
 
   # ll = zero(s.alpha)
-  ll = 0
+  ll = 0.0
   for i in 1:c.I
     mi = m[i]
     Ni = size(y[i], 1)
@@ -68,7 +68,7 @@ function loglike(s::State{A1, A2, A3}, y::Vector{MA}, m::Vector{BitArray{2}}, c:
 
     # add to ll
     fac = c.N[i] / size(y[i], 1)
-    ll += (sum(lli) + logprob_mi_given_yi) * fac
+    ll = ll + (sum(lli) + logprob_mi_given_yi) * fac
   end
 
   @assert !isinf(ll)
