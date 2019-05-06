@@ -35,5 +35,6 @@ function (vae::VAE)(i::Integer, yi_minibatch::Matrix)
   @assert !isinf(log_qyi)
   @assert !isnan(log_qyi)
   
+  # TODO: is this the issue?
   return yi_imputed, log_qyi
 end
