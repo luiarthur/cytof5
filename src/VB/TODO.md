@@ -2,5 +2,6 @@
 
 - [X] `+=` vs `x = x + a`?
 - [ ] `(yi_imputed, log_qyi)` in `vae.jl`
-- [ ] implement `cumprod`: `accumulate(Base.mul_prod, x; dims)`
-- [ ] implement `cumsum`: `accumulate(Base.add_sum, x; dims)`
+- [ ] `accumulate` turns `TrackedArray` to `Array` of `TrackedReals`
+    - [ ] implement `cumprod`: `accumulate(Base.mul_prod, x; dims)`
+    - [ ] implement `cumsum`: `accumulate(Base.add_sum, x; dims)`
