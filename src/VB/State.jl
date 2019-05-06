@@ -47,6 +47,7 @@ function rsample(s::StateMP, y::Vector{M}, c::Constants; AT::Type=TA{Float64}) w
     if !(key in (:y_m, :y_log_s))
       f = getfield(s, key)
       if typeof(f) <: Array
+        println("In State.jl: This message should not be printing!")
         # TODO: optimize
         rs = []
         ts = []
