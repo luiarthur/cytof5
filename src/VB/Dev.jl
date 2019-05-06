@@ -28,9 +28,9 @@ println("test ModelParam")
 
 tau = .01 # FIXME: why can't I do .001?
 use_stickbreak = false
-SIMULATE_DATA = false
 noisy_var = 10.0
 
+SIMULATE_DATA = true
 if SIMULATE_DATA
   L = Dict(false=>5, true=>3)
   I = 3
