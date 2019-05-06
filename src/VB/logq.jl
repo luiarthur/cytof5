@@ -6,8 +6,8 @@ function logq(real::State{A1, A2, A3}, mps::StateMP) where {A1, A2, A3}
       mp = getfield(mps, key)
       r = getfield(real, key)
 
-      # lq += sum(ADVI.log_q(mp, r))
-      lq = lq + sum(ADVI.log_q(mp, r))
+      lq += sum(ADVI.log_q(mp, r))
+      # lq = lq + sum(ADVI.log_q(mp, r))
     end
   end
 
