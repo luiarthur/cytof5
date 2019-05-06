@@ -33,11 +33,12 @@ N = [3, 1, 2] * 10000
 I = length(N)
 tau = .01 # FIXME: why can't I do .001?
 use_stickbreak = false
-priors = VB.Priors(K, L, use_stickbreak=use_stickbreak)
+K_MCMC = 10
+priors = VB.Priors(K_MCMC, L, use_stickbreak=use_stickbreak)
 noisy_var = 10.0
-mc = Cytof5.Model.defaultConstants(Cytof5.Model.Data(dat[:y]), K, Dict{Int64,Int64}(L))
+mc = Cytof5.Model.defaultConstants(Cytof5.Model.Data(dat[:y]), K_MCMC, Dict{Int64,Int64}(L))
 beta = [mc.beta[:, i] for i in 1:I]
-c = VB.Constants(I, N, J, K, L, tau, beta, use_stickbreak, noisy_var, priors)
+c = VB.Constants(I, N, J, K_MCMC, L, tau, beta, use_stickbreak, noisy_var, priors)
 y = dat[:y]
 
 println("test state assignment")
@@ -111,7 +112,7 @@ samples= [VB.rsample(s, y, c)[2] for s in state_hist]
 R"plot"(metrics[:elbo][5:end]/sum(c.N), xlab="iter", ylab="elbo", typ="l")
 
 v = hcat([s.v for s in samples]...).data
-v = reshape(v, 1, K, length(samples))
+v = reshape(v, 1, K_MCMC, length(samples))
 H = cat([s.H for s in samples]..., dims=3).data
 Z = Int.(v .- H .> 0)
 
