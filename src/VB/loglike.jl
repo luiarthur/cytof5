@@ -48,7 +48,7 @@ function loglike(s::State{A1, A2, A3}, y::Vector{MA}, m::Vector{BitArray{2}}, c:
 
     # mix with noisy
     lli_quiet = lli_pre .+ log1p(-s.eps[i])
-    lli_noisy = ADVI.sumdd(ADVI.lpdf_normal.(y[i], 0, noisy_sd), dims=2) .+ log(s.eps[i])
+    lli_noisy = ADVI.sumdd(ADVI.lpdf_normal.(y[i], 0., noisy_sd), dims=2) .+ log(s.eps[i])
     # @assert size(lli_quiet) == (size(y[i], 1), )
     # @assert size(lli_noisy) == (size(y[i], 1), )
 
@@ -61,14 +61,11 @@ function loglike(s::State{A1, A2, A3}, y::Vector{MA}, m::Vector{BitArray{2}}, c:
     # @assert size(lli) == (size(y[i], 1), )
 
     # p(m | y)
-    # pm_i = prob_miss(y[i], c.beta[i][1], c.beta[i][2], c.beta[i][3])
-    # logprob_mi_given_yi = sum(log.(pm_i[mi]))
     pm_i = prob_miss(y[i][mi], c.beta[i]...)
     logprob_mi_given_yi = sum(log.(pm_i))
 
     # add to ll
     fac = c.N[i] / size(y[i], 1)
-    # ll = ll + (sum(lli) + logprob_mi_given_yi) * fac
     ll += (sum(lli) + logprob_mi_given_yi) * fac
   end
 

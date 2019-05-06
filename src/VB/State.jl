@@ -22,8 +22,10 @@ const StateMP = State{ADVI.MPA{Float64, 1}, ADVI.MPA{Float64, 2}, ADVI.MPA{Float
 
 function State(c::Constants)
   s = State(ADVI.MPA{Float64})
-  s.delta0 = ADVI.ModelParam(c.L[0], "positive")
-  s.delta1 = ADVI.ModelParam(c.L[1], "positive")
+  s.delta0 = ADVI.ModelParam(c.L[0], "positive", m=param(fill(1.0, c.L[0])),
+                             log_s=param(fill(1.0, c.L[0])))
+  s.delta1 = ADVI.ModelParam(c.L[1], "positive", m=param(fill(1.0, c.L[1])),
+                             log_s=param(fill(1.0, c.L[1])))
   s.W = ADVI.ModelParam((c.I, c.K - 1), "simplex")
   s.sig2 = ADVI.ModelParam(c.I, "positive", m=param(fill(-1.0, c.I)), log_s=param(fill(-1.0, c.I)))
   s.eta0 = ADVI.ModelParam((c.I, c.J, c.L[0] - 1), "simplex")
