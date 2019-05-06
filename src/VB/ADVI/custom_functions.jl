@@ -54,7 +54,8 @@ end
 
 function lpdf_normal(x::X, m::M, s::S) where {X <: Real, M <: Real, S<:Real}
   z = (x - m) / s
-  return oftype(z, -0.5 * log(2*pi) - z^2 * 0.5 - log(s))
+  # return oftype(z, -0.5 * log(2*pi) - z^2 * 0.5 - log(s))
+  return -0.5 * log(2*pi) - z^2 * 0.5 - log(s)
 end
 
 """
@@ -88,13 +89,13 @@ function lpdf_beta(p::P, a::A, b::B) where {P <: Real, A <: Real, B <: Real}
   if 0 < p < 1
     return Tracker.lgamma(a + b) - Tracker.lgamma(a) - Tracker.lgamma(b) + (a-1)*log(p) + (b-1)*log1p(-p)
   else
-    return P(-Inf)
+    return -Inf
   end
 end
 
 function lpdf_gamma(x::X, shape::A, scale::B) where {X <: Real, A <: Real, B <: Real}
   if x <= 0
-    return X(-Inf)
+    return -Inf
   else
     return -(Tracker.lgamma(shape) + shape*log(scale)) + (shape - 1)*log(x) - x / scale
   end
@@ -102,7 +103,7 @@ end
 
 function lpdf_lognormal(x::X, m::A, s::B) where {X <: Real, A <: Real, B <: Real}
   if x <= 0
-    return X(-Inf)
+    return -Inf
   else
     lx = log(x)
     return lpdf_normal(lx, m, s) - lx
@@ -114,7 +115,7 @@ function lpdf_uniform(x::X, a::A, b::B) where {X <: Real, A <: Real, B <: Real}
   if a <= x <= b
     return -log(b - a)
   else
-    return X(-Inf)
+    return -Inf
   end
 end
 
