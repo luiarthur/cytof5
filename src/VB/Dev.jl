@@ -87,14 +87,15 @@ state.y_log_s.grad
 println("training...")
 opt = ADAM(1e-2)
 minibatch_size = 500
-niters = 2000
+niters = 10000
 state_hist = typeof(state)[]
 for t in 1:niters
   idx = [Distributions.sample(1:N[i], minibatch_size, replace=false) for i in 1:I]
   y_mini = [y[i][idx[i], :] for i in 1:I]
   Flux.train!(loss, ps, [(y_mini, )], opt)
   if t % 10 == 0
-    m = ["$(key): $(round(metrics[key][end] / sum(c.N), digits=3))" for key in keys(metrics)]
+    m = ["$(key): $(round(metrics[key][end] / sum(c.N), digits=3))"
+         for key in keys(metrics)]
     println("$(ShowTime()) | $(t)/$(niters) | $(join(m, " | "))")
     append!(state_hist, [deepcopy(state)])
   end
