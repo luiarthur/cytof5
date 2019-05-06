@@ -3,6 +3,12 @@ using Flux, Flux.Tracker
 using Distributions
 import Dates, Random
 
+using JLD2, FileIO
+function loadSingleObj(objPath)
+  data = load(objPath)
+  return data[collect(keys(data))[1]]
+end
+
 Random.seed!(2)
 
 include("VB.jl")
@@ -20,26 +26,39 @@ println("test ModelParam")
 @time VB.ADVI.rsample(v);
 @time VB.ADVI.rsample(a);
 
-# State
-L = Dict(false=>5, true=>3)
-I = 3
-J = 20
-K = 4
-
-
-println("Simulate Data")
-N = [3, 1, 2] * 10000
-@time dat = Cytof5.Model.genData(J, N, K, Dict{Int,Int}(L))
-I = length(N)
 tau = .01 # FIXME: why can't I do .001?
 use_stickbreak = false
-K_MCMC = 10
-priors = VB.Priors(K_MCMC, L, use_stickbreak=use_stickbreak)
+SIMULATE_DATA = false
 noisy_var = 10.0
-mc = Cytof5.Model.defaultConstants(Cytof5.Model.Data(dat[:y]), K_MCMC, Dict{Int64,Int64}(L))
-beta = [mc.beta[:, i] for i in 1:I]
-c = VB.Constants(I, N, J, K_MCMC, L, tau, beta, use_stickbreak, noisy_var, priors)
-y = dat[:y]
+
+if SIMULATE_DATA
+  L = Dict(false=>5, true=>3)
+  I = 3
+  J = 20
+  K = 4
+
+  println("Simulate Data")
+  N = [3, 1, 2] * 10000
+  @time dat = Cytof5.Model.genData(J, N, K, Dict{Int,Int}(L))
+  I = length(N)
+  K_MCMC = 10
+  priors = VB.Priors(K_MCMC, L, use_stickbreak=use_stickbreak)
+  mc = Cytof5.Model.defaultConstants(Cytof5.Model.Data(dat[:y]), K_MCMC, Dict{Int64,Int64}(L))
+  beta = [mc.beta[:, i] for i in 1:I]
+  c = VB.Constants(I, N, J, K_MCMC, L, tau, beta, use_stickbreak, noisy_var, priors)
+  y = dat[:y]
+else
+  cbDataPath = "../../sims/cb/data/cytof_cb_with_nan.jld2"
+  y = loadSingleObj(cbDataPath)
+  K_MCMC=30
+  L = Dict(false=>5, true=>3)
+  cbData = Cytof5.Model.Data(y)
+  mc = Cytof5.Model.defaultConstants(cbData, K_MCMC, Dict{Int64,Int64}(L))
+  beta = [mc.beta[:, i] for i in 1:cbData.I]
+  priors = VB.Priors(mc.K, L, use_stickbreak=use_stickbreak)
+  c = VB.Constants(cbData.I, cbData.N, cbData.J, mc.K, L,
+                   tau, beta, use_stickbreak, noisy_var, priors)
+end
 
 println("test state assignment")
 Random.seed!(10)
@@ -91,8 +110,8 @@ minibatch_size = 500
 niters = 10000
 state_hist = typeof(state)[]
 for t in 1:niters
-  idx = [Distributions.sample(1:N[i], minibatch_size, replace=false) for i in 1:I]
-  y_mini = [y[i][idx[i], :] for i in 1:I]
+  idx = [Distributions.sample(1:c.N[i], minibatch_size, replace=false) for i in 1:c.I]
+  y_mini = [y[i][idx[i], :] for i in 1:c.I]
   Flux.train!(loss, ps, [(y_mini, )], opt)
   if t % 10 == 0
     m = ["$(key): $(round(metrics[key][end] / sum(c.N), digits=3))"
@@ -112,7 +131,7 @@ samples= [VB.rsample(s, y, c)[2] for s in state_hist]
 R"plot"(metrics[:elbo][5:end]/sum(c.N), xlab="iter", ylab="elbo", typ="l")
 
 v = hcat([s.v for s in samples]...).data
-v = reshape(v, 1, K_MCMC, length(samples))
+v = reshape(v, 1, c.K, length(samples))
 H = cat([s.H for s in samples]..., dims=3).data
 Z = Int.(v .- H .> 0)
 
