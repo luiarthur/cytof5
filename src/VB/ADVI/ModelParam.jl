@@ -123,7 +123,7 @@ function vparams(s::S) where S
         append!(ps, [f])
       end
     else
-      @warn "Field $key is undefined in $(S.name)"
+      ErrorException("Field $key is undefined in $(S.name)")
     end
   end
   return Flux.params(ps...)
