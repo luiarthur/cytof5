@@ -17,9 +17,13 @@ function State(K::Integer)
   #       especially for dirichlet stuff. Needs to be a tuple for size.
   #       So, the minimum must be (1, K-1) as the last dim is the dirichlet
   #       dim. Maybe needs a FIXME?
-  state.w = ADVI.ModelParam((1, K - 1), "simplex")
   state.m = ADVI.ModelParam(K, "real")
-  state.s = ADVI.ModelParam(K, "positive")
+  state.w = ADVI.ModelParam((1, K - 1), "simplex",
+                            m=param(fill(0.0, 1, K-1)),
+                            log_s=param(fill(-2, 1, K-1)))
+  state.s = ADVI.ModelParam(K, "positive",
+                            m=param(fill(0.0, K)),
+                            log_s=param(fill(-2, K)))
 
   return state
 end
@@ -56,13 +60,13 @@ end
 function logprior(real::State, tran::State, mp::State)
   lp = 0.0
 
-  lp += sum(ADVI.compute_lpdf(Normal(0, 10), tran.m))
+  lp += sum(ADVI.compute_lpdf(Normal(1.85, 5), tran.m))
 
-  lp += sum(ADVI.compute_lpdf(Gamma(1, 1), tran.s))
+  lp += sum(ADVI.compute_lpdf(Gamma(1, 0.1), tran.s))
   lp += sum(ADVI.logabsdetJ(mp.s, real.s, tran.s))
 
   K = length(tran.w)
-  lp += sum(ADVI.compute_lpdf(Dirichlet(ones(K)), tran.w))
+  lp += sum(ADVI.compute_lpdf(Dirichlet(ones(K) / K), tran.w))
   lp += sum(ADVI.logabsdetJ(mp.w, real.w, tran.w))
 
   return lp
@@ -78,7 +82,8 @@ function logq(real::State, mp::State)
   return lq
 end
 
-function compute_elbo(mp::State, y::Vector{Float64}, N::Integer)
+function compute_elbo(mp::State, y::Vector{Float64}, N::Integer,
+                      metrics::Dict{Symbol, Vector{Float64}})
   real, tran = rsample(mp)
 
   ll = loglike(tran, y) * N / length(y)
@@ -86,7 +91,7 @@ function compute_elbo(mp::State, y::Vector{Float64}, N::Integer)
   lq = logq(real, mp)
 
   elbo = ll + lp - lq
-  # println("elbo: $(elbo / N)")
+  append!(metrics[:elbo], elbo.data)
 
   return elbo
 end
