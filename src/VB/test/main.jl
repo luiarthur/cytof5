@@ -1,5 +1,6 @@
 include("gmm.jl")
 import Random, Dates
+using RCall
 Random.seed!(0);
 
 ShowTime() = Dates.format(Dates.now(), "yyyy-mm-dd HH:MM:SS")
