@@ -5,3 +5,4 @@
 - [ ] `accumulate` turns `TrackedArray` to `Array` of `TrackedReals`
     - [ ] implement `cumprod`: `accumulate(Base.mul_prod, x; dims)`
     - [ ] implement `cumsum`: `accumulate(Base.add_sum, x; dims)`
+- [ ] Try expanding dims of `delta0`, `delta1`, `W`, `eta0`, `eta1`
