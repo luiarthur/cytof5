@@ -106,13 +106,17 @@ state.y_log_s.grad
 # wtf???
 println("training...")
 opt = ADAM(1e-2)
-minibatch_size = 500
-niters = 10000
+minibatch_size = 100
+niters = 20000
 state_hist = typeof(state)[]
 for t in 1:niters
   idx = [Distributions.sample(1:c.N[i], minibatch_size, replace=false) for i in 1:c.I]
   y_mini = [y[i][idx[i], :] for i in 1:c.I]
-  Flux.train!(loss, ps, [(y_mini, )], opt)
+
+  # Flux.train!(loss, ps, [(y_mini, )], opt)
+  gs = Tracker.gradient(() -> loss(y_mini), ps)
+  Flux.Tracker.update!(opt, ps, gs)
+
   if t % 10 == 0
     m = ["$(key): $(round(metrics[key][end] / sum(c.N), digits=3))"
          for key in keys(metrics)]
