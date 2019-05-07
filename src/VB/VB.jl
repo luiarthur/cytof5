@@ -25,7 +25,7 @@ function compute_Z(v::AbstractArray, H::AbstractArray;
   p = use_stickbreak ? cumprod(v_rs, dims=2) : v_rs
   logit = p .- H
   smoothed_Z = sigmoid.(logit / tau)
-  Z = (smoothed_Z .> 0.5) # becomes non-tracked
+  Z = (smoothed_Z.data .> 0.5) # becomes non-tracked
   return (Z - smoothed_Z.data) + smoothed_Z
 end
 
@@ -34,6 +34,10 @@ end
 #   x = sum([y^(i-1) * beta[i] for i in 1:n])
 #   return sigmoid(x)
 # end
+
+function prob_miss(y::F, b0::Float64, b1::Float64, b2::Float64) where {F <: AbstractFloat}
+  return sigmoid(b0 + b1 * y + b2 * y ^ 2)
+end
 
 function prob_miss(y::A, b0::Float64, b1::Float64, b2::Float64) where {A <: AbstractArray}
   return sigmoid.(b0 .+ b1 .* y .+ b2 .* y .^ 2)

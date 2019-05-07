@@ -28,6 +28,8 @@ function (vae::VAE)(i::Integer, yi_minibatch::Matrix)
   z = randn(size(yi))
   yi_imputed = z .* sd_fn .+ mean_fn 
 
+  @assert size(mean_fn) == size(sd_fn) == size(yi_imputed) == size(yi)
+
   # compute log_q(y_imputed | m_ini)
   log_qyi = sum(ADVI.lpdf_normal.(yi_imputed[m_mini], mean_fn[m_mini], sd_fn[m_mini]))
 

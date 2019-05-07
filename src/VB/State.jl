@@ -73,11 +73,12 @@ function rsample(s::StateMP, y::Vector{M}, c::Constants; AT::Type=TA{Float64}) w
 
   # Draw y and compute log q(y|m) 
   yout = AT[]
-  log_qy = 0
+  log_qy = 0.0
   vae = VAE(s.y_m, s.y_log_s)
   for i in 1:c.I
     yi, log_qyi = vae(i, y[i])
     append!(yout, [yi])
+    @assert size(yout[i]) == size(yi) == size(y[i])
     log_qy += log_qyi * c.N[i] / size(y[i], 1)
   end
 

@@ -8,8 +8,9 @@ function logprior(real::State{A1, A2, A3},
     if !(key in (:y_m, :y_log_s))
       if key == :v
         a = tran.alpha[1]
-        lp += sum(ADVI.compute_lpdf(c.priors.v(a), tran.v))
-        lp += sum(ADVI.logabsdetJ(mps.v, real.v, tran.v))
+        lpdf = ADVI.compute_lpdf(c.priors.v(a), tran.v)
+        labsdj = ADVI.logabsdetJ(mps.v, real.v, tran.v)
+        lp += sum(lpdf + labsdj)
       else # key != :v
         p = getfield(c.priors, key)
         t = getfield(tran, key)

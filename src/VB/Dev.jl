@@ -26,7 +26,7 @@ println("test ModelParam")
 @time VB.ADVI.rsample(v);
 @time VB.ADVI.rsample(a);
 
-tau = .01 # FIXME: why can't I do .001?
+tau = .005 # FIXME: why can't I do .001?
 use_stickbreak = false
 noisy_var = 10.0
 
@@ -43,7 +43,9 @@ if SIMULATE_DATA
   I = length(N)
   K_MCMC = 10
   priors = VB.Priors(K_MCMC, L, use_stickbreak=use_stickbreak)
-  mc = Cytof5.Model.defaultConstants(Cytof5.Model.Data(dat[:y]), K_MCMC, Dict{Int64,Int64}(L))
+  mc = Cytof5.Model.defaultConstants(Cytof5.Model.Data(dat[:y]),
+                                     K_MCMC, Dict{Int64,Int64}(L),
+                                     yQuantiles=[0.0, 0.25, 0.5], pBounds=[.05, .8, .05])
   beta = [mc.beta[:, i] for i in 1:I]
   c = VB.Constants(I, N, J, K_MCMC, L, tau, beta, use_stickbreak, noisy_var, priors)
   y = dat[:y]
@@ -106,7 +108,7 @@ state.y_log_s.grad
 # wtf???
 println("training...")
 opt = ADAM(1e-2)
-minibatch_size = 100
+minibatch_size = 200
 niters = 20000
 state_hist = typeof(state)[]
 for t in 1:niters
