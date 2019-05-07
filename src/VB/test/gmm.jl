@@ -13,14 +13,16 @@ end
 function State(K::Integer)
   state = State()
 
-  # NOTE: this does not work!
-  # state.w = ADVI.ModelParam(K - 1, "simplex")
-  # state.m = ADVI.ModelParam(K, "real")
-  # state.s = ADVI.ModelParam(K, "positive")
-
+  # NOTE: this works! Notice that dimensions do matter
+  #       especially for dirichlet stuff
   state.w = ADVI.ModelParam((1, K - 1), "simplex")
-  state.m = ADVI.ModelParam((1, K), "real")
-  state.s = ADVI.ModelParam((1, K), "positive")
+  state.m = ADVI.ModelParam(K, "real")
+  state.s = ADVI.ModelParam(K, "positive")
+
+  # NOTE: this works, but I don't like it
+  # state.w = ADVI.ModelParam((1, K - 1), "simplex")
+  # state.m = ADVI.ModelParam((1, K), "real")
+  # state.s = ADVI.ModelParam((1, K), "positive")
 
   return state
 end
@@ -47,12 +49,15 @@ function loglike(tran::State, y::Vector{Float64})
   N = length(y)
 
   # NOTE: This does not work!
-  # m = reshape(tran.m, 1, K)
-  # s = reshape(tran.s, 1, K)
-  # w = reshape(tran.w, 1, K)
-  # return sum(ADVI.lpdf_gmm(reshape(y, N, 1), m, s, w, dims=2, dropdim=true))
+  m = reshape(tran.m, 1, K)
+  s = reshape(tran.s, 1, K)
+  w = reshape(tran.w, 1, K)
+  y_rs = reshape(y, N, 1)
+  return sum(ADVI.lpdf_gmm(y_rs, m, s, w, dims=2, dropdim=true))
 
-  return sum(ADVI.lpdf_gmm(reshape(y, N, 1), tran.m, tran.s, tran.w, dims=2, dropdim=true))
+  # NOTE: this works, but I don't like it
+  # return sum(ADVI.lpdf_gmm(reshape(y, N, 1), tran.m, tran.s, tran.w,
+  #                          dims=2, dropdim=true))
 end
 
 function logprior(real::State, tran::State, mp::State)

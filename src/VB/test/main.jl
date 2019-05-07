@@ -31,10 +31,10 @@ niters = 10000
 end
 
 samps = [rsample(mp)[2] for i in 1:100]
-m_post = vcat([s.m for s in samps]...)
-s_post = vcat([s.s for s in samps]...)
+m_post = cat([s.m for s in samps]..., dims=2)
+s_post = cat([s.s for s in samps]..., dims=2)
 w_post = vcat([s.w for s in samps]...)
 
-println("m mean: $(mean(m_post, dims=1)) | true: $m")
-println("s mean: $(mean(s_post, dims=1)) | true: $s")
+println("m mean: $(mean(m_post, dims=2)) | true: $m")
+println("s mean: $(mean(s_post, dims=2)) | true: $s")
 println("w mean: $(mean(w_post, dims=1)) | true: $w")
