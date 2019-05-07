@@ -22,18 +22,16 @@ const StateMP = State{ADVI.MPA{Float64, 1}, ADVI.MPA{Float64, 2}, ADVI.MPA{Float
 
 function State(c::Constants)
   s = State(ADVI.MPA{Float64})
-  s.delta0 = ADVI.ModelParam(c.L[0], "positive", m=param(fill(1.0, c.L[0])),
-                             log_s=param(fill(1.0, c.L[0])))
-  s.delta1 = ADVI.ModelParam(c.L[1], "positive", m=param(fill(1.0, c.L[1])),
-                             log_s=param(fill(1.0, c.L[1])))
+  s.delta0 = ADVI.ModelParam(c.L[0], "positive", m=fill(1.0, c.L[0]), s=fill(1.0, c.L[0]))
+  s.delta1 = ADVI.ModelParam(c.L[1], "positive", m=fill(1.0, c.L[1]), s=fill(1.0, c.L[1]))
   s.W = ADVI.ModelParam((c.I, c.K - 1), "simplex")
-  s.sig2 = ADVI.ModelParam(c.I, "positive", m=param(fill(-1.0, c.I)), log_s=param(fill(-1.0, c.I)))
+  s.sig2 = ADVI.ModelParam(c.I, "positive", m=fill(-1.0, c.I), s=fill(.1, c.I))
   s.eta0 = ADVI.ModelParam((c.I, c.J, c.L[0] - 1), "simplex")
   s.eta1 = ADVI.ModelParam((c.I, c.J, c.L[1] - 1), "simplex")
   s.v = ADVI.ModelParam(c.K, "unit")
   s.H = ADVI.ModelParam((c.J, c.K), "unit")
   s.alpha = VB.ADVI.ModelParam("positive")
-  s.eps = ADVI.ModelParam(c.I, "unit", m=param(fill(-3., c.I)), log_s=param(fill(-3., c.I)))
+  s.eps = ADVI.ModelParam(c.I, "unit", m=fill(-3., c.I), s=fill(.1, c.I))
   s.y_m = param(fill(-3.0, c.I, c.J))
   s.y_log_s = param(fill(log(.1), c.I, c.J))
 

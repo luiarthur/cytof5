@@ -84,7 +84,7 @@ ShowTime() = Dates.format(Dates.now(), "yyyy-mm-dd HH:MM:SS")
 
 #=Test
 loss_y = loss(y)
-back!(loss_y)
+# back!(loss_y)
 state.alpha.log_s.tracker.grad
 state.alpha.m.tracker.grad
 state.H.log_s.tracker.grad

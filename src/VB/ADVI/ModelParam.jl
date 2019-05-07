@@ -6,38 +6,26 @@ struct ModelParam{T, S <: NTuple{N, Int} where N}
 end
 
 # scalar param
-function ModelParam(support::String; m=nothing, log_s=nothing)
-  @assert(support in ["real", "unit", "simplex", "positive"])
-  if m==nothing
-    m = param(randn(1))
-  end
-  if log_s==nothing
-    log_s = param(randn(1))
-  end
+function ModelParam(support::String; m=nothing, s=nothing)
+  @assert(support in ["real", "unit", "positive"])
+  m = param(m==nothing ? rand(1) : m)
+  log_s = param(s==nothing ?  randn(1) : log.(s))
   return ModelParam(m, log_s, support, (1, ))
 end
 
 # Vector param
-function ModelParam(K::Integer, support::String; m=nothing, log_s=nothing)
+function ModelParam(K::Integer, support::String; m=nothing, s=nothing)
   @assert(support in ["real", "unit", "simplex", "positive"])
-  if m==nothing
-    m = param(randn(K))
-  end
-  if log_s==nothing
-    log_s = param(randn(K))
-  end
+  m = param(m==nothing ? rand(K) : m)
+  log_s = param(s==nothing ? randn(K) : log.(s))
   return ModelParam(m, log_s, support, (K, ))
 end
 
 # ND-Array param
-function ModelParam(D::Tuple, support::String; m=nothing, log_s=nothing)
+function ModelParam(D::Tuple, support::String; m=nothing, s=nothing)
   @assert(support in ["real", "unit", "simplex", "positive"])
-  if m==nothing
-    m = param(randn(D...))
-  end
-  if log_s==nothing
-    log_s = param(randn(D...))
-  end
+  m = param(m==nothing ? rand(D...) : m)
+  log_s = param(s==nothing ? randn(D...) : log.(s))
   return ModelParam(m, log_s, support, D)
 end
 
