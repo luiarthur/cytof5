@@ -38,13 +38,5 @@ function (vae::VAE)(yi_minibatch::Matrix, Ni::Integer)
   @assert !isinf(log_qyi)
   @assert !isnan(log_qyi)
   
-  # TODO: REMOVE ME
-  println("log_qyi: $log_qyi")
-  println("imputed y: $(yi_imputed[m_mini][1:5])")
-  println("mean y: $(mean_fn[m_mini][1:5])")
-  println("sd y: $(sd_fn[m_mini][1:5])")
-  println("sum(mi): $(sum(m_mini))")
-
-  # TODO: is this the issue?
   return yi_imputed, log_qyi
 end

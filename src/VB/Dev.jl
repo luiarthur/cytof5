@@ -2,6 +2,7 @@ using Cytof5
 using Flux, Flux.Tracker
 using Distributions
 import Dates, Random
+include("../../sims/cb/PreProcess.jl")
 
 using JLD2, FileIO
 function loadSingleObj(objPath)
@@ -30,30 +31,48 @@ tau = .005 # FIXME: why can't I do .001?
 use_stickbreak = false
 noisy_var = 10.0
 
-SIMULATE_DATA = false
+# SIMULATE_DATA = false
+SIMULATE_DATA = true
 if SIMULATE_DATA
-  L = Dict(false=>5, true=>3)
+  L = Dict(0=>3, 1=>3)
   I = 3
   J = 20
-  K = 4
+  K = 5
 
   println("Simulate Data")
-  N = [3, 1, 2] * 10000
-  @time dat = Cytof5.Model.genData(J, N, K, Dict{Int,Int}(L))
+  N = [8, 1, 2] * 500
+  # @time dat = Cytof5.Model.genData(J, N, K, Dict{Int,Int}(L))
+  mus=Dict(0 => -[1.0, 2.3, 3.5], 
+           1 => +[1.0, 2.0, 3.0])
+  a_W=rand(K)*10
+  a_eta=Dict(z => rand(L[z])*10 for z in 0:1)
+  Z = Cytof5.Model.genSimpleZ(J, K)
+  @time dat = Cytof5.Model.genData(J=J, N=N, K=K, L=L, Z=Z,
+                                   beta=[-9.2, -2.3],
+                                   sig2=[0.2, 0.1, 0.3],
+                                   mus=mus,
+                                   a_W=a_W,
+                                   a_eta=a_eta,
+                                   sortLambda=false, propMissingScale=0.7,
+                                   eps=fill(.005, I))
+
   I = length(N)
   K_MCMC = 10
-  priors = VB.Priors(K_MCMC, L, use_stickbreak=use_stickbreak)
+  L_MCMC = Dict(false=>5, true=>3)
+  priors = VB.Priors(K_MCMC, L_MCMC, use_stickbreak=use_stickbreak)
   mc = Cytof5.Model.defaultConstants(Cytof5.Model.Data(dat[:y]),
-                                     K_MCMC, Dict{Int64,Int64}(L),
+                                     K_MCMC, Dict{Int64,Int64}(L_MCMC),
                                      yQuantiles=[0.0, 0.25, 0.5], pBounds=[.05, .8, .05])
   beta = [mc.beta[:, i] for i in 1:I]
-  c = VB.Constants(I, N, J, K_MCMC, L, tau, beta, use_stickbreak, noisy_var, priors)
+  c = VB.Constants(I, N, J, K_MCMC, L_MCMC, tau, beta, use_stickbreak, noisy_var, priors)
   y = dat[:y]
 else
   cbDataPath = "../../sims/cb/data/cytof_cb_with_nan.jld2"
   y = loadSingleObj(cbDataPath)
   K_MCMC=30
   L = Dict(false=>5, true=>3)
+  goodColumns, _ = PreProcess.preprocess!(y, maxNanOrNegProp=.9, maxPosProp=.9,
+                                          subsample=0.0, rowThresh=-6.0)
   cbData = Cytof5.Model.Data(y)
   mc = Cytof5.Model.defaultConstants(cbData,
                                      K_MCMC, Dict{Int64,Int64}(L),
@@ -65,7 +84,11 @@ else
 end
 
 println("test state assignment")
-Random.seed!(0)
+if SIMULATE_DATA
+  Random.seed!(1)
+else
+  Random.seed!(0)
+end
 state = VB.State(c)
 metrics = Dict{Symbol, Vector{Float64}}()
 for m in (:ll, :lp, :lq, :elbo) metrics[m] = Float64[] end
@@ -77,7 +100,7 @@ ShowTime() = Dates.format(Dates.now(), "yyyy-mm-dd HH:MM:SS")
 println("training...")
 opt = ADAM(1e-2)
 minibatch_size = 200
-niters = 20000
+niters = 2000
 state_hist = typeof(state)[]
 for t in 1:niters
   idx = [Distributions.sample(1:c.N[i], minibatch_size, replace=false) for i in 1:c.I]
@@ -87,7 +110,7 @@ for t in 1:niters
   gs = Tracker.gradient(() -> loss(y_mini), ps)
   Flux.Tracker.update!(opt, ps, gs)
 
-  if t % 1 == 0
+  if t % 10 == 0
     m = ["$(key): $(round(metrics[key][end] / sum(c.N), digits=3))"
          for key in keys(metrics)]
     println("$(ShowTime()) | $(t)/$(niters) | $(join(m, " | "))")
@@ -98,10 +121,13 @@ end
 
 # POST PROCESS
 using RCall
+@rlibrary rcommon
+@rlibrary cytof3
+
 println("test rsample of state")
 @time realp, tranp, yout, log_qy = VB.rsample(state, y, c);
-# samples= [VB.rsample(s, y, c)[2] for s in state_hist[1:4:end]]
-samples= [VB.rsample(s, y, c)[2] for s in state_hist]
+# samples = [VB.rsample(s, y, c)[2] for s in state_hist[1:4:end]]
+samples = [VB.rsample(s, y, c)[2] for s in state_hist]
 
 R"plot"(metrics[:elbo][5:end]/sum(c.N), xlab="iter", ylab="elbo", typ="l")
 
@@ -109,6 +135,8 @@ v = hcat([s.v for s in samples]...).data
 v = reshape(v, 1, c.K, length(samples))
 H = cat([s.H for s in samples]..., dims=3).data
 Z = Int.(v .- H .> 0)
+my_image(reshape(mean(Z, dims=3), c.J, c.K))
+
 
 sig2 = hcat([s.sig2 for s in samples]...).data
 R"plot"(sig2[1,:], typ="l", xlab="", ylab="")
