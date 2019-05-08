@@ -42,13 +42,14 @@ def metropolis_ntimes(B, lp, tuner):
 
 tuner = Tuner(1.0)
 
-B = int(1e5)
+B = int(1e6)
 print('compile...')
 metropolis(1, lp, tuner)
+metropolis_ntimes(1, lp, tuner)
 
 print('time...')
 tic = time.time()
-x = metropolis_ntimes(10000, lp, tuner)
+x = metropolis_ntimes(B, lp, tuner)
 toc = time.time()
 
 mean_time = (toc - tic)
