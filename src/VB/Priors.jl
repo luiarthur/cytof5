@@ -13,7 +13,7 @@ end
 
 # Gamma(shape, scale)
 
-function Priors(K::Int, L::Dict{Bool, Int}; use_stickbreak::Bool=false)
+function Priors(;K::Int, L::Dict{Bool, Int}, use_stickbreak::Bool=false)
   v_prior = use_stickbreak ? a -> Beta(a, oftype(a, 1)) : a -> Beta(a / K, oftype(a, 1))
   return Priors(Gamma(1, 1),# delta0
                 Gamma(1, 1), # delta1

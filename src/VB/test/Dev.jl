@@ -2,7 +2,7 @@ using Cytof5
 using Flux, Flux.Tracker
 using Distributions
 import Dates, Random
-include("../../sims/cb/PreProcess.jl")
+include("../../../sims/cb/PreProcess.jl")
 
 using JLD2, FileIO
 function loadSingleObj(objPath)
@@ -12,20 +12,7 @@ end
 
 Random.seed!(2)
 
-include("VB.jl")
-
-println("test ModelParam")
-@time s = VB.ADVI.ModelParam("unit");
-@time v = VB.ADVI.ModelParam(3, "unit");
-@time a = VB.ADVI.ModelParam((3, 5), "unit");
-
-@time VB.ADVI.vp(s);
-@time VB.ADVI.vp(v);
-@time VB.ADVI.vp(a);
-
-@time VB.ADVI.rsample(s);
-@time VB.ADVI.rsample(v);
-@time VB.ADVI.rsample(a);
+include("../VB.jl")
 
 tau = .005 # FIXME: why can't I do .001?
 use_stickbreak = false
@@ -59,7 +46,7 @@ if SIMULATE_DATA
   I = length(N)
   K_MCMC = 10
   L_MCMC = Dict(false=>5, true=>3)
-  priors = VB.Priors(K_MCMC, L_MCMC, use_stickbreak=use_stickbreak)
+  priors = VB.Priors(K=K_MCMC, L=L_MCMC, use_stickbreak=use_stickbreak)
   mc = Cytof5.Model.defaultConstants(Cytof5.Model.Data(dat[:y]),
                                      K_MCMC, Dict{Int64,Int64}(L_MCMC),
                                      yQuantiles=[0.0, 0.25, 0.5], pBounds=[.05, .8, .05])
@@ -78,49 +65,19 @@ else
                                      K_MCMC, Dict{Int64,Int64}(L),
                                      yQuantiles=[0.0, 0.25, 0.5], pBounds=[.05, .8, .05])
   beta = [mc.beta[:, i] for i in 1:cbData.I]
-  priors = VB.Priors(mc.K, L, use_stickbreak=use_stickbreak)
+  priors = VB.Priors(K=mc.K, L=L, use_stickbreak=use_stickbreak)
   c = VB.Constants(cbData.I, cbData.N, cbData.J, mc.K, L,
                    tau, beta, use_stickbreak, noisy_var, priors)
 end
 
-println("test state assignment")
 if SIMULATE_DATA
   Random.seed!(1)
 else
   Random.seed!(0)
 end
-state = VB.State(c)
-metrics = Dict{Symbol, Vector{Float64}}()
-for m in (:ll, :lp, :lq, :elbo) metrics[m] = Float64[] end
-loss(y) = -VB.compute_elbo(state, y, c, metrics) / sum(c.N)
-ps = VB.ADVI.vparams(state)
-ShowTime() = Dates.format(Dates.now(), "yyyy-mm-dd HH:MM:SS")
 
-# TRAIN
-println("training...")
-opt = ADAM(1e-2)
-minibatch_size = 2000
-niters = 10000
-state_hist = typeof(state)[]
-@time for t in 1:niters
-  idx = [if 0 < minibatch_size < c.N[i] 
-           Distributions.sample(1:c.N[i], minibatch_size, replace=false)
-         else
-           1:c.N[i]
-         end for i in 1:c.I]
-  y_mini = [y[i][idx[i], :] for i in 1:c.I]
-
-  # Flux.train!(loss, ps, [(y_mini, )], opt)
-  gs = Tracker.gradient(() -> loss(y_mini), ps)
-  Flux.Tracker.update!(opt, ps, gs)
-
-  if t % 10 == 0
-    m = ["$(key): $(round(metrics[key][end] / sum(c.N), digits=3))"
-         for key in keys(metrics)]
-    println("$(ShowTime()) | $(t)/$(niters) | $(join(m, " | "))")
-    append!(state_hist, [deepcopy(state)])
-  end
-end
+println("fit model...")
+out = VB.fit(y=y, niters=10000, batchsize=2000, c=c, opt=ADAM(1e-2))
 
 
 # POST PROCESS
@@ -128,14 +85,25 @@ using RCall
 @rlibrary rcommon
 @rlibrary cytof3
 
-println("test rsample of state")
-@time realp, tranp, yout, log_qy = VB.rsample(state, y, c);
-# samples = [VB.rsample(s, y, c)[2] for s in state_hist[1:4:end]]
-@time samples = [VB.rsample(s, y, c)[2] for s in state_hist];
+# Plot ELBO trace
+R"plot"(metrics[:elbo]/sum(c.N), xlab="iter", ylab="elbo", typ="l")
+
+# Number of MC samples
 B = 100
+
+println("test rsample of state")
+# @time realp, tranp, yout, log_qy = VB.rsample(state, y, c);
+@time trace = [VB.rsample(s, y, c)[2] for s in state_hist[1:20:end]];
+sig2_trace = hcat([s.sig2.data for s in trace]...)
+R"plot"(sig2_trace[1,:], typ="l", xlab="sig2", ylab="trace", col=2, lwd=2,
+        ylim=[minimum(sig2_trace), maximum(sig2_trace)]);
+R"lines"(sig2_trace[2,:], col=3, lwd=2);
+R"lines"(sig2_trace[3,:], col=4, lwd=2);
+
+
+# Draw MC samples from variational distributions
 @time samples = [VB.rsample(state)[2] for i in 1:B];
 
-R"plot"(metrics[:elbo][5:end]/sum(c.N), xlab="iter", ylab="elbo", typ="l")
 
 v = hcat([s.v for s in samples]...).data
 v = reshape(v, 1, c.K, length(samples))
@@ -143,12 +111,27 @@ H = cat([s.H for s in samples]..., dims=3).data
 Z = Int.(v .- H .> 0)
 my_image(reshape(mean(Z, dims=3), c.J, c.K))
 
-
 sig2 = hcat([s.sig2 for s in samples]...).data
-R"plot"(sig2[1,:], typ="l", xlab="", ylab="")
-R"lines"(sig2[2,:])
-R"lines"(sig2[3,:])
+if SIMULATE_DATA
+  ymin = minimum(minimum.([dat[:sig2], sig2]))
+  ymax = maximum(maximum.([dat[:sig2], sig2]))
+  R"boxplot"(sig2', typ="l", xlab="", ylab="", ylim=[ymin, ymax]);
+  R"abline"(h=dat[:sig2], col="grey", lty=2);
+else
+  R"boxplot"(sig2', typ="l", xlab="", ylab="");
+end
 
-
+# Plot mu
 delta0 = hcat([s.delta0 for s in samples]...).data
-R"plot"(delta0[5,:], typ="l", xlab="", ylab="")
+mu0 = -cumsum(delta0, dims=1)
+delta1 = hcat([s.delta1 for s in samples]...).data
+mu1 = cumsum(delta1, dims=1)
+mu = [mu0; mu1]
+
+R"boxplot"(mu', typ="l", xlab="", ylab="");
+if SIMULATE_DATA
+  R"abline"(h=dat[:mus][0], col="grey", lty=2);
+  R"abline"(h=dat[:mus][1], col="grey", lty=2);
+end
+R"abline"(v=c.L[0] + .5, h=0, col="grey");
+
