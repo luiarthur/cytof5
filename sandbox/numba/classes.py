@@ -33,6 +33,13 @@ def lp(x):
     return lpdf_normal(x, 0, 1)
 
 
+@numba.njit
+def metropolis_ntimes(B, lp, tuner):
+    x = 0.0
+    for i in range(B):
+        x = metropolis(x, lp, tuner)
+    return x
+
 tuner = Tuner(1.0)
 
 B = int(1e5)
@@ -41,10 +48,8 @@ metropolis(1, lp, tuner)
 
 print('time...')
 tic = time.time()
-for i in range(B):
-    metropolis(1.0, lp, tuner)
-    # lp(1.0)
+x = metropolis_ntimes(10000, lp, tuner)
 toc = time.time()
 
-mean_time = (toc - tic) / B
+mean_time = (toc - tic)
 print('mean time: {}'.format(mean_time))
