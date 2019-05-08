@@ -38,8 +38,7 @@ function State(c::Constants)
   return s
 end
 
-
-function rsample(s::StateMP, y::Vector{M}, c::Constants; AT::Type=TA{Float64}) where {M}
+function rsample(s::StateMP; AT::Type=TA{Float64})
   real = State(AT)
   tran = State(AT)
 
@@ -68,6 +67,13 @@ function rsample(s::StateMP, y::Vector{M}, c::Constants; AT::Type=TA{Float64}) w
       end
     end
   end
+
+  return real, tran
+end
+
+function rsample(s::StateMP, y::Vector{M}, c::Constants; AT::Type=TA{Float64}) where M
+  # Sample real and transformed parameters
+  real, tran = rsample(s, AT=AT)
 
   # Draw y and compute log q(y|m) 
   yout = AT[]

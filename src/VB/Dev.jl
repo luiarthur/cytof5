@@ -102,7 +102,7 @@ opt = ADAM(1e-2)
 minibatch_size = 2000
 niters = 10000
 state_hist = typeof(state)[]
-for t in 1:niters
+@time for t in 1:niters
   idx = [if 0 < minibatch_size < c.N[i] 
            Distributions.sample(1:c.N[i], minibatch_size, replace=false)
          else
@@ -131,7 +131,9 @@ using RCall
 println("test rsample of state")
 @time realp, tranp, yout, log_qy = VB.rsample(state, y, c);
 # samples = [VB.rsample(s, y, c)[2] for s in state_hist[1:4:end]]
-samples = [VB.rsample(s, y, c)[2] for s in state_hist]
+@time samples = [VB.rsample(s, y, c)[2] for s in state_hist];
+B = 100
+@time samples = [VB.rsample(state)[2] for i in 1:B];
 
 R"plot"(metrics[:elbo][5:end]/sum(c.N), xlab="iter", ylab="elbo", typ="l")
 
@@ -149,4 +151,4 @@ R"lines"(sig2[3,:])
 
 
 delta0 = hcat([s.delta0 for s in samples]...).data
-R"plot"(delta0[1,:], typ="l", xlab="", ylab="")
+R"plot"(delta0[5,:], typ="l", xlab="", ylab="")
