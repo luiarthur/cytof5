@@ -99,11 +99,15 @@ ShowTime() = Dates.format(Dates.now(), "yyyy-mm-dd HH:MM:SS")
 # TRAIN
 println("training...")
 opt = ADAM(1e-2)
-minibatch_size = 200
-niters = 2000
+minibatch_size = 2000
+niters = 10000
 state_hist = typeof(state)[]
 for t in 1:niters
-  idx = [Distributions.sample(1:c.N[i], minibatch_size, replace=false) for i in 1:c.I]
+  idx = [if 0 < minibatch_size < c.N[i] 
+           Distributions.sample(1:c.N[i], minibatch_size, replace=false)
+         else
+           1:c.N[i]
+         end for i in 1:c.I]
   y_mini = [y[i][idx[i], :] for i in 1:c.I]
 
   # Flux.train!(loss, ps, [(y_mini, )], opt)
