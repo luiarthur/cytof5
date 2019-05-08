@@ -4,13 +4,13 @@ mutable struct VAE{A <: AbstractArray}
 end
 
 # return standard deviation
-_sd(vae::VAE, i::Integer) = exp.(vae.log_sd[i:i, :])
+_sd(vae::VAE) = exp.(vae.log_sd)
 
 # return mean
-_mean(vae::VAE, i::Integer) = vae.mean[i:i, :]
+_mean(vae::VAE) = vae.mean
 
 # return (mean_function, sd_function)
-function (vae::VAE)(i::Integer, yi_minibatch::Matrix)
+function (vae::VAE)(yi_minibatch::Matrix, Ni::Integer)
   # Make a copy of yi_minibatch
   yi = deepcopy(yi_minibatch)
   m_mini = isnan.(yi)
@@ -19,10 +19,10 @@ function (vae::VAE)(i::Integer, yi_minibatch::Matrix)
   yi[m_mini] .= 0
 
   # mean function
-  mean_fn = yi .* (1 .- m_mini) .+ _mean(vae, i) .* m_mini
+  mean_fn = yi .* (1 .- m_mini) .+ _mean(vae) .* m_mini
 
   # sd function
-  sd_fn = _sd(vae, i) .* m_mini
+  sd_fn = _sd(vae) .* m_mini
 
   # get random draw for imputed y (and observed y)
   z = randn(size(yi))
@@ -32,11 +32,19 @@ function (vae::VAE)(i::Integer, yi_minibatch::Matrix)
 
   # compute log_q(y_imputed | m_ini)
   log_qyi = sum(ADVI.lpdf_normal.(yi_imputed[m_mini], mean_fn[m_mini], sd_fn[m_mini]))
+  log_qyi *= (Ni / size(yi, 1))
 
   # TODO: remove these
   @assert !isinf(log_qyi)
   @assert !isnan(log_qyi)
   
+  # TODO: REMOVE ME
+  println("log_qyi: $log_qyi")
+  println("imputed y: $(yi_imputed[m_mini][1:5])")
+  println("mean y: $(mean_fn[m_mini][1:5])")
+  println("sd y: $(sd_fn[m_mini][1:5])")
+  println("sum(mi): $(sum(m_mini))")
+
   # TODO: is this the issue?
   return yi_imputed, log_qyi
 end

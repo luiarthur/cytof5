@@ -19,11 +19,11 @@ function State(K::Integer)
   #       dim. Maybe needs a FIXME?
   state.m = ADVI.ModelParam(K, "real")
   state.w = ADVI.ModelParam((1, K - 1), "simplex",
-                            m=param(fill(0.0, 1, K-1)),
-                            log_s=param(fill(-2, 1, K-1)))
+                            m=fill(0.0, 1, K-1),
+                            s=fill(exp(-2), 1, K-1))
   state.s = ADVI.ModelParam(K, "positive",
-                            m=param(fill(0.0, K)),
-                            log_s=param(fill(-2, K)))
+                            m=fill(0.0, K),
+                            s=fill(exp(-2), K))
 
   return state
 end

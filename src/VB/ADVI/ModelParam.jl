@@ -32,7 +32,7 @@ end
 
 function log_q(mp::ModelParam, r::R; args...) where R
   m, s = vp(mp; args...)
-  return lpdf_normal.(r, m, s)
+  return sum(lpdf_normal.(r, m, s))
 end
 
 """

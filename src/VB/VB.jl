@@ -6,9 +6,9 @@ using Flux, Flux.Tracker
 import Random # shuffle, seed
 
 include("ADVI/ADVI.jl")
-include("vae.jl")
 include("Priors.jl")
 include("Constants.jl")
+include("vae.jl")
 include("State.jl")
 
 """
@@ -25,8 +25,8 @@ function compute_Z(v::AbstractArray, H::AbstractArray;
   p = use_stickbreak ? cumprod(v_rs, dims=2) : v_rs
   logit = p .- H
   smoothed_Z = sigmoid.(logit / tau)
-  Z = (smoothed_Z.data .> 0.5) # becomes non-tracked
-  return (Z - smoothed_Z.data) + smoothed_Z
+  Z = (smoothed_Z .> 0.5) # becomes non-tracked
+  return (Z - smoothed_Z).data + smoothed_Z
 end
 
 # function prob_miss(y::R, beta::AbstractFloat...) where {R <: Real}

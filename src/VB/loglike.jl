@@ -23,6 +23,7 @@ function loglike(s::State{A1, A2, A3}, y::Vector{MA}, m::Vector{BitArray{2}}, c:
     logmix_L1 = ADVI.lpdf_gmm(yi, mu1, sig[i], s.eta1[i:i, :, :], dims=3, dropdim=false)
     @assert !(isinf(sum(logmix_L1)) || isinf(sum(logmix_L0)))
     @assert !(isnan(sum(logmix_L1)) || isnan(sum(logmix_L0)))
+    @assert size(logmix_L1) == (Ni, c.J, 1) == size(logmix_L1)
 
     # Z: J x K
     # H: J x K
@@ -53,8 +54,6 @@ function loglike(s::State{A1, A2, A3}, y::Vector{MA}, m::Vector{BitArray{2}}, c:
     # @assert size(lli_noisy) == (size(y[i], 1), )
 
     # Ni - dimensional
-    # TODO: - make stack function
-    #       - implement logsumexp(dims=-1)
     lli = ADVI.logsumexpdd(ADVI.stack(lli_quiet, lli_noisy), dims=-1)
     @assert !isinf(sum(lli))
     @assert !isnan(sum(lli))
@@ -65,7 +64,7 @@ function loglike(s::State{A1, A2, A3}, y::Vector{MA}, m::Vector{BitArray{2}}, c:
     logprob_mi_given_yi = sum(log.(pm_i))
 
     # add to ll
-    fac = c.N[i] / size(y[i], 1)
+    fac = c.N[i] / Ni
     ll += (sum(lli) + logprob_mi_given_yi) * fac
   end
 

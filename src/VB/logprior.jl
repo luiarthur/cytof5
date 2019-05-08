@@ -10,7 +10,6 @@ function logprior(real::State{A1, A2, A3},
         a = tran.alpha[1]
         lpdf = ADVI.compute_lpdf(c.priors.v(a), tran.v)
         labsdj = ADVI.logabsdetJ(mps.v, real.v, tran.v)
-        lp += sum(lpdf + labsdj)
       else # key != :v
         p = getfield(c.priors, key)
         t = getfield(tran, key)
@@ -19,9 +18,8 @@ function logprior(real::State{A1, A2, A3},
 
         lpdf = ADVI.compute_lpdf(p, t)
         labsdj = ADVI.logabsdetJ(mp, r, t)
-
-        lp += sum(lpdf + labsdj)
       end
+      lp += sum(lpdf + labsdj)
     end
   end
 

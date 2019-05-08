@@ -31,7 +31,7 @@ function State(c::Constants)
   s.v = ADVI.ModelParam(c.K, "unit")
   s.H = ADVI.ModelParam((c.J, c.K), "unit")
   s.alpha = VB.ADVI.ModelParam("positive")
-  s.eps = ADVI.ModelParam(c.I, "unit", m=fill(-3., c.I), s=fill(.1, c.I))
+  s.eps = ADVI.ModelParam(c.I, "unit", m=fill(-3., c.I), s=fill(.001, c.I))
   s.y_m = param(fill(-3.0, c.I, c.J))
   s.y_log_s = param(fill(log(.1), c.I, c.J))
 
@@ -72,12 +72,12 @@ function rsample(s::StateMP, y::Vector{M}, c::Constants; AT::Type=TA{Float64}) w
   # Draw y and compute log q(y|m) 
   yout = AT[]
   log_qy = 0.0
-  vae = VAE(s.y_m, s.y_log_s)
   for i in 1:c.I
-    yi, log_qyi = vae(i, y[i])
+    vae = VAE(s.y_m[i:i, :], s.y_log_s[i:i, :])
+    yi, log_qyi = vae(y[i], c.N[i])
     append!(yout, [yi])
     @assert size(yout[i]) == size(yi) == size(y[i])
-    log_qy += log_qyi * c.N[i] / size(y[i], 1)
+    log_qy += log_qyi
   end
 
   return real, tran, yout, log_qy
