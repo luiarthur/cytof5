@@ -19,14 +19,14 @@ function (vae::VAE)(yi_minibatch::Matrix, Ni::Integer)
   yi[m_mini] .= 0
 
   # mean function
-  mean_fn = yi .* (1 .- m_mini) .+ _mean(vae) .* m_mini
+  mean_fn = yi .* (1 .- m_mini) + _mean(vae) .* m_mini
 
   # sd function
   sd_fn = _sd(vae) .* m_mini
 
   # get random draw for imputed y (and observed y)
   z = randn(size(yi))
-  yi_imputed = z .* sd_fn .+ mean_fn 
+  yi_imputed = (z .* sd_fn) + mean_fn 
 
   @assert size(mean_fn) == size(sd_fn) == size(yi_imputed) == size(yi)
 

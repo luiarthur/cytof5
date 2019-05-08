@@ -40,7 +40,10 @@ function prob_miss(y::F, b0::Float64, b1::Float64, b2::Float64) where {F <: Abst
 end
 
 function prob_miss(y::A, b0::Float64, b1::Float64, b2::Float64) where {A <: AbstractArray}
-  return sigmoid.(b0 .+ b1 .* y .+ b2 .* y .^ 2)
+  # DO THIS
+  return sigmoid.(b0 .+ b1*y + b2*(y .^ 2))
+  # NOT THIS!!! Unnecessary broadcasting slows down backprop!
+  # return sigmoid.(b0 .+ b1 .* y + b2 .* y .^ 2)
 end
 
 include("loglike.jl")
