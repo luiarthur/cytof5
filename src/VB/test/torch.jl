@@ -26,11 +26,13 @@ every(max_iter, nsave) = round(Int, max_iter / nsave)
 max_iter = 20000
 nsave = 30
 out = cytofpy.model.fit(y, max_iter=max_iter, lr=1e-2, print_freq=10, eps_conv=0,
-                        priors=priors, minibatch_size=500, tau=0.005,
+                        priors=priors, minibatch_size=2000, tau=0.005,
                         trace_every=50, backup_every=every(max_iter, nsave),
                         verbose=0, seed=1, use_stick_break=false)
 
-plt.plot(out["elbo"]); plt.show()
-
 Z = [v.dist().rsample().reshape(1, priors["K"]) > H.dist().rsample() for i in 1:100]
+
+#= Plots
+plt.plot(out["elbo"]); plt.show()
 plt.imshow(mean(Z).numpy()); plt.show()
+=#
