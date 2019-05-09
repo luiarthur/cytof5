@@ -13,12 +13,27 @@ struct Constants
 end
 
 # TODO
-function Constants(; N::Vector{Int}, K::Int, L::Dict{Bool, Int}, J::Int,
+function Constants(; y::Vector{Matrix{F}}, K::Int, L::Dict{Bool, Int}, 
                    yQuantiles::Vector{Float64}, pBounds::Vector{Float64},
-                   priors::Priors, tau::Float64=.005,
-                   use_stickbreak::Bool=false, noisy_var::Float64=10.0)
+                   tau::Float64=.005,
+                   yBounds::Union{Missing, Vector{Float64}}=missing,
+                   use_stickbreak::Bool=false,
+                   noisy_var::Float64=10.0) where {F <: AbstractFloat}
+  N = size.(y, 1)
+  J = size(y[1], 2)
   I = length(N)
-  # beta = ???
+
+  beta = begin
+    if ismissing(yBounds)
+      b = [gen_beta_est(yi[yi .< 0], yQuantiles, pBounds) for yi in y]
+    else
+      b = [solveBeta(yBounds, pBounds) for i in 1:I]
+    end
+    b
+  end
+
+  priors = Priors(K=K, L=L, use_stickbreak=use_stickbreak)
+  return Constants(I, N, J, K, L, tau, beta, use_stickbreak, noisy_var, priors)
 end
 
 function printConstants(c::Constants, preprintln::Bool=true)

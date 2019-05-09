@@ -28,9 +28,7 @@ pBounds = the bounds for probability of missing to compute the missing mechanism
 yQuantiles = the quantiles to compute the lower and upper bounds for y for the missing mechanism.
 """
 function gen_beta_est(yi, yQuantiles, pBounds)
-  yiNeg = yi[ (isnan.(yi) .== false) .& (yi .< 0) ]
-  yBounds = quantile(yiNeg, yQuantiles)
-
+  yBounds = quantile(yi[yi .< 0], yQuantiles)
   return solveBeta(yBounds, pBounds)
 end
 

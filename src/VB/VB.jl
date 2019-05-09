@@ -7,6 +7,8 @@ import Random # shuffle, seed
 import Dates
 ShowTime() = Dates.format(Dates.now(), "yyyy-mm-dd HH:MM:SS")
 
+import Cytof5.Model: solveBeta, gen_beta_est
+
 include("ADVI/ADVI.jl")
 include("Priors.jl")
 include("Constants.jl")
