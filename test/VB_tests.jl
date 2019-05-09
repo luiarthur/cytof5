@@ -61,6 +61,7 @@ using BSON
                       seed=0, nsave=30)
 
   # Save results
+  mkpath("result/vb")
   @time BSON.bson("result/vb/vb-out.bson", out)
 
   #= Load results
