@@ -1,11 +1,30 @@
 using BSON
-using Cytof5.VB
+using Cytof5
 
 # For BSON
-using Flux, Distributions, RCall
+using Flux, Distributions
 
 # Load sim data
 SIMDAT_PATH = "../sim_study/simdata/kills-flowsom/N500/K5/90/simdat.bson"
 simdat = BSON.load(SIMDAT_PATH)[:simdat]
+simdat[:y] = Vector{Matrix{Float64}}(simdat[:y])
 
-VB.fit
+# Generate model constnats
+c = Cytof5.VB.Constants(y=simdat[:y], K=10, L=Dict(false=>5, true=>3),
+                        yQuantiles=[.0, .25, .5], pBounds=[.05, .8, .05],
+                        use_stickbreak=false, tau=.005)
+
+# Fit model
+out = Cytof5.VB.fit(y=simdat[:y], niters=20000, batchsize=2000, c=c, nsave=30, seed=0)
+
+# Save results
+BSON.bson("results/out.bson", out)
+
+#= Post process
+using BSON, Cytof5, Flux, Distributions
+using PyCall
+
+out = BSON.load("results/out.bson")
+
+length(out[:state_hist])
+=#
