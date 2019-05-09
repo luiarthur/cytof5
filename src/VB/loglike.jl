@@ -34,7 +34,7 @@ function loglike(s::State{A1, A2, A3}, y::Vector{MA}, m::Vector{BitArray{2}}, c:
     Z_rs = reshape(Z, 1, c.J, c.K)
 
     # Ni x J x K -> Ni x K
-    Z_mix = ADVI.sumdd(Z_rs .* logmix_L1 .+ (1 .- Z_rs) .* logmix_L0, dims=2)
+    Z_mix = ADVI.sumdd(Z_rs .* logmix_L1 + (1 .- Z_rs) .* logmix_L0, dims=2)
     # @assert !isinf(sum(Z_mix))
     # @assert !isnan(sum(Z_mix))
     # Ni x K
