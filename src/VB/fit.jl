@@ -17,7 +17,13 @@ function fit(; y::Vector{M}, niters::Int, batchsize::Int, c::Constants,
   end
 
   # Set save frequency
-  save_freq = round(Int, niters / nsave)
+  if 0 < nsave < niters
+    save_freq = ceil(Int, niters / nsave)
+  elseif nsave >= niters
+    save_freq = 1
+  else # nsave <= 1
+    save_freq = niters 
+  end
 
   # Initialize if needed
   if init == nothing
