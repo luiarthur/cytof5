@@ -23,8 +23,8 @@ function logprior(real::State{A1, A2, A3},
     end
   end
 
-  @assert !isnan(lp)
-  @assert !isinf(lp)
+  # @assert !isnan(lp)
+  # @assert !isinf(lp)
 
   return lp
 end

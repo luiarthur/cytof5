@@ -2,7 +2,7 @@
 # https://github.com/FluxML/Flux.jl/pull/524
 
 # TODO:
-# remove this file when Zygote.jl is officially the AD for Flux
+# Possibly remove this file when Zygote.jl is officially the AD for Flux?
 
 # cumsum
 # https://discourse.julialang.org/t/how-to-create-tracked-cumsum-using-flux-jl/17772/2
@@ -24,9 +24,9 @@ end
 
 # reverse
 # https://github.com/FluxML/Tracker.jl/blob/master/src/lib/array.jl
-Base.reverse(x::TrackedArray; dims=1) = track(reverse, x, dims)
-@grad function reverse(x::TrackedArray, dims)
-  return reverse(x.data, dims=dims), function(Δ)
-    return reverse(Δ, dims=dims), nothing
-  end
-end
+# Base.reverse(x::TrackedArray; dims=1) = track(reverse, x, dims)
+# @grad function reverse(x::TrackedArray, dims)
+#   return reverse(x.data, dims=dims), function(Δ)
+#     return reverse(Δ, dims=dims), nothing
+#   end
+# end

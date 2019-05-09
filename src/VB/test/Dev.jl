@@ -1,7 +1,6 @@
 using Cytof5
-using Flux, Flux.Tracker
-using Distributions
-import Dates, Random
+import Random
+using Flux
 include("../../../sims/cb/PreProcess.jl")
 
 using JLD2, FileIO

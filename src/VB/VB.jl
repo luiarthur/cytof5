@@ -4,7 +4,6 @@ using Distributions
 using Flux, Flux.Tracker
 
 import Random # shuffle, seed
-
 import Dates
 ShowTime() = Dates.format(Dates.now(), "yyyy-mm-dd HH:MM:SS")
 

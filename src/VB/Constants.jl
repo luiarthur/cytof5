@@ -20,3 +20,21 @@ function Constants(; N::Vector{Int}, K::Int, L::Dict{Bool, Int}, J::Int,
   I = length(N)
   # beta = ???
 end
+
+function printConstants(c::Constants, preprintln::Bool=true)
+  if preprintln
+    println()
+  end
+
+  println("Constants:")
+  for f in fieldnames(typeof(c))
+    if f != :priors
+      println("$f => $(getfield(c, f))")
+    end
+  end
+
+  println("Priors:")
+  for p in fieldnames(typeof(c.priors))
+    println("$p => $(getfield(c.priors, p))")
+  end
+end

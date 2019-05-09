@@ -1,16 +1,23 @@
 function fit(; y::Vector{M}, niters::Int, batchsize::Int, c::Constants,
-             opt=ADAM(1e-2), print_freq::Int=10, save_freq::Int=50,
+             opt=ADAM(1e-2), print_freq::Int=10, nsave::Int=0,
              init::Union{StateMP, Nothing}=nothing,
              seed=nothing, flushOutput::Bool=false,
-             return_init::Bool=false) where M <: Matrix
+             return_init::Bool=false, verbose::Int=1) where M <: Matrix
+
+  if verbose >= 1
+    println("opt: $opt")
+    println("niters: $niters")
+    println("batchsize: $batchsize")
+    printConstants(c)
+  end
 
   # Set a random seed for reproducibility if seed is provided
   if seed != nothing
     Random.seed!(seed)
   end
 
-  # Create output dictionary
-  d = Dict{Symbol, Any}()
+  # Set save frequency
+  save_freq = round(Int, niters / nsave)
 
   # Initialize if needed
   if init == nothing
@@ -26,13 +33,31 @@ function fit(; y::Vector{M}, niters::Int, batchsize::Int, c::Constants,
   # Collect all model parameters and variational parameters
   ps = ADVI.vparams(state)
 
+  # Print message
+  function printMsg(iter::Integer)
+    if iter % print_freq == 0
+      m = ["$(key): $(round(metrics[key][end] / sum(c.N), digits=3))"
+           for key in keys(metrics)]
+      println("$(ShowTime()) | $(iter)/$(niters) | $(join(m, " | "))")
+    end
+  end
+
   # Create loss function
-  loss(y) = -compute_elbo(state, y, c, metrics) / sum(c.N)
+  function loss(y_batch::T) where T
+    out = -compute_elbo(state, y_batch, c, metrics) / sum(c.N)
+    if isnan(out) || isinf(out)
+      out = zero(out)
+      printMsg(0)
+      @warn "Skipping update -- Loss was NaN or Inf"
+    end
+    return out
+  end
 
   # Create an object to store history of state
   state_hist = typeof(state)[]
   
   # Main loop
+  println("Compiling model...")
   @time for iter in 1:niters
     # Sample minibatch indices
     idx = [if 0 < batchsize < c.N[i] 
@@ -49,10 +74,9 @@ function fit(; y::Vector{M}, niters::Int, batchsize::Int, c::Constants,
     gs = Tracker.gradient(() -> loss(y_mini), ps)
     Flux.Tracker.update!(opt, ps, gs)
 
-    if iter % print_freq == 0
-      m = ["$(key): $(round(metrics[key][end] / sum(c.N), digits=3))"
-           for key in keys(metrics)]
-      println("$(ShowTime()) | $(iter)/$(niters) | $(join(m, " | "))")
+    printMsg(iter)
+
+    if iter % save_freq == 0
       append!(state_hist, [deepcopy(state)])
     end
 
@@ -62,17 +86,16 @@ function fit(; y::Vector{M}, niters::Int, batchsize::Int, c::Constants,
   end
 
   # Put things in output
-  out[:metrics] = metrics
-  out[:state_hist] = state_hist
-  out[:state] = state
+  out = Dict(:metrics => metrics,
+             :state_hist => state_hist,
+             :state => state,
+             :batchsize => batchsize,
+             :niters => niters,
+             :seed => seed,
+             :c => c)
   if return_init
     out[:init] = init
   end
-  out[:batchsize] = batchsize
-  out[:niters] = niters
-  out[:opt] = opt
-  out[:seed] = seed
-  out[:c] = c
 
   return out
 end
