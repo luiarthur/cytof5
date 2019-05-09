@@ -30,9 +30,18 @@ out = cytofpy.model.fit(y, max_iter=max_iter, lr=1e-2, print_freq=10, eps_conv=0
                         trace_every=50, backup_every=every(max_iter, nsave),
                         verbose=0, seed=1, use_stick_break=false)
 
-Z = [v.dist().rsample().reshape(1, priors["K"]) > H.dist().rsample() for i in 1:100]
+out = Dict(Symbol(k) => v for (k, v) in out)
+BSON.bson("results/out.bson", out)
 
 #= Plots
-plt.plot(out["elbo"]); plt.show()
-plt.imshow(mean(Z).numpy()); plt.show()
+import Distributions
+out = BSON.load("results/out.bson")
+mp = out[:mp]
+v = mp["v"]
+H = mp["H"]
+Z = [v.dist().rsample().reshape(1, priors["K"]) > H.dist().rsample() for i in 1:100]
+Z_mean = Distributions.mean(Z)
+
+plt.plot(out[:elbo]); plt.show()
+plt.imshow(Z_mean.numpy()); plt.show()
 =#
