@@ -51,7 +51,7 @@ using BSON
   y = dat[:y]
 
   println("fit model...")
-  # niters = 2000
+  # niters = 20000
   # batchsize = 2000
   # to test compilation
   niters = 100
