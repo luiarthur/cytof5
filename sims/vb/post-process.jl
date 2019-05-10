@@ -9,7 +9,8 @@ using RCall
 using Cytof5, Flux, Distributions
 
 if length(ARGS) == 0
-  OUTPUT_PATH = "results/vb-sim-paper/01/output.bson"
+  # OUTPUT_PATH = "results/vb-sim-paper/01/output.bson"
+  OUTPUT_PATH = "results/vb-sim-paper/test/0/output.bson"
 else
   OUTPUT_PATH = parse(Int, ARGS[1])
 end
