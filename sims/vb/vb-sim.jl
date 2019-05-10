@@ -11,19 +11,20 @@ mkpath(RESULTS_DIR)
 using Flux, Distributions
 
 # Load sim data
-SIMDAT_PATH = "../sim_study/simdata/kills-flowsom/N500/K5/90/simdat.bson"
+# SIMDAT_PATH = "../sim_study/simdata/kills-flowsom/N500/K5/90/simdat.bson"
+SIMDAT_PATH = "../sim_study/simdata/kills-flowsom/N5000/K10/1/simdat.bson"
 simdat = BSON.load(SIMDAT_PATH)[:simdat]
 simdat[:y] = Vector{Matrix{Float64}}(simdat[:y])
 
 # Generate model constnats
-c = Cytof5.VB.Constants(y=simdat[:y], K=10, L=Dict(false=>5, true=>3),
+c = Cytof5.VB.Constants(y=simdat[:y], K=30, L=Dict(false=>5, true=>3),
                         # yQuantiles=[.0, .25, .5], pBounds=[.05, .8, .05],
                         yBounds=[-6., -4., -2.], pBounds=[.05, .8, .05],
                         use_stickbreak=false, tau=.005)
 
 println("seed: $SEED")
 # Fit model
-out = Cytof5.VB.fit(y=simdat[:y], niters=20000, batchsize=2000, c=c, nsave=30,
+out = Cytof5.VB.fit(y=simdat[:y], niters=20000, batchsize=200, c=c, nsave=30,
                     seed=SEED, flushOutput=true)
 
 # Save results

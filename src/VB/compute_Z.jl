@@ -12,7 +12,7 @@ function compute_Z(v::AbstractArray, H::AbstractArray;
   p = use_stickbreak ? cumprod(v_rs, dims=2) : v_rs
   logit = p .- H
   smoothed_Z = sigmoid.(logit / tau)
-  Z = (p .> H).data # becomes non-tracked
-  return (Z - smoothed_Z.data) + smoothed_Z
+  Z = (p .> H)
+  return Tracker.data(Z - smoothed_Z) + smoothed_Z
 end
 
