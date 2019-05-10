@@ -95,7 +95,11 @@ dev.dev_off()
 mkpath("$(IMG_DIR)/trace/")
 
 # Z trace
-Z_trace = [Int.(reshape(t.v, 1, c.K) .> t.H).data for t in trace]
+if c.use_stickbreak
+  Z_trace = [Int.(reshape(t.v, 1, c.K) .> t.H).data for t in trace]
+else
+  Z_trace = [Int.(reshape(cumprod(t.v), 1, c.K) .> t.H).data for t in trace]
+end
 dev.pdf("$(IMG_DIR)/trace/Z.pdf")
 for z in Z_trace
   cytof3.my_image(z, xlab="features", ylab="markers")
