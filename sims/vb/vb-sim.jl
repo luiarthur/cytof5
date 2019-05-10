@@ -1,6 +1,9 @@
 using BSON
 using Cytof5
 
+SEED = length(ARGS) == 0 ? 0 : parse(Int, ARGS[1])
+RESULTS_DIR = length(ARGS) == 0 ? "results/vb-sim-paper/test/$(SEED)/" : ARGS[2]
+
 # For BSON
 using Flux, Distributions
 
@@ -14,11 +17,13 @@ c = Cytof5.VB.Constants(y=simdat[:y], K=10, L=Dict(false=>5, true=>3),
                         yQuantiles=[.0, .25, .5], pBounds=[.05, .8, .05],
                         use_stickbreak=false, tau=.005)
 
+println("seed: $SEED")
 # Fit model
-out = Cytof5.VB.fit(y=simdat[:y], niters=20000, batchsize=2000, c=c, nsave=30, seed=0)
+out = Cytof5.VB.fit(y=simdat[:y], niters=20000, batchsize=2000, c=c, nsave=30,
+                    seed=SEED, flushOutput=true)
 
 # Save results
-BSON.bson("results/out.bson", out)
+BSON.bson("$(RESULTS_DIR)/out.bson", out)
 
 #= Post process
 using BSON, Cytof5, Flux, Distributions
