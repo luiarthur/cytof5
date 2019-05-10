@@ -24,7 +24,20 @@ BSON.bson("results/out.bson", out)
 using BSON, Cytof5, Flux, Distributions
 using PyCall
 
+plt = pyimport("matplotlib.pyplot")
+
 out = BSON.load("results/out.bson")
+c = out[:c]
 
 length(out[:state_hist])
+
+elbo = out[:metrics][:elbo] / sum(c.N)
+plt.plot(elbo[500:end]); plt.show()
+
+samples = [Cytof5.VB.rsample(out[:state])[2] for b in 1:100]
+Z = [reshape(s.v, 1, c.K) .> s.H for s in samples]
+Z_mean = mean(Z)
+
+plt.imshow(Z_mean .> .5); plt.show()
+
 =#
