@@ -1,3 +1,5 @@
+println("pid: $(getpid())")
+
 using PyCall
 using BSON
 
@@ -13,7 +15,7 @@ SIMDAT_PATH = "../../../sims/sim_study/simdata/kills-flowsom/N500/K5/90/simdat.b
 simdat = BSON.load(SIMDAT_PATH)[:simdat]
 y = [torch.tensor(yi) for yi in simdat[:y]]
 priors = cytofpy.model.default_priors(y, K=30, L=[5, 3],
-                                      y_quantiles=[0.0, .25, .5],
+                                      y_quantiles=[0.02, .25, .48],
                                       p_bounds=[.05, .8, .05])
 priors["sig2"] = Gamma(.1, 1)
 priors["alpha"] = Gamma(.1, .1)
@@ -23,10 +25,10 @@ priors["noisy_var"] = 10.0
 priors["eps"] = Beta(1, 99)
 
 every(max_iter, nsave) = round(Int, max_iter / nsave)
-max_iter = 20000
+max_iter = 10000
 nsave = 30
 out = cytofpy.model.fit(y, max_iter=max_iter, lr=1e-2, print_freq=10, eps_conv=0,
-                        priors=priors, minibatch_size=2000, tau=0.005,
+                        priors=priors, minibatch_size=200, tau=0.005,
                         trace_every=50, backup_every=every(max_iter, nsave),
                         verbose=0, seed=1, use_stick_break=false)
 
