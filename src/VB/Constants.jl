@@ -14,9 +14,10 @@ end
 
 # TODO
 function Constants(; y::Vector{Matrix{F}}, K::Int, L::Dict{Bool, Int}, 
-                   yQuantiles::Vector{Float64}, pBounds::Vector{Float64},
-                   tau::Float64=.005,
+                   pBounds::Vector{Float64},
+                   yQuantiles::Union{Missing, Vector{Float64}}=missing,
                    yBounds::Union{Missing, Vector{Float64}}=missing,
+                   tau::Float64=.005,
                    use_stickbreak::Bool=false,
                    noisy_var::Float64=10.0) where {F <: AbstractFloat}
   N = size.(y, 1)
