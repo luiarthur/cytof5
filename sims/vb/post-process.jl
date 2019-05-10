@@ -10,13 +10,12 @@ using Cytof5, Flux, Distributions
 
 if length(ARGS) == 0
   OUTPUT_PATH = "results/vb-sim-paper/01/output.bson"
-  SIMDAT_PATH = "../sim_study/simdata/kills-flowsom/N500/K5/90/simdat.bson"
 else
   OUTPUT_PATH = parse(Int, ARGS[1])
 end
 
 out = BSON.load(OUTPUT_PATH)
-simdat = BSON.load(SIMDAT_PATH)[:simdat]
+simdat = out[:simdat]
 RESULTS_DIR = join(split(OUTPUT_PATH, "/")[1:end-1], "/")
 IMG_DIR = "$(RESULTS_DIR)/img/"
 mkpath(IMG_DIR)
