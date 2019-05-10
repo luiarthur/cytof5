@@ -1,3 +1,5 @@
+println("pid: $(getpid())"); flush(stdout)
+
 using BSON
 using Cytof5
 
