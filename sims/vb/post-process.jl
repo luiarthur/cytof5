@@ -9,12 +9,14 @@ using RCall
 using Cytof5, Flux, Distributions
 
 if length(ARGS) == 0
-  OUTPUT_PATH = "results/vb-sim-paper/01/out.bson"
+  OUTPUT_PATH = "results/vb-sim-paper/01/output.bson"
+  SIMDAT_PATH = "../sim_study/simdata/kills-flowsom/N500/K5/90/simdat.bson"
 else
   OUTPUT_PATH = parse(Int, ARGS[1])
 end
 
 out = BSON.load(OUTPUT_PATH)
+simdat = BSON.load(SIMDAT_PATH)[:simdat]
 RESULTS_DIR = join(split(OUTPUT_PATH, "/")[1:end-1], "/")
 IMG_DIR = "$(RESULTS_DIR)/img/"
 mkpath(IMG_DIR)
@@ -41,9 +43,16 @@ plt.axis(1)
 plt.par(mfrow=[1, 1], oma=rcommon.oma_default(), mar=rcommon.mar_ts())
 dev.dev_off()
 
-NSAMPS = 100
+NSAMPS = 200
 samples = [Cytof5.VB.rsample(state)[2] for n in 1:NSAMPS]
 trace = [Cytof5.VB.rsample(s)[2] for s in state_hist]
+
+# y_samps
+m = [isnan.(yi) for yi in simdat[:y]]
+y_samps = [Tracker.data.(Cytof5.VB.rsample(state, simdat[:y], c)[3]) for n in 1:10]
+plt.hist(vec(y_samps[5][1][m[1]]), xlab="", ylab="", main="");
+plt.hist(vec(y_samps[5][2][m[2]]), xlab="", ylab="", main="");
+plt.hist(vec(y_samps[5][3][m[3]]), xlab="", ylab="", main="");
 
 # Z
 Z = [Int.(reshape(s.v, 1, c.K) .> s.H) for s in samples]
@@ -75,7 +84,14 @@ dev.pdf("$(IMG_DIR)/sig2.pdf")
 plt.boxplot(sig2');
 dev.dev_off()
 
-# trace plot
+# alpha
+alpha = vcat([s.alpha.data for s in samples]...);
+dev.pdf("$(IMG_DIR)/alpha.pdf")
+rcommon.plotPost(alpha, main="alpha");
+dev.dev_off()
+
+
+### trace plots ###
 mkpath("$(IMG_DIR)/trace/")
 
 # Z trace
@@ -106,4 +122,10 @@ for i in 1:c.I
   plt.matplot(W_trace[i, :, :]', xlab="iter", ylab="W$(i)", typ="l", lwd=2)
   dev.dev_off()
 end
+
+# alpha trace
+alpha_trace = vcat([s.alpha.data for s in trace]...)
+dev.pdf("$(IMG_DIR)/trace/alpha.pdf")
+plt.plot(alpha_trace, xlab="iter", ylab="alpha", typ="l", lwd=2)
+dev.dev_off()
 

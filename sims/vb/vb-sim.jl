@@ -5,6 +5,7 @@ using Cytof5
 
 SEED = length(ARGS) == 0 ? 0 : parse(Int, ARGS[1])
 RESULTS_DIR = length(ARGS) == 0 ? "results/vb-sim-paper/test/$(SEED)/" : ARGS[2]
+mkpath(RESULTS_DIR)
 
 # For BSON
 using Flux, Distributions
@@ -16,7 +17,8 @@ simdat[:y] = Vector{Matrix{Float64}}(simdat[:y])
 
 # Generate model constnats
 c = Cytof5.VB.Constants(y=simdat[:y], K=10, L=Dict(false=>5, true=>3),
-                        yQuantiles=[.0, .25, .5], pBounds=[.05, .8, .05],
+                        # yQuantiles=[.0, .25, .5], pBounds=[.05, .8, .05],
+                        yBounds=[-6., -4., -2.], pBounds=[.05, .8, .05],
                         use_stickbreak=false, tau=.005)
 
 println("seed: $SEED")
@@ -25,7 +27,8 @@ out = Cytof5.VB.fit(y=simdat[:y], niters=20000, batchsize=2000, c=c, nsave=30,
                     seed=SEED, flushOutput=true)
 
 # Save results
-BSON.bson("$(RESULTS_DIR)/out.bson", out)
+out[:simdat] = simdat
+BSON.bson("$(RESULTS_DIR)/output.bson", out)
 
 #= Post process
 using BSON, Cytof5, Flux, Distributions
@@ -33,7 +36,7 @@ using PyCall
 
 plt = pyimport("matplotlib.pyplot")
 
-out = BSON.load("results/out.bson")
+out = BSON.load("results/output.bson")
 c = out[:c]
 
 length(out[:state_hist])

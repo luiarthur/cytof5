@@ -18,7 +18,7 @@ cleansim:
 	rm -rf $(SIM_RESULTS_DIR)/*
 
 retrieve:
-	aws s3 sync $(SIM_AWS_BUCKET) $(SIM_RESULTS_DIR) --exclude "*/out.bson"
+	aws s3 sync $(SIM_AWS_BUCKET) $(SIM_RESULTS_DIR) --exclude "*/output.bson"
 
 retrieveall:
 	aws s3 sync $(SIM_AWS_BUCKET) $(SIM_RESULTS_DIR)
