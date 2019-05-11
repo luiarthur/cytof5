@@ -5,6 +5,11 @@ using Cytof5
 
 SEED = length(ARGS) == 0 ? 0 : parse(Int, ARGS[1])
 RESULTS_DIR = length(ARGS) == 0 ? "results/vb-sim-paper/test/$(SEED)/" : ARGS[2]
+if length(ARGS) == 0
+  SIMDAT_PATH = "../sim_study/simdata/kills-flowsom/N5000/K10/1/simdat.bson"
+else
+  SIMDAT_PATH = ARGS[3]
+end
 mkpath(RESULTS_DIR)
 
 # For BSON
@@ -12,7 +17,7 @@ using Flux, Distributions
 
 # Load sim data
 # SIMDAT_PATH = "../sim_study/simdata/kills-flowsom/N500/K5/90/simdat.bson"
-SIMDAT_PATH = "../sim_study/simdata/kills-flowsom/N5000/K10/1/simdat.bson"
+# SIMDAT_PATH = "../sim_study/simdata/kills-flowsom/N5000/K10/1/simdat.bson"
 simdat = BSON.load(SIMDAT_PATH)[:simdat]
 simdat[:y] = Vector{Matrix{Float64}}(simdat[:y])
 
