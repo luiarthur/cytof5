@@ -50,9 +50,9 @@ trace = [Cytof5.VB.rsample(s)[2] for s in state_hist]
 # y_samps
 m = [isnan.(yi) for yi in simdat[:y]]
 y_samps = [Tracker.data.(Cytof5.VB.rsample(state, simdat[:y], c)[3]) for n in 1:10]
-plt.hist(vec(y_samps[5][1][m[1]]), xlab="", ylab="", main="");
-plt.hist(vec(y_samps[5][2][m[2]]), xlab="", ylab="", main="");
-plt.hist(vec(y_samps[5][3][m[3]]), xlab="", ylab="", main="");
+# plt.hist(vec(y_samps[5][1][m[1]]), xlab="", ylab="", main="");
+# plt.hist(vec(y_samps[5][2][m[2]]), xlab="", ylab="", main="");
+# plt.hist(vec(y_samps[5][3][m[3]]), xlab="", ylab="", main="");
 
 # Z
 Z = [Int.(reshape(s.v, 1, c.K) .> s.H) for s in samples]
