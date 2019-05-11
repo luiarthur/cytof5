@@ -24,7 +24,7 @@ c = Cytof5.VB.Constants(y=simdat[:y], K=30, L=Dict(false=>5, true=>3),
 
 println("seed: $SEED")
 # Fit model
-out = Cytof5.VB.fit(y=simdat[:y], niters=20000, batchsize=200, c=c, nsave=30,
+out = Cytof5.VB.fit(y=simdat[:y], niters=20000, batchsize=1000, c=c, nsave=30,
                     seed=SEED, flushOutput=true)
 
 # Save results

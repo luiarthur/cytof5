@@ -1,1 +1,2 @@
-- [ ] add path to simdat in vb-sim.jl
+- [ ] vary batchsize
+- [ ] vary K in fit
