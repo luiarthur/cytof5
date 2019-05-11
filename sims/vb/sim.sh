@@ -38,7 +38,7 @@ for k in $K; do
     echo $EXP_DIR
 
     # julia command to run
-    jlCmd="julia vb-sim.jl $seed $EXP_DIR ${SIMDAT_PATH[$k]}"
+    jlCmd="julia vb_sim.jl $seed $EXP_DIR ${SIMDAT_PATH[$k]}"
 
     engine $RESULTS_DIR $AWS_BUCKET $EXP_NAME "$jlCmd" $MAX_CORES $STAGGER_TIME
   done
