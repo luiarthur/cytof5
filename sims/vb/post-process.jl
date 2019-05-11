@@ -50,9 +50,11 @@ trace = [Cytof5.VB.rsample(s)[2] for s in state_hist]
 # y_samps
 m = [isnan.(yi) for yi in simdat[:y]]
 y_samps = [Tracker.data.(Cytof5.VB.rsample(state, simdat[:y], c)[3]) for n in 1:10]
-# plt.hist(vec(y_samps[5][1][m[1]]), xlab="", ylab="", main="");
-# plt.hist(vec(y_samps[5][2][m[2]]), xlab="", ylab="", main="");
-# plt.hist(vec(y_samps[5][3][m[3]]), xlab="", ylab="", main="");
+dev.pdf("$(IMG_DIR)/y_hist.pdf")
+for i in 1:c.I
+  plt.hist(vec(y_samps[end][i][m[i]]), xlab="", ylab="", main="");
+end
+dev.dev_off()
 
 # Z
 Z = [Int.(reshape(s.v, 1, c.K) .> s.H) for s in samples]
@@ -96,9 +98,9 @@ mkpath("$(IMG_DIR)/trace/")
 
 # Z trace
 if c.use_stickbreak
-  Z_trace = [Int.(reshape(t.v, 1, c.K) .> t.H).data for t in trace]
-else
   Z_trace = [Int.(reshape(cumprod(t.v), 1, c.K) .> t.H).data for t in trace]
+else
+  Z_trace = [Int.(reshape(t.v, 1, c.K) .> t.H).data for t in trace]
 end
 dev.pdf("$(IMG_DIR)/trace/Z.pdf")
 for z in Z_trace
