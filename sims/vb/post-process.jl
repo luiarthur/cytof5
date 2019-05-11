@@ -57,7 +57,11 @@ end
 dev.dev_off()
 
 # Z
-Z = [Int.(reshape(s.v, 1, c.K) .> s.H) for s in samples]
+if c.use_stickbreak
+  Z = [Int.(cumprod(reshape(s.v, 1, c.K)) .> s.H) for s in samples]
+else
+  Z = [Int.(reshape(s.v, 1, c.K) .> s.H) for s in samples]
+end
 mean_Z = mean(Z).data
 dev.pdf("$(IMG_DIR)/Z.pdf")
 cytof3.my_image(mean_Z, xlab="features", ylab="markers", col=cytof3.greys(10), addL=true)
