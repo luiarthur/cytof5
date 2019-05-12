@@ -22,7 +22,7 @@ priors["alpha"] = Gamma(.1, .1)
 priors["delta0"] = Gamma(1, 1)
 priors["delta1"] = Gamma(1, 1)
 priors["noisy_var"] = 10.0
-priors["eps"] = Beta(1, 99)
+priors["eps"] = Beta(100, 9900)
 
 every(max_iter, nsave) = round(Int, max_iter / nsave)
 max_iter = 10000
