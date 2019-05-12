@@ -54,7 +54,7 @@ function fit(; y::Vector{M}, niters::Int, batchsize::Int, c::Constants,
     if isnan(out) || isinf(out)
       out = zero(out)
       printMsg(0)
-      @warn "Skipping update -- Loss was NaN or Inf"
+      println("Skipping update -- Loss was NaN or Inf")
     end
     return out
   end
