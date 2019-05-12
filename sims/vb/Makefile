@@ -25,3 +25,6 @@ retrieveall:
 
 postprocsim:
 	julia post_process.jl $(SIM_RESULTS_DIR)
+
+sendsim:
+	aws s3 sync $(SIM_RESULTS_DIR) $(SIM_AWS_BUCKET) --exclude '*.nfs'
