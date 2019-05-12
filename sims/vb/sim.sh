@@ -27,19 +27,27 @@ K="5 10"
 # Seeds to use
 SEEDS=`seq -w 10`
 
-for k in $K; do
-  for seed in $SEEDS; do
-    # Experiment name
-    EXP_NAME=K${k}/$seed
+# TODO
+BATCHSIZES="500 1000 2000"
+K_VB="5 10 30"
 
-    # Dir for experiment results
-    EXP_DIR=$RESULTS_DIR/$EXP_NAME/
-    mkdir -p $EXP_DIR
-    echo $EXP_DIR
+for k_vb in $K_VB; do
+  for bs in $BATCHSIZES; do
+    for k in $K; do
+      for seed in $SEEDS; do
+        # Experiment name
+        EXP_NAME=BS${bs}/K_VB${k_vb}/K${k}/$seed
 
-    # julia command to run
-    jlCmd="julia vb_sim.jl $seed $EXP_DIR ${SIMDAT_PATH[$k]}"
+        # Dir for experiment results
+        EXP_DIR=$RESULTS_DIR/$EXP_NAME/
+        mkdir -p $EXP_DIR
+        echo $EXP_DIR
 
-    engine $RESULTS_DIR $AWS_BUCKET $EXP_NAME "$jlCmd" $MAX_CORES $STAGGER_TIME
+        # julia command to run
+        jlCmd="julia vb_sim.jl $seed $EXP_DIR ${SIMDAT_PATH[$k]} $k_vb $bs"
+
+        engine $RESULTS_DIR $AWS_BUCKET $EXP_NAME "$jlCmd" $MAX_CORES $STAGGER_TIME
+      done
+    done
   done
 done
