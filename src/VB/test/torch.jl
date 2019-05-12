@@ -43,6 +43,7 @@ v = mp["v"]
 H = mp["H"]
 Z = [v.dist().rsample().reshape(1, priors["K"]) > H.dist().rsample() for i in 1:100]
 Z_mean = Distributions.mean(Z)
+eps_samps = [mp["eps"].transform(mp["eps"].dist().rsample()) for i in 1:100]
 
 plt.plot(out[:elbo]); plt.show()
 plt.imshow(Z_mean.numpy()); plt.show()
