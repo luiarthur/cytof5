@@ -84,6 +84,13 @@ function post_process(output_path)
   plt.boxplot(sig2');
   dev.dev_off()
 
+  # eps
+  eps = hcat([s.eps.data for s in samples]...)
+  dev.pdf("$(IMG_DIR)/eps.pdf")
+  plt.boxplot(eps');
+  dev.dev_off()
+
+
   # alpha
   alpha = vcat([s.alpha.data for s in samples]...);
   dev.pdf("$(IMG_DIR)/alpha.pdf")
@@ -117,6 +124,12 @@ function post_process(output_path)
   sig2_trace = hcat([s.sig2.data for s in trace]...)
   dev.pdf("$(IMG_DIR)/trace/sig2.pdf")
   plt.matplot(sig2_trace', xlab="iter", ylab="sig2", typ="l", lwd=2)
+  dev.dev_off()
+
+  # eps_trace
+  eps_trace = hcat([s.eps.data for s in trace]...)
+  dev.pdf("$(IMG_DIR)/trace/eps.pdf")
+  plt.matplot(eps_trace', xlab="iter", ylab="eps", typ="l", lwd=2)
   dev.dev_off()
 
   # W trace
