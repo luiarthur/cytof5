@@ -1,6 +1,6 @@
 mutable struct VAE{A <: AbstractArray}
-  mean::A    # I x J
-  log_sd::A  # I x J
+  mean::A    # 1 x J
+  log_sd::A  # 1 x J
 end
 
 # return standard deviation
