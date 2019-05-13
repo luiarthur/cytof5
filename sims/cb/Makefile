@@ -1,4 +1,4 @@
-.PHONY: send retrieve retrieveall litecp clean
+.PHONY: send retrieve retrieveall litecp clean zmetric
 .PHONY: run pullAndProcess postProcess repFamTest test testlocal testplots metrics runAndProcess
 .PHONY: genpreprocessGraphs sendPreprocessedGraphs getPreprocessedGraphs getRData sendRData
 
@@ -140,3 +140,7 @@ getNimbleGmm:
 # Clean results
 clean:
 	rm -rf $(RESULTS_DIR_CB_RUN)/*
+
+# z_metric
+zmetric: metrics
+	julia compute_z_metric.jl

@@ -85,6 +85,7 @@ function fit(; y::Vector{M}, niters::Int, batchsize::Int, c::Constants,
     if iter % save_freq == 0
       append!(state_hist, [deepcopy(state)])
     end
+    # println("eps: $(rsample(state)[2].eps)")
 
     if flushOutput
       flush(stdout)

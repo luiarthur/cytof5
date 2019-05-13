@@ -10,7 +10,7 @@ RESULTS_DIR=$1
 AWS_BUCKET=$2
 
 # Maximum number of cores to use
-MAX_CORES=10
+MAX_CORES=15
 
 # STAGGER_TIME in seconds. To avoid mass dumping to disk simultaneously. 
 STAGGER_TIME=0
@@ -29,15 +29,14 @@ SEEDS=`seq -w 10`
 
 # TODO
 BATCHSIZES="500 1000 2000"
-K_VB="5 10 30"
+K_VB="30 10 5"
 
-for k_vb in $K_VB; do
-  for bs in $BATCHSIZES; do
+for bs in $BATCHSIZES; do
+  for k_vb in $K_VB; do
     for k in $K; do
       for seed in $SEEDS; do
         # Experiment name
-        EXP_NAME=BS${bs}/K_VB${k_vb}/K${k}/$seed
-        # EXP_NAME=K${k}/BS${bs}/K_VB${k_vb}/$seed # TODO: use this instead
+        EXP_NAME=K${k}/BS${bs}/K_VB${k_vb}/$seed
 
         # Dir for experiment results
         EXP_DIR=$RESULTS_DIR/$EXP_NAME/

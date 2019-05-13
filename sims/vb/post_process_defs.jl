@@ -58,9 +58,16 @@ function post_process(output_path)
   end
   mean_Z = mean(Z).data
   dev.pdf("$(IMG_DIR)/Z.pdf")
-  cytof3.my_image(mean_Z, xlab="features", ylab="markers", col=cytof3.greys(10), addL=true)
-  plt.abline(h=collect(1:c.J) .+ .5, v=collect(1:c.K) .+ .5, col="grey")
+  fZ(z) = plt.abline(h=collect(1:size(z, 1)) .+ .5, v=collect(1:size(z, 2)) .+ .5, col="grey")
+  cytof3.my_image(mean_Z, xlab="features", ylab="markers", col=cytof3.greys(10), addL=true, f=fZ)
   dev.dev_off()
+
+  # True Z
+  dev.pdf("$(IMG_DIR)/Z_true.pdf")
+  cytof3.my_image(simdat[:Z], xlab="features", ylab="markers", col=cytof3.greys(10), addL=true, f=fZ)
+  dev.dev_off()
+
+  # TODO: Add truth
 
   # W
   W = [s.W.data for s in samples]

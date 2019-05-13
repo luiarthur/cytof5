@@ -33,7 +33,7 @@ c = Cytof5.VB.Constants(y=simdat[:y], K=K_VB, L=Dict(false=>5, true=>3),
                         yBounds=[-6., -4., -2.], pBounds=[.05, .8, .05],
                         use_stickbreak=false, tau=.005)
 
-c.priors.eps = Beta(100, 9900)
+c.priors.eps = Beta(1, 99)
 
 println("seed: $SEED")
 # Fit model
