@@ -37,6 +37,7 @@ for k_vb in $K_VB; do
       for seed in $SEEDS; do
         # Experiment name
         EXP_NAME=BS${bs}/K_VB${k_vb}/K${k}/$seed
+        # EXP_NAME=K${k}/BS${bs}/K_VB${k_vb}/$seed # TODO: use this instead
 
         # Dir for experiment results
         EXP_DIR=$RESULTS_DIR/$EXP_NAME/
