@@ -8,7 +8,7 @@ if length(ARGS) == 0
   RESULTS_DIR = "results/vb-sim-paper/test/$(SEED)/"
   SIMDAT_PATH = "../sim_study/simdata/kills-flowsom/N5000/K10/1/simdat.bson"
   K_VB = 30
-  BATCHSIZE = 2000
+  BATCHSIZE = 200
 else
   SEED = parse(Int, ARGS[1])
   RESULTS_DIR = ARGS[2]
@@ -32,6 +32,8 @@ c = Cytof5.VB.Constants(y=simdat[:y], K=K_VB, L=Dict(false=>5, true=>3),
                         # yQuantiles=[.0, .25, .5], pBounds=[.05, .8, .05],
                         yBounds=[-6., -4., -2.], pBounds=[.05, .8, .05],
                         use_stickbreak=false, tau=.005)
+
+c.priors.eps = Beta(100, 9900)
 
 println("seed: $SEED")
 # Fit model
