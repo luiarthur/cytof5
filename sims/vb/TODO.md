@@ -5,5 +5,6 @@
 - [ ] check `eps` value
     - [ ] use Beta(100, 9900)
 - [ ] add truth to plots
+- [ ] save simdat and CB as `Vector{Matrix{Float32}}` to save space
 
 **Total number of simulations:** 10 x 3 x 3 x 2
