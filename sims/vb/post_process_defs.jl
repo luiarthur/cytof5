@@ -4,13 +4,21 @@ using RCall
 @rimport grDevices as dev
 @rimport cytof3
 @rimport rcommon
+@rimport base
+include("sample/sample_lam.jl")
+
+function plotPng(fname, s=10, w=480, h=480, ps=12; kw...)
+  dev.png(fname, w=w*s, h=h*s, pointsize=ps*s, kw...)
+end
+addcut(clus, s=1) = plt.abline(h=base.cumsum(base.table(clus)) .+ .5, lwd=3*s, col="yellow")
 
 # For BSON
 using Cytof5, Flux, Distributions
 
-function post_process(output_path)
+function post_process(output_path, thresh=.99)
   out = BSON.load(output_path)
   simdat = out[:simdat]
+  simdat[:y] = Matrix{Float64}.(simdat[:y])
   RESULTS_DIR = join(split(output_path, "/")[1:end-1], "/")
   IMG_DIR = "$(RESULTS_DIR)/img/"
   mkpath(IMG_DIR)
@@ -65,11 +73,11 @@ function post_process(output_path)
   else
     Z = [Int.(reshape(s.v, 1, c.K) .> s.H) for s in samples]
   end
-  mean_Z = mean(Z).data
+  Z_mean = mean(Z).data
   dev.pdf("$(IMG_DIR)/Z.pdf")
-  fZ(z) = plt.abline(h=collect(1:size(z, 1)) .+ .5,
-                     v=collect(1:size(z, 2)) .+ .5, col="grey")
-  cytof3.my_image(mean_Z, xlab="features", ylab="markers",
+  fZ(z, s_png=1) = plt.abline(h=collect(1:size(z, 1)) .+ .5,
+                              v=collect(1:size(z, 2)) .+ .5, col="grey", lwd=s_png)
+  cytof3.my_image(Z_mean, xlab="features", ylab="markers",
                   col=cytof3.greys(10), addL=true, f=fZ)
   dev.dev_off()
 
@@ -184,4 +192,29 @@ function post_process(output_path)
   dev.pdf("$(IMG_DIR)/trace/alpha.pdf")
   plt.plot(alpha_trace, xlab="iter", ylab="alpha", typ="l", lwd=2)
   dev.dev_off()
+
+  ### yZ ###
+  lam = [sample_lam(state, simdat[:y], c) for b in 1:10]
+  lam_mode = lam_f(lam, mode)
+  W_mean= dropdims(mean(cat(W..., dims=3), dims=3), dims=3)
+
+  mkpath("$(IMG_DIR)/yz")
+  s_png = 10
+  for i in 1:c.I
+    # Yi
+    plotPng("$(IMG_DIR)/yz/y$(i)_post.png", s_png)
+    lami_est, k_ord = relabel_lam(lam_mode[i], W_mean[i, :])
+    cytof3.my_image(simdat[:y][i][sortperm(lami_est), :], na="black",
+                    zlim=[-4,4], col=cytof3.blueToRed(9),
+                    f=x->addcut(lami_est, s_png),
+                    addL=true, xlab="markers", ylab="cells");
+    dev.dev_off()
+
+    # Zi
+    dev.pdf("$(IMG_DIR)/yz/Z$(i)_post.pdf")
+    k_top = argmax(cumsum(W_mean[i, k_ord]) .> thresh)
+    cytof3.my_image(Z_mean[:, k_ord[1:k_top]]', f=z->fZ(z, 1), addL=true,
+                    col=cytof3.greys(10), xlab="markers", ylab="cell types")
+    dev.dev_off()
+  end
 end
