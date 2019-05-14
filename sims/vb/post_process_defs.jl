@@ -31,7 +31,7 @@ function post_process(output_path)
   plt.par(mfrow=[length(metrics), 1], oma=rcommon.oma_ts(), mar=rcommon.mar_ts())
   for (k, m) in metrics
     plt.plot(metrics[k][1:end]/sum(c.N), xlab="iter", ylab=string(k), typ="l",
-             xaxt="n")
+             xaxt="n", las=2)
   end
   plt.axis(1)
   plt.par(mfrow=[1, 1], oma=rcommon.oma_default(), mar=rcommon.mar_ts())
@@ -50,6 +50,15 @@ function post_process(output_path)
   end
   dev.dev_off()
 
+  # Prob miss
+  ygrid = collect(range(-8, stop=0, length=500))
+  pm = hcat([Cytof5.VB.prob_miss(ygrid, c.beta[i]...) for i in 1:c.I]...)
+  col=2:4
+  dev.pdf("$(IMG_DIR)/prob_miss.pdf")
+  plt.matplot(ygrid, pm, xlab="y", ylab="prob. of missing", lw=3, typ="l", lty=1, col=col)
+  plt.legend("topright", legend=1:3, col=col, lwd=3)
+  dev.dev_off()
+
   # Z
   if c.use_stickbreak
     Z = [Int.(cumprod(reshape(s.v, 1, c.K)) .> s.H) for s in samples]
@@ -58,8 +67,10 @@ function post_process(output_path)
   end
   mean_Z = mean(Z).data
   dev.pdf("$(IMG_DIR)/Z.pdf")
-  fZ(z) = plt.abline(h=collect(1:size(z, 1)) .+ .5, v=collect(1:size(z, 2)) .+ .5, col="grey")
-  cytof3.my_image(mean_Z, xlab="features", ylab="markers", col=cytof3.greys(10), addL=true, f=fZ)
+  fZ(z) = plt.abline(h=collect(1:size(z, 1)) .+ .5,
+                     v=collect(1:size(z, 2)) .+ .5, col="grey")
+  cytof3.my_image(mean_Z, xlab="features", ylab="markers",
+                  col=cytof3.greys(10), addL=true, f=fZ)
   dev.dev_off()
 
   # True Z
@@ -102,6 +113,17 @@ function post_process(output_path)
   # plt.abline(h=simdat[:eps], lty=2, col="grey");
   dev.dev_off()
 
+  # v
+  v = hcat([s.v.data for s in samples]...)
+  dev.pdf("$(IMG_DIR)/v.pdf")
+  plt.boxplot(v');
+  dev.dev_off()
+
+  # v cumprod
+  v_cumprod = hcat([cumprod(s.v.data) for s in samples]...)
+  dev.pdf("$(IMG_DIR)/v_cumprod.pdf")
+  plt.boxplot(v_cumprod');
+  dev.dev_off()
 
   # alpha
   alpha = vcat([s.alpha.data for s in samples]...);
@@ -150,6 +172,12 @@ function post_process(output_path)
     plt.matplot(W_trace[i, :, :]', xlab="iter", ylab="W$(i)", typ="l", lwd=2)
     dev.dev_off()
   end
+
+  # v trace
+  v_trace = hcat([s.v.data for s in trace]...)
+  dev.pdf("$(IMG_DIR)/trace/v.pdf")
+  plt.matplot(v_trace', xlab="iter", ylab="v", typ="l", lwd=2)
+  dev.dev_off()
 
   # alpha trace
   alpha_trace = vcat([s.alpha.data for s in trace]...)
