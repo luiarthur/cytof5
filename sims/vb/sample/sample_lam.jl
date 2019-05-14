@@ -26,12 +26,12 @@ end
 VV = Vector{Vector{I}} where I
 VVV = Vector{VV{I}}  where I
 
-function lam_f(lam_samps::VVV{I}, i::Integer, n::Integer, f::Function) where {I <: Integer}
+function lam_f(lam_samps::VVV{T}, i::Integer, n::Integer, f::Function) where {T <: Integer}
   B = length(lam_samps)
   return f(lam_samps[b][i][n] for b in 1:B)
 end
 
-function lam_f(lam_samps::VVV{I}, f::Function) where {I <: Integer}
+function lam_f(lam_samps::VVV{T}, f::Function) where {T <: Integer}
   I = length(lam_samps[1])
   N = length.(lam_samps[1])
   B = length(lam_samps)
