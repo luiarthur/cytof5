@@ -75,6 +75,7 @@ function post_process(output_path)
   for i in 1:c.I
     Wi = hcat([w[i, :] for w in W]...)
     plt.boxplot(Wi');
+    plt.abline(h=simdat[:W][i, :], lty=2, col="grey")
   end
   dev.dev_off()
 
@@ -83,18 +84,22 @@ function post_process(output_path)
   dev.pdf("$(IMG_DIR)/mu.pdf")
   plt.boxplot(mu');
   plt.abline(h=0, v=c.L[0]+.5, col="grey");
+  plt.abline(h=simdat[:mus][0], lty=2, col="grey");
+  plt.abline(h=simdat[:mus][1], lty=2, col="grey");
   dev.dev_off()
 
   # sig2
   sig2 = hcat([s.sig2.data for s in samples]...)
   dev.pdf("$(IMG_DIR)/sig2.pdf")
   plt.boxplot(sig2');
+  plt.abline(h=simdat[:sig2], lty=2, col="grey");
   dev.dev_off()
 
   # eps
   eps = hcat([s.eps.data for s in samples]...)
   dev.pdf("$(IMG_DIR)/eps.pdf")
   plt.boxplot(eps');
+  # plt.abline(h=simdat[:eps], lty=2, col="grey");
   dev.dev_off()
 
 
@@ -103,7 +108,6 @@ function post_process(output_path)
   dev.pdf("$(IMG_DIR)/alpha.pdf")
   rcommon.plotPost(alpha, main="alpha");
   dev.dev_off()
-
 
   ### trace plots ###
   mkpath("$(IMG_DIR)/trace/")
