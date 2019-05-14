@@ -7,7 +7,7 @@ using RCall
 @rimport base
 include("sample/sample_lam.jl")
 
-function plotPng(fname, s=10, w=480, h=480, ps=12; kw...)
+function plotpng(fname, s=10, w=480, h=480, ps=12; kw...)
   dev.png(fname, w=w*s, h=h*s, pointsize=ps*s, kw...)
 end
 addcut(clus, s=1) = plt.abline(h=base.cumsum(base.table(clus)) .+ .5, lwd=3*s, col="yellow")
@@ -202,7 +202,7 @@ function post_process(output_path, thresh=.99)
   s_png = 10
   for i in 1:c.I
     # Yi
-    plotPng("$(IMG_DIR)/yz/y$(i)_post.png", s_png)
+    plotpng("$(IMG_DIR)/yz/y$(i)_post.png", s_png)
     lami_est, k_ord = relabel_lam(lam_mode[i], W_mean[i, :])
     cytof3.my_image(simdat[:y][i][sortperm(lami_est), :], na="black",
                     zlim=[-4,4], col=cytof3.blueToRed(9),
