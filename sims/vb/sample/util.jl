@@ -30,3 +30,21 @@ function relabel_lam(lami_est, wi_mean)
 
   return lami_new, k_ord
 end
+
+function compress_simdat!(simdat)
+  simdat[:y] = Matrix{Float16}.(simdat[:y])
+  simdat[:y_complete] = Matrix{Float16}.(simdat[:y_complete])
+  simdat[:lam] = Vector{Int8}.(simdat[:lam])
+  simdat[:gam] = Matrix{Int8}.(simdat[:gam])
+
+  return simdat
+end
+
+function decompress_simdat!(simdat)
+  simdat[:y] = Matrix{Float64}.(simdat[:y])
+  simdat[:y_complete] = Matrix{Float64}.(simdat[:y_complete])
+  simdat[:lam] = Vector{Int}.(simdat[:lam])
+  simdat[:gam] = Matrix{Int}.(simdat[:gam])
+
+  return simdat
+end

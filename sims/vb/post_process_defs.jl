@@ -17,8 +17,7 @@ using Cytof5, Flux, Distributions
 
 function post_process(output_path, thresh=.99)
   out = BSON.load(output_path)
-  simdat = out[:simdat]
-  simdat[:y] = Matrix{Float64}.(simdat[:y])
+  simdat = decompress_simdat!(out[:simdat])
   RESULTS_DIR = join(split(output_path, "/")[1:end-1], "/")
   IMG_DIR = "$(RESULTS_DIR)/img/"
   mkpath(IMG_DIR)
