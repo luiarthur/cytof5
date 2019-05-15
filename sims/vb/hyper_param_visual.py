@@ -44,9 +44,9 @@ if __name__ == '__main__':
             for j in range(len(kvb)):
                 res = list(filter(lambda r: r.bs == bs[i] and r.K_vb == kvb[j], K_true))
                 res = [r.get_metric('elbo') for r in res]
-                # M[i, j] = np.mean(res)
                 if len(res) > 0:
                     M[i, j] = np.mean(res)
+                    # M[i, j] = np.max(res)
                 else:
                     M[i, j] = float('nan')
 
