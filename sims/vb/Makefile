@@ -28,3 +28,6 @@ postprocsim:
 
 sendsim:
 	aws s3 sync $(SIM_RESULTS_DIR) $(SIM_AWS_BUCKET) --exclude '*.nfs'
+
+hyperparam:
+	python3 hyper_param_visual.py $(SIM_RESULTS_DIR)
