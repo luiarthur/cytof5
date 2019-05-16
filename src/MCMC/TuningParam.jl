@@ -1,12 +1,12 @@
-mutable struct TuningParam
-  value::Any
+mutable struct TuningParam{T}
+  value::T
   acceptanceCount::Int
   currentIter::Int
   batch_size::Int
   delta::Function
   targetAcc::Float64
 
-  TuningParam(v) = new(v, 0, 0, 50, n::Int->min(n^(-0.5), 0.01), 0.44)
+  TuningParam(v::V) where V = new{V}(v, 0, 0, 50, n::Int->min(n^(-0.5), 0.01), 0.44)
 end
 
 function update_tuning_param_default(param::TuningParam, accept::Bool)

@@ -60,7 +60,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
 
 
   y_tuner = begin
-    dict = Dict{Tuple{Int, Int, Int}, MCMC.TuningParam}()
+    dict = Dict{Tuple{Int, Int, Int}, MCMC.TuningParam{Float64}}()
     for i in 1:d.I
       for n in 1:d.N[i]
         for j in 1:d.J

@@ -1,4 +1,5 @@
-function update_y_imputed(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data, tuners::Tuners)
+function update_y_imputed(i::Int, n::Int, j::Int, s::State, c::Constants,
+                          d::Data, tuners::Tuners)
 
   function logFullCond(yinj)
     p = prob_miss(yinj, c.beta[:, i])
