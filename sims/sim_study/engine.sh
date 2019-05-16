@@ -13,6 +13,7 @@ function engine() {
 
   # Output directory for experiment
   local EXP_DIR=$RESULTS_DIR/$EXP_NAME
+  mkdir -p $EXP_DIR
 
   # Sync results to S3
   syncToS3="aws s3 sync $EXP_DIR $AWS_BUCKET/$EXP_NAME --exclude '*.nfs*'"
