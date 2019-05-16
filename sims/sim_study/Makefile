@@ -1,5 +1,5 @@
 SHELL:=/bin/bash
-.PHONY: test run clean retrieve retrieveAll metrics flowsom getsimdat pullAndProcess missmechsen
+.PHONY: test run clean retrieve retrieveAll metrics flowsom getsimdat pullAndProcess missmechsen send
 
 # EXPERIMENT NAME
 EXP_NAME = sim-paper
@@ -38,6 +38,9 @@ test:
 
 clean:
 	rm -rf $(RESULTS_DIR)/*
+
+send: 
+	aws s3 sync $(RESULTS_DIR) $(AWS_BUCKET) --exclude "*/output.bson"
 
 retrieve: 
 	aws s3 sync $(AWS_BUCKET) $(RESULTS_DIR) --exclude "*/output.bson"
