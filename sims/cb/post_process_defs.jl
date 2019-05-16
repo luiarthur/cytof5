@@ -3,6 +3,7 @@ using Cytof5, Random, RCall
 using JLD2, FileIO
 import Printf
 include("../sim_study/util.jl")
+include("compress_data.jl")
 Random.seed!(0)
 
 function loadSingleObj(objPath)
@@ -59,6 +60,7 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
 
   println("Loading Data ...")
   cbData = loadSingleObj(datapath)
+  cbData = decompress_data(cbData)
   println("Loading Results ...")
 
   # FIXME: Not efficient!

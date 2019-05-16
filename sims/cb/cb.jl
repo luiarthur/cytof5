@@ -1,8 +1,11 @@
+println("pid: $(getpid())"); flush(stdout)
+
 println("Loading packages...") 
 using Cytof5
 using Random, Distributions
 using JLD2, FileIO
 using ArgParse
+include("compress_data.jl")
 include("PreProcess.jl")
 include("post_process_defs.jl")
 
@@ -100,7 +103,6 @@ SEED = PARSED_ARGS["SEED"]
 RESULTS_DIR = PARSED_ARGS["RESULTS_DIR"]
 EXP_NAME = PARSED_ARGS["EXP_NAME"]
 USE_REPULSIVE = PARSED_ARGS["USE_REPULSIVE"]
-cbDataPath = PARSED_ARGS["DATA_PATH"]
 cbDataPath = PARSED_ARGS["DATA_PATH"]
 subsample = PARSED_ARGS["subsample"]
 SMARTINIT = PARSED_ARGS["smartinit"]
@@ -219,6 +221,7 @@ nsamps_to_thin(nsamps::Int, nmcmc::Int) = max(1, div(nmcmc, nsamps))
 Cytof5.Model.logger("Saving Data ...");
 println("length of dden: $(length(dden))")
 @save "$(OUTDIR)/output.jld2" out ll lastState c metrics init dden
+cbData = compress_data(cbData)
 @save "$(OUTDIR)/reduced_data/reduced_cb.jld2" deepcopy(cbData)
 
 Cytof5.Model.logger("MCMC Completed.");
