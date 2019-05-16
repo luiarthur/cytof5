@@ -20,7 +20,7 @@ include("util.jl")
 post_process("path/to/output.bson")
 ```
 """
-function post_process(PATH_TO_OUTPUT, thresh=0.9, min_presences=[0, .01, .03, .05]) # bla/output.bson
+function post_process(PATH_TO_OUTPUT, thresh=0.99, min_presences=[0, .01, .03, .05]) # bla/output.bson
   OUTDIR = join(split(PATH_TO_OUTPUT, "/")[1:end-1], "/")
   IMGDIR = "$OUTDIR/img/"
   mkpath(IMGDIR)
@@ -207,12 +207,12 @@ function post_process(PATH_TO_OUTPUT, thresh=0.9, min_presences=[0, .01, .03, .0
   for i in 1:I
     util.plotPng("$IMGDIR/y_imputed$(i).png")
     util.yZ_inspect(out[1], i=i, lastState.y_imputed, zlim=[-4,4], using_zero_index=false,
-                    thresh=thresh, fy=fy, fZ=fZ)
+                    thresh=thresh, fy=fy, fZ=fZ, col=util.blueToRed(9))
     util.devOff()
 
     util.plotPng("$IMGDIR/y_dat$(i).png")
     util.yZ_inspect(out[1], i=i, simdat[:y], zlim=[-4,4], na="black", using_zero_index=false,
-                    thresh=thresh, fy=fy, fZ=fZ)
+                    thresh=thresh, fy=fy, fZ=fZ, col=util.blueToRed(9))
     util.devOff()
   end
   println("Done with png...")
