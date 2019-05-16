@@ -221,7 +221,6 @@ nsamps_to_thin(nsamps::Int, nmcmc::Int) = max(1, div(nmcmc, nsamps))
 Cytof5.Model.logger("Saving Data ...");
 println("length of dden: $(length(dden))")
 @save "$(OUTDIR)/output.jld2" out ll lastState c metrics init dden
-cbData = compress_data(cbData)
-@save "$(OUTDIR)/reduced_data/reduced_cb.jld2" deepcopy(cbData)
+@save "$(OUTDIR)/reduced_data/reduced_cb.jld2" compress_data(cbData)
 
 Cytof5.Model.logger("MCMC Completed.");
