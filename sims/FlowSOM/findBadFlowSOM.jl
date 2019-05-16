@@ -60,8 +60,13 @@ function sim(jl_seed::Int, n_fac::Int; K=5, L=Dict(0=>3, 1=>3), J=20, fs_seed=42
   dat = Cytof5.Model.Data(simdat[:y])
 
   util.plotPdf("$OUTPUT_DIR/Z.pdf")
-  util.myImage(simdat[:Z])
+  util.myImage(simdat[:Z], xlab="cell types", ylab="markers", f=util.addGridLines)
   util.devOff()
+
+  util.plotPdf("$OUTPUT_DIR/ZT.pdf")
+  util.myImage(simdat[:Z]', ylab="cell types", xlab="markers", f=util.addGridLines)
+  util.devOff()
+
 
   open("$OUTPUT_DIR/dat.txt", "w") do f
     write(f, "mu*0: $(simdat[:mus][0]) \n")
@@ -118,7 +123,7 @@ function sim(jl_seed::Int, n_fac::Int; K=5, L=Dict(0=>3, 1=>3), J=20, fs_seed=42
     print('fs num clus (i' %+% i %+% '): ' %+% length(unique(clus))) # Number of clusters learned
     clus = relabel_clusters(clus)
     my.image($(dat.y)[[i]][order(clus),], col=blueToRed(9), zlim=zlim, addL=TRUE,
-             na.color='black', cex.y.leg=1, xlab='cell types',  ylab='cells',
+             na.color='black', cex.y.leg=1, xlab='markers',  ylab='cells',
              cex.lab=1.5, cex.axis=1.5, xaxt='n',
              f=function(z) {
                addCut(clus, s=mult)
@@ -126,6 +131,16 @@ function sim(jl_seed::Int, n_fac::Int; K=5, L=Dict(0=>3, 1=>3), J=20, fs_seed=42
              })
   }
   dev.off()
+
+  # Plot data
+  plotPng($OUTPUT_DIR %+% '/' %+% 'Y%03d.png', s=mult)
+  for (i in 1:$I) {
+    my.image($(dat.y)[[i]], col=blueToRed(9), zlim=zlim, addL=TRUE,
+             na.color='black', cex.y.leg=1, xlab='markers',  ylab='cells',
+             cex.lab=1.5, cex.axis=1.5, xaxt='n')
+  }
+  dev.off()
+ 
   
   println("Computing ARI ...")
   true.clus.ls <- $(simdat[:lam])
