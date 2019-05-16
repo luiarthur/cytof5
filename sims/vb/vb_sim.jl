@@ -6,7 +6,7 @@ using Cytof5
 
 if length(ARGS) == 0
   SEED = 0
-  RESULTS_DIR = "results/vb-sim-paper/test/$(SEED)/"
+  RESULTS_DIR = "results/test/vb-sim-paper/$(SEED)/"
   SIMDAT_PATH = "../sim_study/simdata/kills-flowsom/N5000/K10/1/simdat.bson"
   K_VB = 30
   BATCHSIZE = 100
