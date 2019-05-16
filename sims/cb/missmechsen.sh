@@ -39,7 +39,7 @@ for m in `seq ${#YQUANTILES[@]}`; do
   EXP_NAME="K_MCMC${K_MCMC}_missmech${m}"
 
   # Julia Command to run
-  jlCmd="julia cb.jl --K_MCMC=${k_mcmc} \
+  jlCmd="julia cb.jl --K_MCMC=${K_MCMC} \
     --L0_MCMC=${L0_MCMC} --L1_MCMC=${L1_MCMC} \
     --subsample=$SUBSAMPLE \
     --tau0=$TAU0 --tau1=$TAU1 \
