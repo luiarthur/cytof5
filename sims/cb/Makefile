@@ -1,5 +1,5 @@
 .PHONY: send retrieve retrieveall litecp clean zmetric
-.PHONY: run pullAndProcess postProcess repFamTest test testlocal testplots metrics runAndProcess
+.PHONY: run pullAndProcess postProcess repFamTest test testlocal testplots metrics runAndProcess missmechsen
 .PHONY: genpreprocessGraphs sendPreprocessedGraphs getPreprocessedGraphs getRData sendRData
 
 # Current run name
@@ -76,6 +76,9 @@ repFamTest:
 
 run:
 	./run $(RESULTS_DIR_CB_RUN) $(AWS_BUCKET_CB_RUN)
+
+missmechsen:
+	bash missmechsen.sh  $(RESULTS_DIR)/  $(AWS_BUCKET)
 
 runAndProcess: run pullAndProcess
 
