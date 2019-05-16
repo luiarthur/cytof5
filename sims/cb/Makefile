@@ -78,7 +78,7 @@ run:
 	./run $(RESULTS_DIR_CB_RUN) $(AWS_BUCKET_CB_RUN)
 
 missmechsen:
-	bash missmechsen.sh  $(RESULTS_DIR)/  $(AWS_BUCKET)
+	bash missmechsen.sh  $(RESULTS_DIR_CB_RUN)/  $(AWS_BUCKET_CB_RUN)
 
 runAndProcess: run pullAndProcess
 
