@@ -35,7 +35,7 @@ using BSON
                                    sortLambda=false, propMissingScale=0.7,
                                    eps=fill(.005, I))
 
-  tau = .005 # FIXME: why can't I do .001?
+  tau = .0001 # FIXME: why can't I do .001?
   use_stickbreak = false
   noisy_var = 10.0
   K_MCMC = 10

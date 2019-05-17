@@ -125,3 +125,14 @@ compute_lpdf(dist::Beta, x::X) where X = lpdf_beta.(x, dist.α, dist.β)
 compute_lpdf(dist::Gamma, x::X) where X = lpdf_gamma.(x, dist.α, dist.θ)
 compute_lpdf(dist::LogNormal, x::X) where X = lpdf_lognormal.(x, dist.μ, dist.σ)
 compute_lpdf(dist::Uniform, x::X) where X = lpdf_uniform.(x, dist.a, dist.b)
+
+function sigmoid_safe(x::T; eps::Float64=1e-8) where {T <: Real}
+  return T(clamp(sigmoid(x), eps, 1 - eps))
+end
+
+function logit_safe(p::T; eps::Float64=1e-8) where {T <: Real}
+  p = T(clamp(p, eps , 1 - eps))
+  return log(p) - log1p(-p)
+end
+
+

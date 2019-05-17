@@ -7,11 +7,11 @@ computed, and then add back smoothed_Z for the return.
 The only gradient will then be that of smoothed Z.
 """
 function compute_Z(v::AbstractArray, H::AbstractArray;
-                   use_stickbreak::Bool=false, tau::Float64=.005)
+                   use_stickbreak::Bool=false, tau::Float64=.001)
   v_rs = reshape(v, 1, length(v))
   p = use_stickbreak ? cumprod(v_rs, dims=2) : v_rs
-  logit = p .- H
-  smoothed_Z = sigmoid.(logit / tau)
+  r = ADVI.logit_safe.(p) .- ADVI.logit_safe.(H)
+  smoothed_Z = ADVI.sigmoid_safe.(r / tau)
   Z = (p .> H)
   return Tracker.data(Z - smoothed_Z) + smoothed_Z
 end
