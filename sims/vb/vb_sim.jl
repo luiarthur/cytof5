@@ -34,7 +34,7 @@ simdat[:y] = Vector{Matrix{Float64}}(simdat[:y])
 # Generate model constnats
 c = Cytof5.VB.Constants(y=simdat[:y], K=K_VB, L=Dict(false=>5, true=>5),
                         yQuantiles=[.0, .25, .5], pBounds=[.05, .8, .05],
-                        use_stickbreak=false, tau=.005)
+                        use_stickbreak=false, tau=1e-5)
 c.priors.eps = Beta(1, 99)
 c.priors.sig2 = LogNormal(log(.3), .2)
 
