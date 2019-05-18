@@ -13,10 +13,14 @@ understand why the gradioent of the sampled qauntity (x)
 is not needed. But that's how it is.
 =#
 
+# implement for normal, gamma, invgamma, dirichlet, beta
+
+import SpecialFunctions: digamma
+
 """
 gradient of log of normal density with respect to μ and log(σ)
 """
-function qgrad(x, m, log_s)
+function qgrad_normal(x, m, log_s)
   s = exp(log_s)
   z = (x - m) / s
   # Gradient wrt μ
@@ -27,23 +31,16 @@ function qgrad(x, m, log_s)
   return grad_mu, grad_log_s
 end
 
+"""
+gradient of log of gamma density with respect to log(shape) and log(scale)
+"""
+function qgrad_gamma(x, log_shape, log_scale)
+  a = exp(log_shape)
+  b = exp(log_scale)
+  grad_log_shape = -digamma(a) * a - a * log_scale + a * log(x)
+  grad_log_scale = -a + (x / b)
 
-using Flux, Flux.Tracker, Distributions
-m = param(1)
-log_s = param(log(.5))
-# x = 2.0
-z = rand()
-x = Tracker.data(m + z * exp(log_s))
-
-@time back!(logpdf(Normal(m, exp(log_s)), x))
-@time res = qgrad(x, m.data, log_s.data)
-@assert (m.tracker.grad, log_s.tracker.grad) == res
-
-B = Int(1e5)
-@time for i in 1:B
-  back!(logpdf(Normal(m, exp(log_s)), x))
+  return grad_log_shape, grad_log_scale
 end
-@time for i in 1:B
-  res = qgrad(x, m.data, log_s.data)
-end
-# @assert (m.tracker.grad, log_s.tracker.grad) == res
+
+
