@@ -11,22 +11,32 @@ gradient of log of normal density with respect to μ and log(σ)
 """
 function qgrad(x, m, log_s)
   s = exp(log_s)
+  z = (x - m) / s
   # Gradient wrt μ
-  grad_mu = (x - m) / s^2
+  grad_mu = z / s
   # Gradient wrt log(σ)
-  grad_log_s = -1 + ((x - m) / s)^2
+  grad_log_s = -1 + z ^ 2
 
   return grad_mu, grad_log_s
 end
 
 
-#= Test
 using Flux, Flux.Tracker, Distributions
 m = param(1)
 log_s = param(log(.5))
-x = 2
+# x = 2.0
+z = rand()
+x = Tracker.data(m + z * exp(log_s))
 
 @time back!(logpdf(Normal(m, exp(log_s)), x))
 @time res = qgrad(x, m.data, log_s.data)
-(m.tracker.grad, log_s.tracker.grad) == res
-=#
+@assert (m.tracker.grad, log_s.tracker.grad) == res
+
+B = Int(1e5)
+@time for i in 1:B
+  back!(logpdf(Normal(m, exp(log_s)), x))
+end
+@time for i in 1:B
+  res = qgrad(x, m.data, log_s.data)
+end
+# @assert (m.tracker.grad, log_s.tracker.grad) == res
