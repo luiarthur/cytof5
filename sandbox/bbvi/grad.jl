@@ -4,6 +4,13 @@ http://proceedings.mlr.press/v33/ranganath14.pdf
 
 Supplementary:
 http://proceedings.mlr.press/v33/ranganath14-supp.pdf
+
+# Another useful resource:
+http://www.it.uu.se/research/systems_and_control/education/2018/pml/lectures/VILectuteNotesPart3.pdf
+
+This gradient is for the score function estimator. I don't
+understand why the gradioent of the sampled qauntity (x)
+is not needed. But that's how it is.
 =#
 
 """
