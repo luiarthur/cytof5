@@ -1,5 +1,6 @@
 SHELL:=/bin/bash
-.PHONY: cleansim sim retrieveallsim retrievesim postprocsim cb
+.PHONY: cleansim sim retrieveallsim retrievesim postprocsim
+.PHONY: cleancb cb retrieveallcb retrievecb postproccb
 
 # Simulation data experiment name
 SIM_EXP_NAME = vb-sim-paper
@@ -52,7 +53,7 @@ retrievecb:
 retrieveallcb:
 	aws s3 sync $(CB_AWS_BUCKET) $(CB_RESULTS_DIR)
 
-postprocCB:
+postproccb:
 	julia post_process.jl $(CB_RESULTS_DIR)
 
 sendcb:
