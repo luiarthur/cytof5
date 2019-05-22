@@ -1,4 +1,4 @@
-mutable struct VAE{A <: AbstractArray}
+struct VAE{A <: AbstractArray}
   mean::A    # 1 x J
   log_sd::A  # 1 x J
 end
