@@ -15,9 +15,15 @@ addcut(clus, s=1) = plt.abline(h=base.cumsum(base.table(clus)) .+ .5, lwd=3*s, c
 # For BSON
 using Cytof5, Flux, Distributions
 
-function post_process(output_path, thresh=.99)
+function post_process(output_path; thresh=.99)
   out = BSON.load(output_path)
-  simdat = decompress_simdat!(out[:simdat])
+  if :simdat in keys(out)
+    has_simdat = true
+    simdat = decompress_simdat!(out[:simdat])
+  else
+    has_simdat = false
+    y = Matrix{Float64}.(out[:y])
+  end
   RESULTS_DIR = join(split(output_path, "/")[1:end-1], "/")
   IMG_DIR = "$(RESULTS_DIR)/img/"
   mkpath(IMG_DIR)
@@ -49,8 +55,16 @@ function post_process(output_path, thresh=.99)
   trace = [Cytof5.VB.rsample(s)[2] for s in state_hist]
 
   # y_samps
-  m = [isnan.(yi) for yi in simdat[:y]]
-  y_samps = [Tracker.data.(Cytof5.VB.rsample(state, simdat[:y], c)[3]) for n in 1:10]
+  if has_simdat
+    m = [isnan.(yi) for yi in simdat[:y]]
+  else
+    m = [isnan.(yi) for yi in y]
+  end
+  if has_simdat
+    y_samps = [Tracker.data.(Cytof5.VB.rsample(state, simdat[:y], c)[3]) for n in 1:10]
+  else
+    y_samps = [Tracker.data.(Cytof5.VB.rsample(state, y, c)[3]) for n in 1:10]
+  end
   dev.pdf("$(IMG_DIR)/y_hist.pdf")
   for i in 1:c.I
     plt.hist(vec(y_samps[end][i][m[i]]), xlab="", ylab="", main="");
@@ -81,9 +95,11 @@ function post_process(output_path, thresh=.99)
   dev.dev_off()
 
   # True Z
-  dev.pdf("$(IMG_DIR)/Z_true.pdf")
-  cytof3.my_image(simdat[:Z], xlab="features", ylab="markers", col=cytof3.greys(10), addL=true, f=fZ)
-  dev.dev_off()
+  if has_simdat
+    dev.pdf("$(IMG_DIR)/Z_true.pdf")
+    cytof3.my_image(simdat[:Z], xlab="features", ylab="markers", col=cytof3.greys(10), addL=true, f=fZ)
+    dev.dev_off()
+  end
 
   # TODO: Add truth
 
@@ -93,7 +109,9 @@ function post_process(output_path, thresh=.99)
   for i in 1:c.I
     Wi = hcat([w[i, :] for w in W]...)
     plt.boxplot(Wi');
-    plt.abline(h=simdat[:W][i, :], lty=2, col="grey")
+    if has_simdat
+      plt.abline(h=simdat[:W][i, :], lty=2, col="grey")
+    end
   end
   dev.dev_off()
 
@@ -102,22 +120,25 @@ function post_process(output_path, thresh=.99)
   dev.pdf("$(IMG_DIR)/mu.pdf")
   plt.boxplot(mu');
   plt.abline(h=0, v=c.L[0]+.5, col="grey");
-  plt.abline(h=simdat[:mus][0], lty=2, col="grey");
-  plt.abline(h=simdat[:mus][1], lty=2, col="grey");
+  if has_simdat
+    plt.abline(h=simdat[:mus][0], lty=2, col="grey");
+    plt.abline(h=simdat[:mus][1], lty=2, col="grey");
+  end
   dev.dev_off()
 
   # sig2
   sig2 = hcat([s.sig2.data for s in samples]...)
   dev.pdf("$(IMG_DIR)/sig2.pdf")
   plt.boxplot(sig2');
-  plt.abline(h=simdat[:sig2], lty=2, col="grey");
+  if has_simdat
+    plt.abline(h=simdat[:sig2], lty=2, col="grey");
+  end
   dev.dev_off()
 
   # eps
   eps = hcat([s.eps.data for s in samples]...)
   dev.pdf("$(IMG_DIR)/eps.pdf")
   plt.boxplot(eps');
-  # plt.abline(h=simdat[:eps], lty=2, col="grey");
   dev.dev_off()
 
   # v
@@ -193,7 +214,11 @@ function post_process(output_path, thresh=.99)
   dev.dev_off()
 
   ### yZ ###
-  lam = [sample_lam(state, simdat[:y], c) for b in 1:10]
+  if has_simdat
+    lam = [sample_lam(state, simdat[:y], c) for b in 1:10]
+  else
+    lam = [sample_lam(state, y, c) for b in 1:10]
+  end
   lam_mode = lam_f(lam, mode)
   W_mean= dropdims(mean(cat(W..., dims=3), dims=3), dims=3)
 
@@ -203,7 +228,12 @@ function post_process(output_path, thresh=.99)
     # Yi
     plotpng("$(IMG_DIR)/yz/y$(i)_post.png", s_png)
     lami_est, k_ord = relabel_lam(lam_mode[i], W_mean[i, :])
-    cytof3.my_image(simdat[:y][i][sortperm(lami_est), :], na="black",
+    if has_simdat
+      yi = simdat[:y][i]
+    else
+      yi = y[i]
+    end
+    cytof3.my_image(yi[sortperm(lami_est), :], na="black",
                     zlim=[-4,4], col=cytof3.blueToRed(9),
                     f=x->addcut(lami_est, s_png),
                     addL=true, xlab="markers", ylab="cells");
