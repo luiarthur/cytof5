@@ -5,12 +5,12 @@ using Cytof5
 include("../cb/PreProcess.jl")
 
 if length(ARGS) == 0
-  SEED = 0
+  SEED = 1
   RESULTS_DIR = "results/test/vb-cb-paper/"
   DATA_PATH="../cb/data/cytof_cb_float32.bson"
   K_VB = 30
-  BATCHSIZE = 100
-  NITERS = 10000
+  BATCHSIZE = 500
+  NITERS = 5000
 else
   SEED = parse(Int, ARGS[1])
   RESULTS_DIR = ARGS[2]
@@ -34,9 +34,10 @@ Cytof5.Model.logger("good columns: $goodColumns")
 # Generate model constnats
 c = Cytof5.VB.Constants(y=y, K=K_VB, L=Dict(false=>5, true=>3),
                         yQuantiles=[.0, .25, .5], pBounds=[.05, .8, .05],
-                        use_stickbreak=false, tau=1e-5)
+                        use_stickbreak=false, tau=.001)
 c.priors.eps = Beta(1, 99)
-c.priors.sig2 = LogNormal(log(.3), .2)
+# c.priors.sig2 = LogNormal(log(.3), .2)
+c.priors.sig2 = Gamma(2, 1/20)
 
 println("seed: $SEED")
 # Fit model

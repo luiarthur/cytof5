@@ -36,7 +36,7 @@ function post_process(output_path; thresh=.99)
 
   # ELBO
   dev.pdf("$(IMG_DIR)/elbo.pdf")
-  plt.plot(elbo[200:end], xlab="", ylab="", typ="l")
+  plt.plot(elbo[200:end], xlab="iteration", ylab="ELBO / sum(N)", typ="l")
   dev.dev_off()
 
   # Metrics
