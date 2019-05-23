@@ -41,8 +41,8 @@ Get variational parameters
 function vp(mp::ModelParam; m_min::Float64=-10.0, m_max::Float64=10.0, s_max::Float64=10.0)
   if mp.support in ("unit", "simplex")
     param_range = m_max - m_min
-    m = sigmoid.(mp.m) .* param_range .+ m_min
-    s = sigmoid.(mp.log_s) .* s_max
+    m = sigmoid.(mp.m) * param_range .+ m_min
+    s = sigmoid.(mp.log_s) * s_max
   else
     m = mp.m
     s = exp.(mp.log_s)
@@ -85,7 +85,7 @@ Reparameterized sampling from variational distribution
 function rsample(mp::ModelParam)
   # TODO: Optimize this
   m, s = vp(mp)
-  return randn(mp.size) .* s .+ m
+  return randn(mp.size) .* s + m
 end
 
 #= TEST
