@@ -2,7 +2,7 @@ function fit(; y::Vector{M}, niters::Int, batchsize::Int, c::Constants,
              opt=ADAM(1e-2), print_freq::Int=10, nsave::Int=0,
              init::Union{StateMP, Nothing}=nothing,
              seed=nothing, flushOutput::Bool=false,
-             return_init::Bool=false, verbose::Int=1) where M <: Matrix
+             verbose::Int=1) where M <: Matrix
 
   if verbose >= 1
     println("opt: $opt")
@@ -60,7 +60,7 @@ function fit(; y::Vector{M}, niters::Int, batchsize::Int, c::Constants,
   end
 
   # Create an object to store history of state
-  state_hist = typeof(state)[]
+  state_hist = [deepcopy(init)]
   
   # Main loop
   println("Compiling model...")
@@ -100,9 +100,6 @@ function fit(; y::Vector{M}, niters::Int, batchsize::Int, c::Constants,
              :niters => niters,
              :seed => seed,
              :c => c)
-  if return_init
-    out[:init] = init
-  end
 
   return out
 end
