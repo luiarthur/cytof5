@@ -5,6 +5,7 @@ end
 
 # return standard deviation
 _sd(vae::VAE) = exp.(vae.log_sd)
+# _sd(vae::VAE) = .2 # This works. Maybe do this computation inline?
 
 # return mean
 _mean(vae::VAE) = vae.mean

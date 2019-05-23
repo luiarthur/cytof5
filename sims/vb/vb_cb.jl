@@ -9,7 +9,7 @@ if length(ARGS) == 0
   RESULTS_DIR = "results/test/vb-cb-paper/"
   DATA_PATH="../cb/data/cytof_cb_float32.bson"
   K_VB = 30
-  BATCHSIZE = 500
+  BATCHSIZE = 100
   NITERS = 5000
 else
   SEED = parse(Int, ARGS[1])
