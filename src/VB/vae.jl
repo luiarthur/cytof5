@@ -3,13 +3,6 @@ struct VAE{A <: AbstractArray}
   log_sd::A  # 1 x J
 end
 
-# return standard deviation
-_sd(vae::VAE) = exp.(vae.log_sd)
-# _sd(vae::VAE) = .2 # This works. Maybe do this computation inline?
-
-# return mean
-_mean(vae::VAE) = vae.mean
-
 # return (mean_function, sd_function)
 function (vae::VAE)(yi_minibatch::Matrix, Ni::Integer)
   # Make a copy of yi_minibatch
@@ -20,10 +13,10 @@ function (vae::VAE)(yi_minibatch::Matrix, Ni::Integer)
   yi[m_mini] .= 0
 
   # mean function
-  mean_fn = yi .* (1 .- m_mini) + _mean(vae) .* m_mini
+  mean_fn = yi .* (1 .- m_mini) + vae.mean .* m_mini
 
   # sd function
-  sd_fn = _sd(vae) .* m_mini
+  sd_fn = exp.(vae.log_sd) .* m_mini
 
   # get random draw for imputed y (and observed y)
   z = randn(size(yi))

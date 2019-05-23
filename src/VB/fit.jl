@@ -65,15 +65,13 @@ function fit(; y::Vector{M}, niters::Int, batchsize::Int, c::Constants,
   # Main loop
   println("Compiling model...")
   @time for iter in 1:niters
-    # Sample minibatch indices
-    idx = [if 0 < batchsize < c.N[i] 
-             Distributions.sample(1:c.N[i], batchsize, replace=false)
-           else
-             1:c.N[i]
-           end for i in 1:c.I]
-
-    # minibatch
-    y_mini = [y[i][idx[i], :] for i in 1:c.I]
+    # Sample minibatch
+    y_mini = [if 0 < batchsize < c.N[i]
+                idx = Distributions.sample(1:c.N[i], batchsize, replace=false)
+                y[i][idx, :]
+              else
+                y[i]
+              end for i in 1:c.I]
 
     # Compute and update gradients. Two different ways.
     # Flux.train!(loss, ps, [(y_mini, )], opt)
