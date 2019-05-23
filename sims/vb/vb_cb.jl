@@ -10,7 +10,7 @@ if length(ARGS) == 0
   DATA_PATH="../cb/data/cytof_cb_float32.bson"
   K_VB = 30
   BATCHSIZE = 100
-  NITERS = 5000
+  NITERS = 50000
 else
   SEED = parse(Int, ARGS[1])
   RESULTS_DIR = ARGS[2]
@@ -37,7 +37,8 @@ c = Cytof5.VB.Constants(y=y, K=K_VB, L=Dict(false=>5, true=>3),
                         use_stickbreak=false, tau=.001)
 c.priors.eps = Beta(1, 99)
 # c.priors.sig2 = LogNormal(log(.3), .2)
-c.priors.sig2 = Gamma(2, 1/20)
+# c.priors.sig2 = Gamma(2, 1/20)
+c.priors.sig2 = Gamma(.1, 1)
 
 println("seed: $SEED")
 # Fit model
