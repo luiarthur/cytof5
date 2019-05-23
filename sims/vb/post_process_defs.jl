@@ -67,7 +67,7 @@ function post_process(output_path; thresh=.99)
   end
   dev.pdf("$(IMG_DIR)/y_hist.pdf")
   for i in 1:c.I
-    plt.hist(vec(y_samps[end][i][m[i]]), xlab="", ylab="", main="");
+    plt.hist(vec(y_samps[end][i][m[i]]), xlab="", ylab="", main="", xlim=[-8, 1]);
   end
   dev.dev_off()
 
