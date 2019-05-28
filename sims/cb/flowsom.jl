@@ -17,6 +17,7 @@ end
 
 @rimport FlowSOM
 @rimport flowCore
+@rimport xtable
 
 if length(ARGS) == 0
   DATA_PATH = "data/cytof_cb_with_nan.jld2"
@@ -115,4 +116,11 @@ open("$RESULTS_DIR/W.txt", "w") do file
     wi = join(W[i, :], ",")
     write(file, "$(wi)\n")
   end
+end
+
+@rget W
+open("$RESULTS_DIR/W.tex", "w") do file
+  xtab_W = xtable.xtable(W', digits=3)
+  xtab_W = join(split("$xtab_W", "\n")[2:end], "\n")
+  write(file, "$(xtab_W)\n")
 end
