@@ -84,16 +84,17 @@ mult=1
 plotPng($RESULTS_DIR %+% 'Y%03d_FlowSOM.png', s=10)
 lines_clus = rep(NA, I)
 W = matrix(NA, I, length(unique(fsClus)))
+W_relabeled = matrix(NA, I, length(unique(fsClus)))
 
 for (i in 1:$I) {
   clus = fsClus[idx[i,1]:idx[i,2]]
   nclus = length(unique(clus))
   print(nclus) # Number of clusters learned
+  W[i, ] = table(clus) / length(clus)
   clus = relabel_clusters(clus)
   line_clus = paste(c('i:', i, '| nclu:', nclus), collapse=' ')
   lines_clus[i] = line_clus
-
-  W[i, ] = table(clus) / length(clus)
+  W_relabeled[i, ] = table(clus) / length(clus)
     
   my.image($(y_orig)[[i]][order(clus),], col=blueToRed(9), zlim=zlim, addL=TRUE,
            na.color='black', cex.y.leg=1, xlab='cell types',  ylab='cells',
@@ -110,17 +111,22 @@ writeLines(lines_clus, fileConn)
 close(fileConn)
 """
 
-@rget W
-open("$RESULTS_DIR/W.txt", "w") do file
-  for i in 1:size(W, 1)
-    wi = join(W[i, :], ",")
-    write(file, "$(wi)\n")
+@rget W W_relabeled
+for w in (W, W_relabeled)
+  fname = (w == W ? "W" : "W_relabeled")
+
+  open("$RESULTS_DIR/$(fname).txt", "w") do file
+    for i in 1:size(w, 1)
+      wi = join(w[i, :], ",")
+      write(file, "$(wi)\n")
+    end
+  end
+
+  open("$RESULTS_DIR/$(fname).tex", "w") do file
+    xtab_W = xtable.xtable(w', digits=3)
+    xtab_W = join(split("$xtab_W", "\n")[2:end], "\n")
+    write(file, "$(xtab_W)\n")
   end
 end
 
-@rget W
-open("$RESULTS_DIR/W.tex", "w") do file
-  xtab_W = xtable.xtable(W', digits=3)
-  xtab_W = join(split("$xtab_W", "\n")[2:end], "\n")
-  write(file, "$(xtab_W)\n")
-end
+
