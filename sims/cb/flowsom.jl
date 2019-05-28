@@ -54,7 +54,7 @@ ff_Y = R"colnames(Y) <- 1:NCOL(Y); flowCore::flowFrame(Y)"
                              colsToUse = 1:J,
                              # Metaclustering options:
                              #nClus = 20,
-                             maxMeta=20,
+                             maxMeta=30,
                              # Seed for reproducible results:
                              seed = 42);
 
