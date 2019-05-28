@@ -81,10 +81,19 @@ fsClus = as.numeric(fSOMClus)
 
 mult=1
 plotPng($RESULTS_DIR %+% 'Y%03d_FlowSOM.png', s=10)
+lines_clus = rep(NA, I)
+W = matrix(NA, I, length(unique(fsClus)))
+
 for (i in 1:$I) {
   clus = fsClus[idx[i,1]:idx[i,2]]
-  print(length(unique(clus))) # Number of clusters learned
+  nclus = length(unique(clus))
+  print(nclus) # Number of clusters learned
   clus = relabel_clusters(clus)
+  line_clus = paste(c('i:', i, '| nclu:', nclus), collapse=' ')
+  lines_clus[i] = line_clus
+
+  W[i, ] = table(clus) / length(clus)
+    
   my.image($(y_orig)[[i]][order(clus),], col=blueToRed(9), zlim=zlim, addL=TRUE,
            na.color='black', cex.y.leg=1, xlab='cell types',  ylab='cells',
            cex.lab=1.5, cex.axis=1.5, xaxt='n',
@@ -94,4 +103,16 @@ for (i in 1:$I) {
            })
 }
 dev.off()
+
+fileConn <- file($RESULTS_DIR %+% "clusters.txt")
+writeLines(lines_clus, fileConn)
+close(fileConn)
 """
+
+@rget W
+open("$RESULTS_DIR/W.txt", "w") do file
+  for i in 1:size(W, 1)
+    wi = join(W[i, :], ",")
+    write(file, "$(wi)\n")
+  end
+end

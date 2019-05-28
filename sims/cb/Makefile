@@ -1,6 +1,7 @@
 .PHONY: send retrieve retrieveall litecp clean zmetric
 .PHONY: run pullAndProcess postProcess repFamTest test testlocal testplots metrics runAndProcess missmechsen
 .PHONY: genpreprocessGraphs sendPreprocessedGraphs getPreprocessedGraphs getRData sendRData
+.PHONY: sendflowsom getflowsom flowsom
 
 # Current run name
 DIR_CB_RUN = cb-paper
@@ -147,3 +148,12 @@ clean:
 # z_metric
 zmetric: metrics
 	julia compute_z_metric.jl
+
+
+# Do flowsom on CB
+flowsom:
+	julia flowsom.jl
+
+# send FlowSOM CB results
+sendflowsom:
+	aws s3 sync results/cb-paper/flowsom s3://cytof-cb-results/cb-paper/flowsom/
