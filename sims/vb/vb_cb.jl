@@ -10,7 +10,7 @@ if length(ARGS) == 0
   DATA_PATH="../cb/data/cytof_cb_float32.bson"
   K_VB = 30
   BATCHSIZE = 500
-  NITERS = 50000
+  NITERS = 20000
 else
   SEED = parse(Int, ARGS[1])
   RESULTS_DIR = ARGS[2]
@@ -50,6 +50,6 @@ out[:y] = Matrix{Float32}.(y)
 BSON.bson("$(RESULTS_DIR)/output.bson", out)
 
 # Post process
-include("post_process_defs.jl")
+include("post_process_defs_pyplot.jl")
 out = nothing
 post_process("$(RESULTS_DIR)/output.bson")

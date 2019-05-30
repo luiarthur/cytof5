@@ -2,9 +2,20 @@ using BSON
 using PyCall
 plt = pyimport("matplotlib.pyplot")
 
+# Load current dir
+pushfirst!(PyVector(pyimport("sys")."path"), "")
+plot_yz = pyimport("plot_yz").plot_yz
+blue2red = pyimport("blue2red")
+
+# multiple pages
+PdfPages = pyimport("matplotlib.backends.backend_pdf").PdfPages
+
 include("sample/sample_lam.jl")
 
 pyrange(n) = collect(range(0, stop=n-1))
+function boxplot(x; showmeans=true, whis=[2.5, 97.5], showfliers=false, kw...)
+  plt.boxplot(x, showmeans=showmeans, whis=whis, showfliers=showfliers; kw...)
+end
 
 function add_gridlines_Z(Z)
   J, K = size(Z)
@@ -18,6 +29,7 @@ function add_gridlines_Z(Z)
 end
 
 axhlines(x; kw...) = for xi in x plt.axhline(xi; kw...) end
+cm_greys = plt.cm.get_cmap("Greys", 5)
 
 function plot_Z(Z; colorbar=true)
   J, K = size(Z)
@@ -34,8 +46,7 @@ end
 # For BSON
 using Cytof5, Flux, Distributions
 
-function post_process(output_path; thresh=.99)
-  cm_greys = plt.cm.get_cmap("Greys", 5)
+function post_process(output_path; thresh=.99, w_thresh=.01)
   VMIN, VMAX = VLIM = (-4, 4) 
   # cm = blue2red.cm(9)
 
@@ -57,25 +68,37 @@ function post_process(output_path; thresh=.99)
   state_hist = out[:state_hist]
   metrics = out[:metrics]
 
+  println("metrics...")
   # ELBO
   plt.plot(elbo[200:end])
   plt.xlabel("iteration")
   plt.ylabel("ELBO / sum(N)")
   plt.savefig("$(IMG_DIR)/elbo.pdf")
+  plt.close()
 
   # Metrics
   plt.figure()
-  for (k, m) in metrics
-    plt.plot(metrics[k][1:end]/sum(c.N))
-    plt.xlabel("iteration")
-    plt.ylabel(string(k))
+  begin 
+    local counter = 0
+    for (k, m) in metrics
+      counter += 1
+      plt.subplot(length(metrics), 1, counter)
+      plt.plot(metrics[k][1:end]/sum(c.N))
+      if counter == length(metrics)
+        plt.xlabel("iteration")
+      end
+      plt.ylabel(string(k))
+    end
+    plt.tight_layout()
+    plt.savefig("$(IMG_DIR)/metrics.pdf")
   end
-  plt.savefig("$(IMG_DIR)/metrics.pdf")
+  plt.close()
 
   NSAMPS = 200
   samples = [Cytof5.VB.rsample(state)[2] for n in 1:NSAMPS]
   trace = [Cytof5.VB.rsample(s)[2] for s in state_hist]
 
+  println("y samples ...")
   # y_samps
   if has_simdat
     m = [isnan.(yi) for yi in simdat[:y]]
@@ -91,8 +114,10 @@ function post_process(output_path; thresh=.99)
     plt.hist(vec(y_samps[end][i][m[i]]))
     plt.xlim([-8, 1])
     plt.savefig("$(IMG_DIR)/y$(i)_imputed_hist.pdf")
+    plt.close()
   end
 
+  println("prob miss...")
   # Prob miss
   ygrid = collect(range(-8, stop=0, length=500))
   pm = hcat([Cytof5.VB.prob_miss(ygrid, c.beta[i]...) for i in 1:c.I]...)
@@ -104,8 +129,10 @@ function post_process(output_path; thresh=.99)
   plt.xlabel("y")
   plt.ylabel("prob. of missing")
   plt.savefig("$(IMG_DIR)/prob_miss.pdf")
+  plt.close()
 
   # Z
+  println("Z ...")
   if c.use_stickbreak
     Z = [Int.(cumprod(reshape(s.v, 1, c.K)) .> s.H).data for s in samples]
   else
@@ -114,6 +141,7 @@ function post_process(output_path; thresh=.99)
   Z_mean = mean(Z)
   plot_Z(Z_mean)
   plt.savefig("$(IMG_DIR)/Z.pdf")
+  plt.close()
 
   # True Z
   if has_simdat
@@ -121,20 +149,23 @@ function post_process(output_path; thresh=.99)
     plt.xlabel("features")
     plt.ylabel("markers")
     plt.savefig("$(IMG_DIR)/Z_true.pdf")
+    plt.close()
 
     plot_Z(simdat[:Z]')
     plt.ylabel("features")
     plt.xlabel("markers")
     plt.savefig("$(IMG_DIR)/ZT_true.pdf")
+    plt.close()
   end
 
   # W
+  println("W ...")
   W = [s.W.data for s in samples]
   plt.figure()
   for i in 1:c.I
     plt.subplot(c.I, 1, i)
     Wi = hcat([w[i, :] for w in W]...)
-    plt.boxplot(Wi', showmeans=true, whis=[2.5, 97.5], showfliers=false);
+    boxplot(Wi')
     plt.ylabel("W$i", rotation=0, labelpad=15)
     plt.xticks(rotation=90)
     if has_simdat
@@ -146,10 +177,12 @@ function post_process(output_path; thresh=.99)
   plt.tight_layout()
   # plt.show()
   plt.savefig("$(IMG_DIR)/W.pdf")
+  plt.close()
 
   # mu
+  println("mu ...")
   mu = hcat([[-cumsum(s.delta0.data); cumsum(s.delta1.data)] for s in samples]...)
-  plt.boxplot(mu');
+  boxplot(mu');
   if has_simdat
     plt.axhline(0)
     plt.axvline(c.L[0] + .5)
@@ -158,31 +191,40 @@ function post_process(output_path; thresh=.99)
     end
   end
   plt.savefig("$(IMG_DIR)/mu.pdf")
-
+  plt.close()
+  
   # sig2
+  println("sig2 ...")
   sig2 = hcat([s.sig2.data for s in samples]...)
-  plt.boxplot(sig2');
+  boxplot(sig2');
   if has_simdat
     axhlines(simdat[:sig2], ls="--", color="grey", lw=.5);
   end
   plt.savefig("$(IMG_DIR)/sig2.pdf")
+  plt.close()
 
   # eps
+  println("eps ...")
   eps = hcat([s.eps.data for s in samples]...)
-  plt.boxplot(eps');
+  boxplot(eps');
   plt.savefig("$(IMG_DIR)/eps.pdf")
+  plt.close()
 
   # v
+  println("v ...")
   v = hcat([s.v.data for s in samples]...)
-  plt.boxplot(v');
+  boxplot(v');
   plt.savefig("$(IMG_DIR)/v.pdf")
+  plt.close()
 
   # v cumprod
   v_cumprod = hcat([cumprod(s.v.data) for s in samples]...)
-  plt.boxplot(v_cumprod');
+  boxplot(v_cumprod');
   plt.savefig("$(IMG_DIR)/v_cumprod.pdf")
+  plt.close()
 
   # alpha
+  println("alpha ...")
   alpha = vcat([s.alpha.data for s in samples]...);
   plt.hist(alpha, density=true)
   plt.xlabel("alpha")
@@ -191,93 +233,124 @@ function post_process(output_path; thresh=.99)
   plt.axvline(quantile(alpha, .025), color="black", linestyle="--")
   plt.axvline(quantile(alpha, .975), color="black", linestyle="--")
   plt.savefig("$(IMG_DIR)/alpha.pdf")
+  plt.close()
 
   ### trace plots ###
+  println("traces ... ")
   mkpath("$(IMG_DIR)/trace/")
 
   # TODO:
   # Z trace
-  if c.use_stickbreak
-    Z_trace = [Int.(reshape(cumprod(t.v), 1, c.K) .> t.H).data for t in trace]
-  else
-    Z_trace = [Int.(reshape(t.v, 1, c.K) .> t.H).data for t in trace]
-  end
-  dev.pdf("$(IMG_DIR)/trace/Z.pdf")
-  for z in Z_trace
-    cytof3.my_image(z, xlab="features", ylab="markers")
-    plt.abline(h=collect(1:c.J) .+ .5, v=collect(1:c.K) .+ .5, col="grey")
-  end
-  dev.dev_off()
+  # if c.use_stickbreak
+  #   Z_trace = [Int.(reshape(cumprod(t.v), 1, c.K) .> t.H).data for t in trace]
+  # else
+  #   Z_trace = [Int.(reshape(t.v, 1, c.K) .> t.H).data for t in trace]
+  # end
+  # pdf_pages = PdfPages("$(IMG_DIR)/trace/Z.pdf")
+  # for z in Z_trace
+  #   fig = plt.figure()
+  #   fig = plot_Z(z, fig)
+  #   fig.xlabel("features")
+  #   fig.ylabel("markers")
+  #   pdf_pages.savefig(fig)
+  # end
+  # pdf_pages.close()
 
   # mu_trace
   mu_trace = hcat([[-cumsum(s.delta0.data); cumsum(s.delta1.data)] for s in trace]...)
-  dev.pdf("$(IMG_DIR)/trace/mu.pdf")
-  plt.matplot(mu_trace', xlab="iter", ylab="mu", typ="l", lwd=2)
-  dev.dev_off()
+  plt.plot(mu_trace')
+  plt.xlabel("iteration")
+  plt.ylabel("mu")
+  plt.savefig("$(IMG_DIR)/trace/mu.pdf")
+  plt.close()
 
   # sig2_trace
   sig2_trace = hcat([s.sig2.data for s in trace]...)
-  dev.pdf("$(IMG_DIR)/trace/sig2.pdf")
-  plt.matplot(sig2_trace', xlab="iter", ylab="sig2", typ="l", lwd=2)
-  dev.dev_off()
+  plt.plot(sig2_trace')
+  plt.xlabel("iter")
+  plt.ylabel("sig2")
+  plt.savefig("$(IMG_DIR)/trace/sig2.pdf")
+  plt.close()
 
   # eps_trace
   eps_trace = hcat([s.eps.data for s in trace]...)
-  dev.pdf("$(IMG_DIR)/trace/eps.pdf")
-  plt.matplot(eps_trace', xlab="iter", ylab="eps", typ="l", lwd=2)
-  dev.dev_off()
+  plt.plot(eps_trace')
+  plt.xlabel("iter")
+  plt.ylabel("eps")
+  plt.savefig("$(IMG_DIR)/trace/eps.pdf")
+  plt.close()
 
   # W trace
   W_trace = cat([s.W.data for s in trace]..., dims=3)
   for i in 1:c.I
-    dev.pdf("$(IMG_DIR)/trace/W$(i).pdf")
-    plt.matplot(W_trace[i, :, :]', xlab="iter", ylab="W$(i)", typ="l", lwd=2)
-    dev.dev_off()
+    plt.plot(W_trace[i, :, :]')
+    plt.xlabel("iter")
+    plt.ylabel("W$i")
+    plt.savefig("$(IMG_DIR)/trace/W$(i).pdf")
+    plt.close()
   end
 
   # v trace
   v_trace = hcat([s.v.data for s in trace]...)
-  dev.pdf("$(IMG_DIR)/trace/v.pdf")
-  plt.matplot(v_trace', xlab="iter", ylab="v", typ="l", lwd=2)
-  dev.dev_off()
+  plt.plot(v_trace')
+  plt.xlabel("iter")
+  plt.ylabel("v")
+  plt.savefig("$(IMG_DIR)/trace/v.pdf")
+  plt.close()
 
   # alpha trace
   alpha_trace = vcat([s.alpha.data for s in trace]...)
-  dev.pdf("$(IMG_DIR)/trace/alpha.pdf")
-  plt.plot(alpha_trace, xlab="iter", ylab="alpha", typ="l", lwd=2)
-  dev.dev_off()
+  plt.plot(alpha_trace)
+  plt.xlabel("iter")
+  plt.ylabel("alpha")
+  plt.savefig("$(IMG_DIR)/trace/alpha.pdf")
+  plt.close()
 
   ### yZ ###
-  if has_simdat
-    lam = [sample_lam(state, simdat[:y], c) for b in 1:10]
+  println("yz ... ")
+  @time if has_simdat
+    lam = [sample_lam(state, simdat[:y], c) for b in 1:30]
   else
-    lam = [sample_lam(state, y, c) for b in 1:10]
+    lam = [sample_lam(state, y, c) for b in 1:30]
   end
-  lam_mode = lam_f(lam, mode)
+  lam_mode = lam_f(lam, Distributions.mode)
+  # println(lam_mode[1][1:10])
   W_mean= dropdims(mean(cat(W..., dims=3), dims=3), dims=3)
 
   mkpath("$(IMG_DIR)/yz")
-  s_png = 10
   for i in 1:c.I
     # Yi
-    plotpng("$(IMG_DIR)/yz/y$(i)_post.png", s_png)
-    lami_est, k_ord = relabel_lam(lam_mode[i], W_mean[i, :])
+    # lami_est, k_ord = relabel_lam(lam_mode[i], W_mean[i, :])
+    lami_est, k_ord = relabel_lam2(lam_mode[i], W_mean[i, :])
     if has_simdat
       yi = simdat[:y][i]
     else
       yi = y[i]
     end
-    cytof3.my_image(yi[sortperm(lami_est), :], na="black",
-                    zlim=[-4,4], col=cytof3.blueToRed(9),
-                    f=x->addcut(lami_est, s_png),
-                    addL=true, xlab="markers", ylab="cells");
-    dev.dev_off()
+    plt.imshow(yi[sortperm(lami_est), :], aspect="auto",
+               vmin=VMIN, vmax=VMAX, cmap=blue2red.cm(9))
+    plt.colorbar()
+    plt.xlabel("markers")
+    plt.ylabel("cells")
+    plt.savefig("$(IMG_DIR)/yz/y$(i)_post.pdf")
+    plt.close()
 
     # Zi
-    dev.pdf("$(IMG_DIR)/yz/Z$(i)_post.pdf")
-    k_top = argmax(cumsum(W_mean[i, k_ord]) .> thresh)
-    cytof3.my_image(Z_mean[:, k_ord[1:k_top]]', f=z->fZ(z, 1), addL=true,
-                    col=cytof3.greys(10), xlab="markers", ylab="cell types")
-    dev.dev_off()
+    # k_top = argmax(cumsum(W_mean[i, k_ord]) .> thresh)
+    # plot_Z(Z_mean[:, k_ord[1:k_top]]')
+    k_common = W_mean[i, k_ord] .> w_thresh
+    plot_Z(Z_mean[:, k_ord[k_common]]')
+    plt.xlabel("markers")
+    plt.ylabel("cell types")
+    plt.savefig("$(IMG_DIR)/yz/Z$(i)_post.pdf")
+    plt.close()
+
+    # yz_i
+    plt.figure(figsize=(8,8))
+    # plot_yz(yi, Z_mean, W_mean[i, :], lam_mode[i], w_thresh=w_thresh,
+    plot_yz(yi, Z_mean, W_mean[i, :], lam_mode[i], w_thresh=w_thresh,
+            cm_y=blue2red.cm(9), vlim_y=VLIM)
+    plt.savefig("$(IMG_DIR)/yz/yz$(i)_post.pdf", dpi=500)
+    plt.close()
   end
 end

@@ -14,6 +14,19 @@ function data(s::StateTA)
   return out
 end
 
+function relabel_lam2(lami_est, wi_mean)
+  K = length(wi_mean)
+  k_ord = sortperm(wi_mean)
+  lami_new = lami_est .+ 0
+
+  for k in 1:K
+    idx_k = (lami_est .== k_ord[k])
+    lami_new[idx_k] .= k
+  end
+
+  return lami_new, k_ord
+end
+
 function relabel_lam(lami_est, wi_mean)
   K = length(wi_mean)
   k_ord = sortperm(wi_mean, rev=true)
