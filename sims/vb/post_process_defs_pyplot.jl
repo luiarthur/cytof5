@@ -183,9 +183,9 @@ function post_process(output_path; thresh=.99, w_thresh=.01)
   println("mu ...")
   mu = hcat([[-cumsum(s.delta0.data); cumsum(s.delta1.data)] for s in samples]...)
   boxplot(mu');
+  plt.axhline(0, alpha=.5)
+  plt.axvline(c.L[0] + .5, alpha=.5)
   if has_simdat
-    plt.axhline(0)
-    plt.axvline(c.L[0] + .5)
     for z in (0, 1)
       axhlines(simdat[:mus][z], color="grey", ls="--", lw=.5)
     end
