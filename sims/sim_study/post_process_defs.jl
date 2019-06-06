@@ -368,19 +368,23 @@ function post_process(PATH_TO_OUTPUT, thresh=0.99, min_presences=[0, .01, .03, .
         """
         util.devOff()
 
+
         util.plotPdf("$IMGDIR/sep/ZT_hat$(i)_minpresence$(min_presence).pdf")
-        util.myImage(Zi[:, common_celltypes]', addL=true, ylab="celltypes", yaxt="n",
-                     f=Z->addGridLines(K_trunc, J), xaxt="n", xlab="markers");
-
         perc = string.(round.(Wi[common_celltypes] * 100, digits=2), "%")
-        R"""
-        axis(4, at=1:$K_trunc, label=$(perc), las=1, fg="grey", cex.axis=1)
-        axis(2, at=1:$K_trunc, label=$(common_celltypes), las=1,
-             fg="grey", cex.axis=1)
-        axis(1, at=1:$J, label=1:$J, las=2, fg="grey", cex.axis=1)
-        """
+        function fz(z)
+          addGridLines(K_trunc, J)
+          R"""
+          axis(4, at=1:$K_trunc, label=$(perc), las=1, fg="grey", cex.axis=1)
+          axis(2, at=1:$K_trunc, label=$(common_celltypes), las=1,
+               fg="grey", cex.axis=1)
+          axis(1, at=1:$J, label=1:$J, las=2, fg="grey", cex.axis=1)
+          """
+        end
+        R"par(mar=c(5.1, 4, 2.1, 4))"
+        util.myImage(Zi[:, common_celltypes]', addL=false, ylab="celltypes", yaxt="n",
+                     f=fz, xaxt="n", xlab="markers");
+        R"par(mar=c(5, 4, 4, 2) + .1)"
         util.devOff()
-
       end
     end
   end # separate graphs
