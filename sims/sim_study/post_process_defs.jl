@@ -370,7 +370,7 @@ function post_process(PATH_TO_OUTPUT, thresh=0.99, min_presences=[0, .01, .03, .
 
         util.plotPdf("$IMGDIR/ZT_hat$(i)_minpresence$(min_presence).pdf")
         util.myImage(Zi[:, common_celltypes]', addL=false, ylab="celltypes", yaxt="n",
-                     f=Z->addGridLines(J, K_trunc), xaxt="n", ylab="markers");
+                     f=Z->addGridLines(K_trunc, J), xaxt="n", xlab="markers");
 
         perc = string.(round.(Wi[common_celltypes] * 100, digits=2), "%")
         R"""
