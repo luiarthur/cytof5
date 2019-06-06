@@ -369,7 +369,7 @@ function post_process(PATH_TO_OUTPUT, thresh=0.99, min_presences=[0, .01, .03, .
         util.devOff()
 
         util.plotPdf("$IMGDIR/ZT_hat$(i)_minpresence$(min_presence).pdf")
-        util.myImage(Zi[:, common_celltypes]', addL=false, ylab="celltypes", yaxt="n",
+        util.myImage(Zi[:, common_celltypes]', addL=true, ylab="celltypes", yaxt="n",
                      f=Z->addGridLines(K_trunc, J), xaxt="n", xlab="markers");
 
         perc = string.(round.(Wi[common_celltypes] * 100, digits=2), "%")
@@ -380,6 +380,7 @@ function post_process(PATH_TO_OUTPUT, thresh=0.99, min_presences=[0, .01, .03, .
         axis(1, at=1:$J, label=1:$J, las=2, fg="grey", cex.axis=1)
         """
         util.devOff()
+
       end
     end
   end # separate graphs
