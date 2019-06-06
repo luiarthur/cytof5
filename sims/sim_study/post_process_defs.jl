@@ -368,7 +368,7 @@ function post_process(PATH_TO_OUTPUT, thresh=0.99, min_presences=[0, .01, .03, .
         """
         util.devOff()
 
-        util.plotPdf("$IMGDIR/ZT_hat$(i)_minpresence$(min_presence).pdf")
+        util.plotPdf("$IMGDIR/sep/ZT_hat$(i)_minpresence$(min_presence).pdf")
         util.myImage(Zi[:, common_celltypes]', addL=true, ylab="celltypes", yaxt="n",
                      f=Z->addGridLines(K_trunc, J), xaxt="n", xlab="markers");
 
