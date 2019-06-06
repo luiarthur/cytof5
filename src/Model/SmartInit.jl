@@ -98,10 +98,13 @@ function smartInit(c::Constants, d::Data; iterMax::Int=10,
   W = [(sum(lam[i] .== k) + 1/K) / N[i] for i in 1:I, k in 1:K]
 
   # Get alpha
-  alpha = mean(sum(Z, dims=2))
+  # alpha = mean(sum(Z, dims=2))
+  #
+  alpha = (sum(Z) * K) / (J*K - sum(Z))
 
   # Get v
-  v = vec(mean(Z .+ (1.0 / J), dims=1))
+  # v = vec(mean(Z .+ (1.0 / J), dims=1))
+  v = fill(alpha / (alpha + K), K)
 
   (m0, s0, _, _) = params(c.delta_prior[0])
   (m1, s1, _, _) = params(c.delta_prior[1])
