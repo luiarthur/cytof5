@@ -257,6 +257,19 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
       axis(2, at=1:$J, label=1:$J, las=2, fg="grey", cex.axis=1)
       """
       util.devOff()
+
+      util.plotPdf("$IMGDIR/ZT_hat$(i)_minpresence$(min_presence).pdf")
+      util.myImage(Zi[:, common_celltypes]', addL=false, ylab="celltypes", yaxt="n",
+                   f=Z->addGridLines(J, K_trunc), xaxt="n", ylab="markers");
+
+      perc = string.(round.(Wi[common_celltypes] * 100, digits=2), "%")
+      R"""
+      axis(4, at=1:$K_trunc, label=$(perc), las=1, fg="grey", cex.axis=1)
+      axis(2, at=1:$K_trunc, label=$(common_celltypes), las=1,
+           fg="grey", cex.axis=1)
+      axis(1, at=1:$J, label=1:$J, las=2, fg="grey", cex.axis=1)
+      """
+      util.devOff()
     end
   end
 
