@@ -64,9 +64,11 @@ if __name__ == '__main__':
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.plot(results[:, 1],  results[:, 2])
+    ax.plot(results[:, 1],  results[:, 2], linestyle='--')
     ax.scatter(results[:, 1],  results[:, 2])
     for K in model:
         ax.annotate(K, model[K], size=12)
     plt.scatter(model[21][0], model[21][1], marker='X', s=100)
+    plt.xlabel(r'number of $W_{{ik}}$ < {}%'.format(THRESH * 100))
+    plt.ylabel('LPML')
     plt.show()
