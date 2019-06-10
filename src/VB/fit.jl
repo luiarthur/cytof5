@@ -1,5 +1,6 @@
 function fit(; y::Vector{M}, niters::Int, batchsize::Int, c::Constants,
              opt=ADAM(1e-2), print_freq::Int=10, nsave::Int=0,
+             scale_logqy::Float64=1.0,
              init::Union{StateMP, Nothing}=nothing,
              seed=nothing, flushOutput::Bool=false,
              verbose::Int=1) where M <: Matrix
@@ -50,7 +51,7 @@ function fit(; y::Vector{M}, niters::Int, batchsize::Int, c::Constants,
 
   # Create loss function
   function loss(y_batch::T) where T
-    out = -compute_elbo(state, y_batch, c, metrics) / sum(c.N)
+    out = -compute_elbo(state, y_batch, c, metrics, scale_logqy=scale_logqy) / sum(c.N)
     if isnan(out) || isinf(out)
       out = zero(out)
       printMsg(0)
