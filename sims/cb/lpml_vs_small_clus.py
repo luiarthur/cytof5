@@ -71,4 +71,5 @@ if __name__ == '__main__':
     plt.scatter(model[21][0], model[21][1], marker='X', s=100)
     plt.xlabel(r'number of $W_{{ik}}$ < {}%'.format(THRESH * 100))
     plt.ylabel('LPML')
-    plt.show()
+    # plt.show()
+    plt.savefig('{}/metrics/lpml-vs-numsmallclus.pdf'.format(path_to_results))
