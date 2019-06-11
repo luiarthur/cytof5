@@ -71,29 +71,32 @@ def plot_Z(Z_mean, wi_mean, lami_est, w_thresh=.01,
 
     im = plt.imshow(Z_hat, aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
     plt.xlabel("markers")
-    plt.ylabel("cell types")
+    plt.ylabel("cell types (abundance)")
+
+    # W percentages
+    w_perc = wi_mean[z_cols]
+    w_perc = [str((wp * 100).round(w_digits)) + '%' for wp in w_perc]
 
     ax = plt.gca()
     # plt.xticks([])
-    plt.yticks(np.arange(len(z_cols)), z_cols + 1, fontsize=fs_celltypes)
+    labels = ['{} ({})'.format(zc + 1, wp) for (zc, wp) in zip(z_cols, w_perc)]
+    plt.yticks(np.arange(len(z_cols)), labels, fontsize=fs_celltypes)
     add_gridlines_Z(Z_hat)
     plt.xticks(rotation=90, fontsize=fs_markers)
     plt.xticks(np.arange(J), np.arange(J) + 1)
 
     # add wi_mean on right side
-    K = z_cols.shape[0]
-    ax2 = ax.twinx()
-    ax2.set_yticks(range(K))
-    w_perc = wi_mean[z_cols]
-    w_perc = [str((wp * 100).round(w_digits)) + '%' for wp in w_perc]
-    plt.yticks((K-1) / K * np.arange(K) + .5, w_perc[::-1], fontsize=fs_w)
-    ax2.tick_params(length=0)
+    # K = z_cols.shape[0]
+    # ax2 = ax.twinx()
+    # ax2.set_yticks(range(K))
+    # plt.yticks((K-1) / K * np.arange(K) + .5, w_perc[::-1], fontsize=fs_w)
+    # ax2.tick_params(length=0)
 
     # colorbar
-    # ax_divider = make_axes_locatable(ax)
-    # cax = ax_divider.append_axes("right", size="7%", pad="2%")
-    # # cax.xaxis.set_ticks_position("right")
-    # colorbar(im, cax=cax, orientation="vertical")
+    ax_divider = make_axes_locatable(ax)
+    cax = ax_divider.append_axes("top", size="7%", pad="2%")
+    cax.xaxis.set_ticks_position("top")
+    colorbar(im, cax=cax, orientation="horizontal")
 
 
 def plot_yz(yi, Z_mean, wi_mean, lami_est, w_thresh=.01,
