@@ -121,7 +121,7 @@ function sim(jl_seed::Int, n_fac::Int; K=5, L=Dict(0=>3, 1=>3), J=20, fs_seed=42
   for (i in 1:$I) {
     clus = fsClus[idx[i,1]:idx[i,2]]
     print('fs num clus (i' %+% i %+% '): ' %+% length(unique(clus))) # Number of clusters learned
-    clus = relabel_clusters(clus)
+    # clus = relabel_clusters(clus)
     my.image($(dat.y)[[i]][order(clus),], col=blueToRed(9), zlim=zlim, addL=TRUE,
              na.color='black', cex.y.leg=1, xlab='markers',  ylab='cells',
              cex.lab=1.5, cex.axis=1.5, xaxt='n',
