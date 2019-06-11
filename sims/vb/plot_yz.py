@@ -31,11 +31,74 @@ def add_gridlines_Z(Z):
         plt.axvline(x=k+.5, color='grey', linewidth=.5)
 
 
+def plot_y(yi, wi_mean, lami_est, 
+           cm=blue2red.cm(6), vlim=(-3, 3), fs_w=10):
+    J = yi.shape[1]
+    vmin, vmax = vlim
+
+    lami_new, counts = relabel_lam(lami_est, wi_mean)
+    counts_cumsum = np.cumsum(counts)
+    yi_sorted = yi[np.argsort(lami_new), :]
+
+    im = plt.imshow(yi_sorted, aspect='auto', vmin=vmin, vmax=vmax, cmap=cm)
+    for c in counts_cumsum[:-1]:
+        plt.axhline(c, color='yellow')
+    plt.xticks(rotation=90)
+    plt.xticks(np.arange(J), np.arange(J) + 1)
+    plt.xlabel("markers")
+    plt.ylabel("cells")
+
+    ax = plt.gca()
+    ax_divider = make_axes_locatable(ax)
+    cax = ax_divider.append_axes("top", size="7%", pad="2%")
+    cax.xaxis.set_ticks_position("top")
+    colorbar(im, cax=cax, orientation="horizontal")
+
+def plot_Z(Z_mean, wi_mean, lami_est, w_thresh=.01,
+           cm_greys = plt.cm.get_cmap('Greys', 5),
+           fs_w=10, fs_celltypes=10, fs_markers=10, w_digits=1):
+
+    J = Z_mean.shape[0]
+    k_ord = wi_mean.argsort()
+    z_cols = []
+
+    for k in k_ord.tolist():
+        if wi_mean[k] > w_thresh:
+            z_cols.append(k)
+
+    z_cols = np.array(z_cols)
+    Z_hat = Z_mean[:, z_cols].T
+
+    im = plt.imshow(Z_hat, aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
+    plt.xlabel("markers")
+    plt.ylabel("cell types")
+
+    ax = plt.gca()
+    # plt.xticks([])
+    plt.yticks(np.arange(len(z_cols)), z_cols + 1, fontsize=fs_celltypes)
+    add_gridlines_Z(Z_hat)
+    plt.xticks(rotation=90, fontsize=fs_markers)
+    plt.xticks(np.arange(J), np.arange(J) + 1)
+
+    # add wi_mean on right side
+    K = z_cols.shape[0]
+    ax2 = ax.twinx()
+    ax2.set_yticks(range(K))
+    w_perc = wi_mean[z_cols]
+    w_perc = [str((wp * 100).round(w_digits)) + '%' for wp in w_perc]
+    plt.yticks((K-1) / K * np.arange(K) + .5, w_perc[::-1], fontsize=fs_w)
+    ax2.tick_params(length=0)
+
+    # colorbar
+    # ax_divider = make_axes_locatable(ax)
+    # cax = ax_divider.append_axes("right", size="7%", pad="2%")
+    # # cax.xaxis.set_ticks_position("right")
+    # colorbar(im, cax=cax, orientation="vertical")
+
+
 def plot_yz(yi, Z_mean, wi_mean, lami_est, w_thresh=.01,
             cm_greys = plt.cm.get_cmap('Greys', 5),
             cm_y=blue2red.cm(6), vlim_y=(-3, 3), fs_w=10, w_digits=1):
-            #cm_y=plt.cm.get_cmap('coolwarm', 7), vlim_y=(-3, 3)):
-
     J = yi.shape[1]
 
     vmin_y, vmax_y = vlim_y
@@ -95,3 +158,4 @@ def plot_yz(yi, Z_mean, wi_mean, lami_est, w_thresh=.01,
 
     fig = plt.gcf()
     fig.subplots_adjust(hspace=0.2)
+

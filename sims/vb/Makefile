@@ -40,6 +40,14 @@ sendsim:
 hyperparamsim:
 	python3 hyper_param_visual.py $(SIM_RESULTS_DIR)
 
+getBestSIM:
+	aws s3 sync   $(SIM_AWS_BUCKET)/K10/BS2000/K_VB30/10/   $(SIM_RESULTS_DIR)/K10/BS2000/K_VB30/10/
+	aws s3 sync   $(SIM_AWS_BUCKET)/K5/BS2000/K_VB30/10/    $(SIM_RESULTS_DIR)/K5/BS2000/K_VB30/10/
+
+sendBestSIM:
+	aws s3 sync   $(SIM_RESULTS_DIR)/K10/BS2000/K_VB30/10/  $(SIM_AWS_BUCKET)/K10/BS2000/K_VB30/10/   
+	aws s3 sync   $(SIM_RESULTS_DIR)/K5/BS2000/K_VB30/10/   $(SIM_AWS_BUCKET)/K5/BS2000/K_VB30/10/    
+
 ### CB Make cmds ###
 cb:
 	bash cb.sh $(CB_RESULTS_DIR)/ $(CB_AWS_BUCKET)
@@ -61,3 +69,10 @@ sendcb:
 
 hyperparamcb:
 	python3 hyper_param_visual.py $(CB_RESULTS_DIR)
+
+getBestCB:
+	aws s3 sync   $(CB_AWS_BUCKET)/BS2000/K_VB30/09/    $(CB_RESULTS_DIR)/BS2000/K_VB30/09/
+
+sendBestCB:
+	aws s3 sync   $(CB_RESULTS_DIR)/BS2000/K_VB30/09/   $(CB_AWS_BUCKET)/BS2000/K_VB30/09/  
+

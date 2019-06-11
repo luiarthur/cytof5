@@ -4,7 +4,7 @@ plt = pyimport("matplotlib.pyplot")
 
 # Load current dir
 pushfirst!(PyVector(pyimport("sys")."path"), "")
-plot_yz = pyimport("plot_yz").plot_yz
+plot_yz = pyimport("plot_yz")
 blue2red = pyimport("blue2red")
 
 # multiple pages
@@ -308,10 +308,12 @@ function post_process(output_path; thresh=.99, w_thresh=.01)
 
   ### yZ ###
   println("yz ... ")
+  nlam = 2
+  # nlam = 30
   @time if has_simdat
-    lam = [sample_lam(state, simdat[:y], c) for b in 1:30]
+    lam = [sample_lam(state, simdat[:y], c) for b in 1:nlam]
   else
-    lam = [sample_lam(state, y, c) for b in 1:30]
+    lam = [sample_lam(state, y, c) for b in 1:nlam]
   end
   lam_mode = lam_f(lam, Distributions.mode)
   # println(lam_mode[1][1:10])
@@ -319,7 +321,7 @@ function post_process(output_path; thresh=.99, w_thresh=.01)
 
   mkpath("$(IMG_DIR)/yz")
   for i in 1:c.I
-    # Yi
+    # lambda
     # lami_est, k_ord = relabel_lam(lam_mode[i], W_mean[i, :])
     lami_est, k_ord = relabel_lam2(lam_mode[i], W_mean[i, :])
     if has_simdat
@@ -327,30 +329,27 @@ function post_process(output_path; thresh=.99, w_thresh=.01)
     else
       yi = y[i]
     end
-    plt.imshow(yi[sortperm(lami_est), :], aspect="auto",
-               vmin=VMIN, vmax=VMAX, cmap=blue2red.cm(9))
-    plt.colorbar()
-    plt.xlabel("markers")
-    plt.ylabel("cells")
-    plt.savefig("$(IMG_DIR)/yz/y$(i)_post.pdf")
-    plt.close()
 
     # Zi
-    # k_top = argmax(cumsum(W_mean[i, k_ord]) .> thresh)
-    # plot_Z(Z_mean[:, k_ord[1:k_top]]')
-    k_common = W_mean[i, k_ord] .> w_thresh
-    plot_Z(Z_mean[:, k_ord[k_common]]')
-    plt.xlabel("markers")
-    plt.ylabel("cell types")
-    plt.savefig("$(IMG_DIR)/yz/Z$(i)_post.pdf")
+    plt.figure(figsize=(8,8))
+    plot_yz.plot_Z(Z_mean .> .5, W_mean[i, :], lam_mode[i], w_thresh=w_thresh,
+                   fs_w=15, fs_markers=15, fs_celltypes=15)
+    plt.savefig("$(IMG_DIR)/yz/Z$(i)_post_minpresence$(w_thresh).pdf")
     plt.close()
 
     # yz_i
     plt.figure(figsize=(8,8))
-    # plot_yz(yi, Z_mean, W_mean[i, :], lam_mode[i], w_thresh=w_thresh,
-    plot_yz(yi, Z_mean, W_mean[i, :], lam_mode[i], w_thresh=w_thresh,
-            cm_y=blue2red.cm(9), vlim_y=VLIM)
+    plot_yz.plot_yz(yi, Z_mean, W_mean[i, :],
+                    lam_mode[i], w_thresh=w_thresh,
+                    cm_y=blue2red.cm(9), vlim_y=VLIM)
     plt.savefig("$(IMG_DIR)/yz/yz$(i)_post.pdf", dpi=500)
+    plt.close()
+
+    # yi
+    plt.figure(figsize=(8,8))
+    plot_yz.plot_y(yi, W_mean[i, :], lam_mode[i],
+                   cm=blue2red.cm(9), vlim=VLIM)
+    plt.savefig("$(IMG_DIR)/yz/y$(i)_post.pdf", dpi=500)
     plt.close()
   end
 end

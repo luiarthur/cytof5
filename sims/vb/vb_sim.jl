@@ -48,6 +48,6 @@ out[:simdat] = compress_simdat!(simdat)
 BSON.bson("$(RESULTS_DIR)/output.bson", out)
 
 # Post process
-include("post_process_defs.jl")
+include("post_process_defs_pyplot.jl")
 out = nothing
 post_process("$(RESULTS_DIR)/output.bson")
