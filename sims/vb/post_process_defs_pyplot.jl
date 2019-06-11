@@ -308,8 +308,8 @@ function post_process(output_path; thresh=.99, w_thresh=.01)
 
   ### yZ ###
   println("yz ... ")
-  nlam = 2
-  # nlam = 30
+  # nlam = 2
+  nlam = 30
   @time if has_simdat
     lam = [sample_lam(state, simdat[:y], c) for b in 1:nlam]
   else
