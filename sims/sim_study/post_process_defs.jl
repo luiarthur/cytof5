@@ -349,15 +349,21 @@ function post_process(PATH_TO_OUTPUT, thresh=0.99, min_presences=[0, .01, .03, .
 
         util.plotPng("$IMGDIR/sep/y_dat$(i)_only_minpresence$(min_presence).png")
         ord_yi = sortperm(lami)
+        function f(y)
+          R"""
+          axis(1, at=1:$J, label=1:$J, las=2, fg="grey", cex.axis=1)
+          """
+        end
         util.myImage(y_dat[i][ord_yi[1 .<= lami[ord_yi] .<= K_trunc], :],
                      addL=true, f=yi->util.addCut(lami, s_png),
                      zlim=[-4,4], col=util.blueToRed(9), na="black", xlab="markers",
-                     ylab="cells");
+                     ylab="cells", xaxt="n", var"cex.lab"=1.5, f=f);
         util.devOff()
 
         util.plotPdf("$IMGDIR/sep/Z_hat$(i)_minpresence$(min_presence).pdf", w=5, h=10)
         util.myImage(Zi[:, common_celltypes], addL=false, ylab="markers", yaxt="n",
-                     f=Z->addGridLines(J, K_trunc), xaxt="n", xlab="celltypes");
+                     f=Z->addGridLines(J, K_trunc), xaxt="n", xlab="celltypes",
+                     var"cex.lab"=1.5);
 
         perc = string.(round.(Wi[common_celltypes] * 100, digits=2), "%")
         R"""
@@ -382,7 +388,7 @@ function post_process(PATH_TO_OUTPUT, thresh=0.99, min_presences=[0, .01, .03, .
         end
         R"par(mar=c(5.1, 4, 2.1, 5.1))"
         util.myImage(Zi[:, common_celltypes]', addL=false, ylab="celltypes", yaxt="n",
-                     f=fz, xaxt="n", xlab="markers");
+                     f=fz, xaxt="n", xlab="markers", var"cex.lab"=1.5);
         R"par(mar=c(5, 4, 4, 2) + .1)"
         util.devOff()
       end

@@ -236,10 +236,16 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
 
       util.plotPng("$IMGDIR/y_dat$(i)_only_minpresence$(min_presence).png")
       ord_yi = sortperm(lami)
+      function f(y)
+        util.addCut(lami, s_png)
+        R"""
+        axis(1, at=1:$J, label=1:$J, las=2, fg="grey", cex.axis=1)
+        """
+      end
       util.myImage(cbData[i][ord_yi[1 .<= lami[ord_yi] .<= K_trunc], :],
-                   addL=true, f=yi->util.addCut(lami, s_png),
+                   addL=true, f=f,
                    zlim=[-4,4], col=util.blueToRed(9), na="black", xlab="markers",
-                   ylab="cells");
+                   var"cex.lab"=1.5, ylab="cells");
       # util.myImage(cbData[i][sortperm(lami), :], addL=true, f=yi->util.addCut(lami),
       #              zlim=[-4,4], col=util.blueToRed(9), na="black", xlab="markers",
       #              ylab="cells");
@@ -247,7 +253,8 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
 
       util.plotPdf("$IMGDIR/Z_hat$(i)_minpresence$(min_presence).pdf", w=5, h=10)
       util.myImage(Zi[:, common_celltypes], addL=false, ylab="markers", yaxt="n",
-                   f=Z->addGridLines(J, K_trunc), xaxt="n", xlab="celltypes");
+                   f=Z->addGridLines(J, K_trunc), xaxt="n", xlab="celltypes",
+                   var"cex.lab"=1.5);
 
       perc = string.(round.(Wi[common_celltypes] * 100, digits=2), "%")
       R"""
@@ -271,7 +278,7 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
       end
       R"par(mar=c(5.1, 4, 2.1, 5.1))"
       util.myImage(Zi[:, common_celltypes]', addL=false, ylab="celltypes", yaxt="n",
-                   f=fz, xaxt="n", xlab="markers");
+                   f=fz, xaxt="n", xlab="markers", var"cex.lab"=1.5);
       R"par(mar=c(5, 4, 4, 2) + .1)"
       util.devOff()
     end
