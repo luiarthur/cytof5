@@ -31,7 +31,7 @@ def add_gridlines_Z(Z):
         plt.axvline(x=k+.5, color='grey', linewidth=.5)
 
 
-def plot_y(yi, wi_mean, lami_est, 
+def plot_y(yi, wi_mean, lami_est, fs_lab=10,
            cm=blue2red.cm(6), vlim=(-3, 3), fs_xlab=10, fs_ylab=10):
     J = yi.shape[1]
     vmin, vmax = vlim
@@ -45,8 +45,8 @@ def plot_y(yi, wi_mean, lami_est,
         plt.axhline(c, color='yellow')
     plt.xticks(rotation=90)
     plt.xticks(np.arange(J), np.arange(J) + 1, fontsize=fs_xlab)
-    plt.xlabel("markers", fontsize=fs_xlab * .8)
-    plt.ylabel("cells", fontsize=fs_ylab * .8)
+    plt.xlabel("markers", fontsize=fs_lab)
+    plt.ylabel("cells", fontsize=fs_lab)
 
     ax = plt.gca()
     ax_divider = make_axes_locatable(ax)
@@ -55,7 +55,7 @@ def plot_y(yi, wi_mean, lami_est,
     colorbar(im, cax=cax, orientation="horizontal")
 
 def plot_Z(Z_mean, wi_mean, lami_est, w_thresh=.01,
-           cm_greys = plt.cm.get_cmap('Greys', 5),
+           cm_greys = plt.cm.get_cmap('Greys', 5), fs_lab=10,
            fs_w=10, fs_celltypes=10, fs_markers=10, w_digits=1):
 
     J = Z_mean.shape[0]
@@ -70,8 +70,8 @@ def plot_Z(Z_mean, wi_mean, lami_est, w_thresh=.01,
     Z_hat = Z_mean[:, z_cols].T
 
     im = plt.imshow(Z_hat, aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
-    plt.xlabel("markers")
-    plt.ylabel("cell types (abundance)")
+    plt.xlabel("markers", fontsize=fs_lab)
+    plt.ylabel("cell types (abundance)", fontsize=fs_lab)
 
     # W percentages
     w_perc = wi_mean[z_cols]

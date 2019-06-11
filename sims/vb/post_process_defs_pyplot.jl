@@ -335,13 +335,13 @@ function post_process(output_path; thresh=.99, w_thresh=.01)
     # Zi
     plt.figure(figsize=(6,6))
     plot_yz.plot_Z(Z_mean, W_mean[i, :], lam_mode[i], w_thresh=w_thresh,
-                   fs_w=15, fs_markers=18, fs_celltypes=18)
+                   fs_markers=18, fs_celltypes=18, fs_lab=15)
     plt.savefig("$(IMG_DIR)/yz/Z$(i)_post_minpresence$(w_thresh).pdf", bbox_inches="tight")
     plt.close()
 
     plt.figure(figsize=(6,6))
     plot_yz.plot_Z(Z_mean .> .5, W_mean[i, :], lam_mode[i], w_thresh=w_thresh,
-                   fs_w=15, fs_markers=18, fs_celltypes=18)
+                   fs_markers=18, fs_celltypes=18, fs_lab=15)
     plt.savefig("$(IMG_DIR)/yz/Z$(i)_est_minpresence$(w_thresh).pdf", bbox_inches="tight")
     plt.close()
 
@@ -356,7 +356,7 @@ function post_process(output_path; thresh=.99, w_thresh=.01)
 
     # yi
     plt.figure(figsize=(8,8))
-    plot_yz.plot_y(yi, W_mean[i, :], lam_mode[i],
+    plot_yz.plot_y(yi, W_mean[i, :], lam_mode[i], fs_lab=15,
                    cm=blue2red.cm(9), vlim=VLIM, fs_xlab=18, fs_ylab=18)
     plt.savefig("$(IMG_DIR)/yz/y$(i)_post.pdf", dpi=500, bbox_inches="tight")
     plt.close()
