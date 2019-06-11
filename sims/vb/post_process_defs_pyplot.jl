@@ -1,6 +1,8 @@
 using BSON
 using PyCall
+matplotlib = pyimport("matplotlib")
 plt = pyimport("matplotlib.pyplot")
+matplotlib.use("Agg")
 
 # Load current dir
 pushfirst!(PyVector(pyimport("sys")."path"), "")
@@ -336,6 +338,13 @@ function post_process(output_path; thresh=.99, w_thresh=.01)
                    fs_w=15, fs_markers=18, fs_celltypes=18)
     plt.savefig("$(IMG_DIR)/yz/Z$(i)_post_minpresence$(w_thresh).pdf", bbox_inches="tight")
     plt.close()
+
+    plt.figure(figsize=(6,6))
+    plot_yz.plot_Z(Z_mean .> .5, W_mean[i, :], lam_mode[i], w_thresh=w_thresh,
+                   fs_w=15, fs_markers=18, fs_celltypes=18)
+    plt.savefig("$(IMG_DIR)/yz/Z$(i)_est_minpresence$(w_thresh).pdf", bbox_inches="tight")
+    plt.close()
+
 
     # yz_i
     plt.figure(figsize=(8,8))
