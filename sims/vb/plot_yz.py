@@ -32,7 +32,7 @@ def add_gridlines_Z(Z):
 
 
 def plot_y(yi, wi_mean, lami_est, 
-           cm=blue2red.cm(6), vlim=(-3, 3), fs_w=10):
+           cm=blue2red.cm(6), vlim=(-3, 3), fs_xlab=10, fs_ylab=10):
     J = yi.shape[1]
     vmin, vmax = vlim
 
@@ -44,9 +44,9 @@ def plot_y(yi, wi_mean, lami_est,
     for c in counts_cumsum[:-1]:
         plt.axhline(c, color='yellow')
     plt.xticks(rotation=90)
-    plt.xticks(np.arange(J), np.arange(J) + 1)
-    plt.xlabel("markers")
-    plt.ylabel("cells")
+    plt.xticks(np.arange(J), np.arange(J) + 1, fontsize=fs_xlab)
+    plt.xlabel("markers", fontsize=fs_xlab * .8)
+    plt.ylabel("cells", fontsize=fs_ylab * .8)
 
     ax = plt.gca()
     ax_divider = make_axes_locatable(ax)

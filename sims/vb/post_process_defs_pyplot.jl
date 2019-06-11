@@ -357,8 +357,8 @@ function post_process(output_path; thresh=.99, w_thresh=.01)
     # yi
     plt.figure(figsize=(8,8))
     plot_yz.plot_y(yi, W_mean[i, :], lam_mode[i],
-                   cm=blue2red.cm(9), vlim=VLIM)
-    plt.savefig("$(IMG_DIR)/yz/y$(i)_post.pdf", dpi=500)
+                   cm=blue2red.cm(9), vlim=VLIM, fs_xlab=18, fs_ylab=18)
+    plt.savefig("$(IMG_DIR)/yz/y$(i)_post.pdf", dpi=500, bbox_inches="tight")
     plt.close()
   end
 end
