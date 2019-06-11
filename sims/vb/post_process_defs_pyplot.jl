@@ -334,7 +334,7 @@ function post_process(output_path; thresh=.99, w_thresh=.01)
     plt.figure(figsize=(8,8))
     # Note `Z_mean .> .5` could be replaced by `Z_mean` for UQ
     plot_yz.plot_Z(Z_mean .> .5, W_mean[i, :], lam_mode[i], w_thresh=w_thresh,
-                   fs_w=15, fs_markers=15, fs_celltypes=15)
+                   fs_w=18, fs_markers=18, fs_celltypes=18)
     plt.savefig("$(IMG_DIR)/yz/Z$(i)_post_minpresence$(w_thresh).pdf")
     plt.close()
 
