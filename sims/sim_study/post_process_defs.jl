@@ -205,12 +205,12 @@ function post_process(PATH_TO_OUTPUT, thresh=0.99, min_presences=[0, .01, .03, .
   fZ(Z) = util.addGridLines(Z, s_png)
 
   for i in 1:I
-    util.plotPng("$IMGDIR/y_imputed$(i).png")
+    util.plotPng("$IMGDIR/y_imputed$(i).png", s=s_png)
     util.yZ_inspect(out[1], i=i, lastState.y_imputed, zlim=[-4,4], using_zero_index=false,
                     thresh=thresh, fy=fy, fZ=fZ, col=util.blueToRed(9))
     util.devOff()
 
-    util.plotPng("$IMGDIR/y_dat$(i).png")
+    util.plotPng("$IMGDIR/y_dat$(i).png", s=s_png)
     util.yZ_inspect(out[1], i=i, simdat[:y], zlim=[-4,4], na="black", using_zero_index=false,
                     thresh=thresh, fy=fy, fZ=fZ, col=util.blueToRed(9))
     util.devOff()
@@ -347,17 +347,18 @@ function post_process(PATH_TO_OUTPUT, thresh=0.99, min_presences=[0, .01, .03, .
         println("common celltypes (min_presence > $min_presence): $common_celltypes")
         K_trunc = length(common_celltypes)
 
-        util.plotPng("$IMGDIR/sep/y_dat$(i)_only_minpresence$(min_presence).png")
+        util.plotPng("$IMGDIR/sep/y_dat$(i)_only_minpresence$(min_presence).png", s=s_png)
         ord_yi = sortperm(lami)
         function f(y)
+          util.addCut(lami, s_png)
           R"""
-          axis(1, at=1:$J, label=1:$J, las=2, fg="grey", cex.axis=1)
+          axis(1, at=1:$J, label=1:$J, las=2, fg="grey", cex.axis=1.5)
           """
         end
         util.myImage(y_dat[i][ord_yi[1 .<= lami[ord_yi] .<= K_trunc], :],
-                     addL=true, f=yi->util.addCut(lami, s_png),
+                     addL=true, f=f,
                      zlim=[-4,4], col=util.blueToRed(9), na="black", xlab="markers",
-                     ylab="cells", xaxt="n", var"cex.lab"=1.5, f=f);
+                     ylab="cells", xaxt="n", var"cex.lab"=1.5, var"cex.y.leg"=1.5);
         util.devOff()
 
         util.plotPdf("$IMGDIR/sep/Z_hat$(i)_minpresence$(min_presence).pdf", w=5, h=10)
@@ -370,7 +371,7 @@ function post_process(PATH_TO_OUTPUT, thresh=0.99, min_presences=[0, .01, .03, .
         axis(3, at=1:$K_trunc, label=$(perc), las=2, fg="grey", cex.axis=1)
         axis(1, at=1:$K_trunc, label=$(common_celltypes), las=1,
              fg="grey", cex.axis=1)
-        axis(2, at=1:$J, label=1:$J, las=2, fg="grey", cex.axis=1)
+        axis(2, at=1:$J, label=1:$J, las=2, fg="grey", cex.axis=1.3)
         """
         util.devOff()
 
@@ -383,7 +384,7 @@ function post_process(PATH_TO_OUTPUT, thresh=0.99, min_presences=[0, .01, .03, .
           axis(4, at=1:$K_trunc, label=$(perc), las=1, fg="grey", cex.axis=1.3)
           axis(2, at=1:$K_trunc, label=$(common_celltypes), las=1,
                fg="grey", cex.axis=1.3)
-          axis(1, at=1:$J, label=1:$J, las=2, fg="grey", cex.axis=1)
+          axis(1, at=1:$J, label=1:$J, las=2, fg="grey", cex.axis=1.3)
           """
         end
         R"par(mar=c(5.1, 4, 2.1, 5.1))"

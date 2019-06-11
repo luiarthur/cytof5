@@ -234,18 +234,18 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
       println("common celltypes (min_presence > $min_presence): $common_celltypes")
       K_trunc = length(common_celltypes)
 
-      util.plotPng("$IMGDIR/y_dat$(i)_only_minpresence$(min_presence).png")
+      util.plotPng("$IMGDIR/y_dat$(i)_only_minpresence$(min_presence).png", s=s_png)
       ord_yi = sortperm(lami)
       function f(y)
         util.addCut(lami, s_png)
         R"""
-        axis(1, at=1:$J, label=1:$J, las=2, fg="grey", cex.axis=1)
+        axis(1, at=1:$J, label=1:$J, las=2, fg="grey", cex.axis=1.5)
         """
       end
       util.myImage(cbData[i][ord_yi[1 .<= lami[ord_yi] .<= K_trunc], :],
-                   addL=true, f=f,
+                   addL=true, f=f, xaxt="n",
                    zlim=[-4,4], col=util.blueToRed(9), na="black", xlab="markers",
-                   var"cex.lab"=1.5, ylab="cells");
+                   var"cex.lab"=1.5, ylab="cells", var"cex.y.leg"=1.5);
       # util.myImage(cbData[i][sortperm(lami), :], addL=true, f=yi->util.addCut(lami),
       #              zlim=[-4,4], col=util.blueToRed(9), na="black", xlab="markers",
       #              ylab="cells");
@@ -273,7 +273,7 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
         axis(4, at=1:$K_trunc, label=$(perc), las=1, fg="grey", cex.axis=1.3)
         axis(2, at=1:$K_trunc, label=$(common_celltypes), las=1,
              fg="grey", cex.axis=1.3)
-        axis(1, at=1:$J, label=1:$J, las=2, fg="grey", cex.axis=1)
+        axis(1, at=1:$J, label=1:$J, las=2, fg="grey", cex.axis=1.3)
         """
       end
       R"par(mar=c(5.1, 4, 2.1, 5.1))"
@@ -450,14 +450,14 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
 
 
   for i in 1:I
-    util.plotPng("$IMGDIR/y_imputed$(i).png")
+    util.plotPng("$IMGDIR/y_imputed$(i).png", s=s_png)
     util.yZ_inspect(out[1], i=i, lastState.y_imputed, zlim=[-4,4], using_zero_index=false,
                     thresh=thresh, col=util.blueToRed(9), fy=fy, fZ=fZ)
     util.devOff()
   end
 
   for i in 1:I
-    util.plotPng("$IMGDIR/y_dat$(i).png")
+    util.plotPng("$IMGDIR/y_dat$(i).png", s=s_png)
     util.yZ_inspect(out[1], i=i, cbData, zlim=[-4,4], using_zero_index=false, na="black",
                     thresh=thresh, col=util.blueToRed(9), fy=fy, fZ=fZ)
     util.devOff()
@@ -466,7 +466,7 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
   println("Making yZ with Z mean...")
   if any(lastState.eps .== 0)
     for i in 1:I
-      util.plotPng("$IMGDIR/y_dat$(i)_with_zmean.png")
+      util.plotPng("$IMGDIR/y_dat$(i)_with_zmean.png", s=s_png)
 
       idx_best = R"estimate_ZWi_index($(out[1]), $i)"[1]
       Zi = out[1][idx_best][:Z]
@@ -510,12 +510,12 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
       idx0 = findall(lami .== 0)
       if length(idx0) > 0
         println("making y_dat$(i)_lam0.png")
-        util.plotPng("$IMGDIR/y_dat$(i)_lam0.png")
+        util.plotPng("$IMGDIR/y_dat$(i)_lam0.png", s=s_png)
         util.myImage(cbData[i][idx0, :], xlab="markers", ylab="cells", 
                      na="black", col=util.blueToRed(9), addL=true, zlim=[-4, 4], nticks=11)
         util.devOff()
 
-        util.plotPng("$IMGDIR/y_imputed$(i)_lam0.png")
+        util.plotPng("$IMGDIR/y_imputed$(i)_lam0.png", s=s_png)
         util.myImage(lastState.y_imputed[i][idx0, :], xlab="markers", ylab="cells", 
                      na="black", col=util.blueToRed(9), addL=true, zlim=[-4, 4])
         util.devOff()
@@ -542,7 +542,7 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
   if init_is_defined
     println("Making y_dat init ...")
     for i in 1:I
-      util.plotPng("$IMGDIR/y_dat$(i)_init.png")
+      util.plotPng("$IMGDIR/y_dat$(i)_init.png", s=s_png)
       Zi = init.Z
       Wi = init.W[i, :]
       lami = init.lam[i]
