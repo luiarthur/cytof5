@@ -43,7 +43,7 @@ c.priors.sig2 = Gamma(.1, 1)
 println("seed: $SEED")
 # Fit model
 out = Cytof5.VB.fit(y=y, niters=NITERS, batchsize=BATCHSIZE, c=c,
-                    nsave=30, seed=SEED, flushOutput=true, scale_logqy=.1)
+                    nsave=30, seed=SEED, flushOutput=true, scale_logqy=.01)
 
 # Save results
 out[:y] = Matrix{Float32}.(y)

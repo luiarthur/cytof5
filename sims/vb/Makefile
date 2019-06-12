@@ -76,3 +76,5 @@ getBestCB:
 sendBestCB:
 	aws s3 sync   $(CB_RESULTS_DIR)/BS2000/K_VB30/09/   $(CB_AWS_BUCKET)/BS2000/K_VB30/09/  
 
+sendTestCB:
+	aws s3 sync   results/test/vb-cb-paper/   $(CB_AWS_BUCKET)/test/  
