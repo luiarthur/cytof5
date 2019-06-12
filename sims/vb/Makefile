@@ -78,3 +78,8 @@ sendBestCB:
 
 sendTestCB:
 	aws s3 sync   results/test/vb-cb-paper/   $(CB_AWS_BUCKET)/test/  
+
+testCB:
+	julia vb_cb.jl 1 "results/test/vb-cb-paper/" "../cb/data/cytof_cb_float32.bson" 30 500 20000 &> "results/test/vb-cb-paper/log.txt"
+	aws s3 sync   results/test/vb-cb-paper/   $(CB_AWS_BUCKET)/test/  
+
