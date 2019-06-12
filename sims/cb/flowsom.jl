@@ -81,7 +81,6 @@ fsEst = as.list(1:$I)
 fsClus = as.numeric(fSOMClus)
 
 mult=1
-plotPng($RESULTS_DIR %+% 'Y%03d_FlowSOM.png', s=10)
 lines_clus = rep(NA, I)
 W = matrix(NA, I, length(unique(fsClus)))
 W_relabeled = matrix(NA, I, length(unique(fsClus)))
@@ -91,11 +90,8 @@ for (i in 1:$I) {
   nclus = length(unique(clus))
   print(nclus) # Number of clusters learned
   W[i, ] = table(clus) / length(clus)
-  clus = relabel_clusters(clus)
-  line_clus = paste(c('i:', i, '| nclu:', nclus), collapse=' ')
-  lines_clus[i] = line_clus
-  W_relabeled[i, ] = table(clus) / length(clus)
-    
+   
+  plotPng($RESULTS_DIR %+% 'Y' %+% i %+% '_FlowSOM.png', s=10)
   my.image($(y_orig)[[i]][order(clus),], col=blueToRed(9), zlim=zlim, addL=TRUE,
            na.color='black', cex.y.leg=1, xlab='cell types',  ylab='cells',
            cex.lab=1.5, cex.axis=1.5, xaxt='n',
@@ -103,8 +99,22 @@ for (i in 1:$I) {
              addCut(clus, s=10)
              axis(1, at=1:$(J), fg='grey', las=2, cex.axis=1.5)
            })
+  dev.off()
+
+  clus = relabel_clusters(clus)
+  line_clus = paste(c('i:', i, '| nclu:', nclus), collapse=' ')
+  lines_clus[i] = line_clus
+  W_relabeled[i, ] = table(clus) / length(clus)
+  plotPng($RESULTS_DIR %+% 'Y' %+% i %+% '_FlowSOM_by_w.png', s=10)
+  my.image($(y_orig)[[i]][order(clus),], col=blueToRed(9), zlim=zlim, addL=TRUE,
+           na.color='black', cex.y.leg=1, xlab='cell types',  ylab='cells',
+           cex.lab=1.5, cex.axis=1.5, xaxt='n',
+           f=function(z) {
+             addCut(clus, s=10)
+             axis(1, at=1:$(J), fg='grey', las=2, cex.axis=1.5)
+           })
+  dev.off()
 }
-dev.off()
 
 fileConn <- file($RESULTS_DIR %+% "clusters.txt")
 writeLines(lines_clus, fileConn)
