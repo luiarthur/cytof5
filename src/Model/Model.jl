@@ -7,7 +7,7 @@ using RCall # Mclust
 
 import LinearAlgebra # Identity matrix
 import Random # shuffle
-import StatsBase # wsample
+import StatsBase # wsample, counts
 
 include("../MCMC/MCMC.jl")
 import .MCMC.Util.@namedargs
