@@ -375,7 +375,9 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
   println("Making sig2...")
   util.plotPdf("$IMGDIR/sig2.pdf")
   util.plotPosts(sig2Post);
-  util.boxplot(sig2Post, ylab="sig2", xlab="sample", xaxt="n", col="steelblue", pch=20, cex=0);
+  util.boxplot(sig2Post, ylab="sig2", xlab="sample", 
+               col="steelblue", pch=20, cex=0,
+               var"cex.lab"=1.5, var"cex.axis"=1.5);
   util.devOff()
 
   println("Making v...")
@@ -479,6 +481,12 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
       Wi = out[1][idx_best][:W][i,:]
       lami = out[1][idx_best][:lam][i]
 
+      open("$IMGDIR/lam$(i)_best.txt", "w") do file
+        for lam_in in lami
+          write(file, "$(lam_in)\n")
+        end
+      end
+
       S = [findall(lami .== k) for k in 1:c.K]
       Zi_bar = mean([[mean(o[:Z][j, o[:lam][i][S[k]]]) for j in 1:J, k in 1:c.K] for o in out[1]])
 
@@ -513,6 +521,13 @@ function post_process(path_to_output, thresh=0.9, min_presences=[0, .01, .03, .0
     for i in 1:I
       idx_best = R"estimate_ZWi_index($(out[1]), $i)"[1]
       lami = out[1][idx_best][:lam][i]
+
+      open("$IMGDIR/lam$(i)_best.txt", "w") do file
+        for lam_in in lami
+          write(file, "$(lam_in)\n")
+        end
+      end
+
       idx0 = findall(lami .== 0)
       if length(idx0) > 0
         println("making y_dat$(i)_lam0.png")
