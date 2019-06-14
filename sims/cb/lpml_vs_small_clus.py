@@ -72,7 +72,7 @@ if __name__ == '__main__':
     ax.scatter(results[:, 1],  results[:, 2])
     for K in model:
         ax.annotate(K, model[K], size=t_fs)
-    plt.scatter(model[21][0], model[21][1], marker='X', s=100)
+    plt.scatter(model[21][0], model[21][1], marker='X', s=200)
     plt.xticks(fontsize=a_fs)
     plt.yticks(fontsize=a_fs)
     plt.xlabel(r'number of $W_{{ik}}$ < {}%'.format(THRESH * 100), fontsize=lab_fs)
