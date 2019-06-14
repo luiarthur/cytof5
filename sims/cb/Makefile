@@ -110,6 +110,7 @@ litecp:
 
 metrics: metrics.py
 	python3 metrics.py $(RESULTS_DIR_CB_RUN)
+	./lpml_vs_small_clus.py
 
 pullAndProcess:
 	julia pullAndGenResults.jl $(AWS_BUCKET_CB_RUN)
