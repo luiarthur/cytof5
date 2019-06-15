@@ -1,0 +1,9 @@
+CB_K21 ;; s3://cytof-cb-results/cb-paper/K_MCMC21_L0_MCMC5_L1_MCMC3_tau0_10.0_tau1_10.0_SEED0_smartinittrue_subsample1.0_dnoisynormal_noisy_scale3.16
+CB_mm1 ;; s3://cytof-cb-results/cb-paper/K_MCMC21_missmech1
+CB_mm2 ;; s3://cytof-cb-results/cb-paper/K_MCMC21_missmech2
+SIM_small_K5 ;; s3://cytof-sim-results/sim-paper/sim_Nfac500_KMCMC05
+SIM_small_mm1 ;; s3://cytof-sim-results/sim-paper/sim_Nfac500_missmech1
+SIM_small_mm2 ;; s3://cytof-sim-results/sim-paper/sim_Nfac500_missmech2
+SIM_big_K10 ;; s3://cytof-sim-results/sim-paper/sim_Nfac5000_KMCMC10
+SIM_big_mm1 ;; s3://cytof-sim-results/sim-paper/sim_Nfac5000_missmech1
+SIM_big_mm2 ;; s3://cytof-sim-results/sim-paper/sim_Nfac5000_missmech2
