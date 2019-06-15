@@ -3,6 +3,8 @@ SHELL := /bin/bash
 .PHONY: get send
 
 SCRATCH_DIR = /scratchdata/alui2/cytof
+RESULTS_DIR = results
+PAPER_AWS_BUCKET = s3://cytof-fam-paper/img/post/
 
 # CB
 CB_AWS_BUCKET = s3://cytof-cb-results/cb-paper
@@ -33,21 +35,11 @@ getCB:
 	aws s3 sync $(CB_MM1_AWS_BUCKET)  $(CB_DIR)/mm1  $(TAGS)
 	aws s3 sync $(CB_MM2_AWS_BUCKET)  $(CB_DIR)/mm2  $(TAGS)
 
-sendCB:
-	aws s3 sync $(CB_DIR)/best $(CB_BEST_AWS_BUCKET) 
-	aws s3 sync $(CB_DIR)/mm1  $(CB_MM1_AWS_BUCKET)  
-	aws s3 sync $(CB_DIR)/mm2  $(CB_MM2_AWS_BUCKET)  
-
 
 getSmallSim:
 	aws s3 sync $(SIM_SMALL_K5_AWS_BUCKET)   $(SIM_DIR)/small/best $(TAGS)
 	aws s3 sync $(SIM_SMALL_MM1_AWS_BUCKET)  $(SIM_DIR)/small/mm1  $(TAGS)
 	aws s3 sync $(SIM_SMALL_MM2_AWS_BUCKET)  $(SIM_DIR)/small/mm2  $(TAGS)
-
-sendSmallim:
-	aws s3 sync $(SIM_DIR)/small/best $(SIM_SMALL_K5_AWS_BUCKET)   
-	aws s3 sync $(SIM_DIR)/small/mm1  $(SIM_SMALL_MM1_AWS_BUCKET)  
-	aws s3 sync $(SIM_DIR)/small/mm2  $(SIM_SMALL_MM2_AWS_BUCKET)  
 
 
 getBigSim:
@@ -55,13 +47,10 @@ getBigSim:
 	aws s3 sync $(SIM_BIG_MM1_AWS_BUCKET)  $(SIM_DIR)/big/mm1  $(TAGS)
 	aws s3 sync $(SIM_BIG_MM2_AWS_BUCKET)  $(SIM_DIR)/big/mm2  $(TAGS)
 
-sendBigSim:
-	aws s3 sync $(SIM_DIR)/big/best $(SIM_BIG_K5_AWS_BUCKET)   
-	aws s3 sync $(SIM_DIR)/big/mm1  $(SIM_BIG_MM1_AWS_BUCKET)  
-	aws s3 sync $(SIM_DIR)/big/mm2  $(SIM_BIG_MM2_AWS_BUCKET)  
 
+send: 
+	aws s3 sync $(RESULTS_DIR)  $(PAPER_AWS_BUCKET)
 
-send: sendCB sendSmallSim sendBigSim
 
 get: getCB getSmallSim getBigSim
 	aws s3 sync $(CB_AWS_BUCKET)   $(CB_DIR)/logs  --exclude "*" --include "*log.txt"
