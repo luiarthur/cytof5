@@ -30,7 +30,7 @@ function loadSingleObj(objPath)
 end
 
 # plot y/z
-function make_yz(y, Zs, Ws, lams, imgdir; w_thresh=.01,
+function make_yz(y, Zs, Ws, lams, imgdir; w_thresh=.01, lw=3,
                  fs_y=22, fs_z=22, fs_ycbar=22, fs_zcbar=22)
   mkpath(imgdir)
   I = length(y)
@@ -43,7 +43,7 @@ function make_yz(y, Zs, Ws, lams, imgdir; w_thresh=.01,
     yi = Float64.(y[i])
 
     plt.figure(figsize=(8, 8))
-    plot_yz.plot_y(yi, Wi, lami, vlim=VLIM, cm=blue2red.cm(9),
+    plot_yz.plot_y(yi, Wi, lami, vlim=VLIM, cm=blue2red.cm(9), lw=lw,
                    fs_xlab=fs_y, fs_ylab=fs_y, fs_lab=fs_y, fs_cbar=fs_ycbar)
     plt.savefig("$(imgdir)/y$(i).pdf", bbox_inches="tight")
     plt.close()
