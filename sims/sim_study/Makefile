@@ -42,6 +42,9 @@ clean:
 send: 
 	aws s3 sync $(RESULTS_DIR) $(AWS_BUCKET) --exclude "*/output.bson"
 
+sendmetrics:
+	aws s3 sync $(RESULTS_DIR)/metrics $(AWS_BUCKET)/metrics/
+
 retrieve: 
 	aws s3 sync $(AWS_BUCKET) $(RESULTS_DIR) --exclude "*/output.bson"
 
@@ -57,6 +60,7 @@ getsimdat:
 
 metrics:
 	python3 metrics.py $(RESULTS_DIR)
+	./lpml_vs_small_clus.py
 
 pullAndProcess:
 	julia pullAndGenResults.jl $(AWS_BUCKET)

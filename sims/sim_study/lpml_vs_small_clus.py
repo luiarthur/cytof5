@@ -63,19 +63,26 @@ if __name__ == '__main__':
             results[i, 2] = model[K][1]
             i += 1
 
+        lab_fs = 20
+        a_fs = 20
+        t_fs = 20
+
         fig = plt.figure()
         ax = fig.add_subplot(111)
         ax.plot(results[:, 1],  results[:, 2], linestyle='--')
         ax.scatter(results[:, 1],  results[:, 2])
         for K in model:
-            ax.annotate(K, model[K], size=12)
+            ax.annotate(K, model[K], size=t_fs)
 
         if N == 500:
             plt.scatter(model[5][0], model[5][1], marker='X', s=100)
         else:
             plt.scatter(model[10][0], model[10][1], marker='X', s=100)
 
-        plt.xlabel(r'number of $W_{{ik}}$ < {}%'.format(THRESH * 100))
-        plt.ylabel('LPML')
+        plt.xticks(fontsize=a_fs)
+        plt.yticks(fontsize=a_fs)
+        plt.xlabel(r'number of $W_{{ik}}$ < {}%'.format(THRESH * 100), fontsize=lab_fs)
+        plt.ylabel('LPML', fontsize=lab_fs)
         # plt.show()
-        plt.savefig('{}/metrics/Nfac{}/lpml-vs-numsmallclus.pdf'.format(path_to_results, N))
+        plt.savefig('{}/metrics/Nfac{}/lpml-vs-numsmallclus.pdf'.format(path_to_results, N),
+                    bbox_inches='tight')

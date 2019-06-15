@@ -165,4 +165,4 @@ sendflowsom:
 
 # send metrics
 sendmetrics:
-	aws s3 sync results/cb-paper/metrics s3://cytof-cb-results/cb-paper/metrics/
+	aws s3 sync $(RESULTS_DIR_CB_RUN)/metrics $(AWS_BUCKET_CB_RUN)/metrics/

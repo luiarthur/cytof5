@@ -72,6 +72,7 @@ if __name__ == '__main__':
             label_fs = 20
             x_fs = 24
             y_fs = 24
+            plt.rc('font', size=20)
             ms=12
 
             LPML = np.array(LPML)
