@@ -90,6 +90,10 @@ postProcess:
 send:
 	aws s3 sync $(RESULTS_DIR_CB_RUN) $(AWS_BUCKET_CB_RUN) --exclude '*.nfs*'
 
+getBestCB:
+	aws s3 sync $(AWS_BUCKET_CB_RUN)/K_MCMC21_L0_MCMC5_L1_MCMC3_tau0_10.0_tau1_10.0_SEED0_smartinittrue_subsample1.0_dnoisynormal_noisy_scale3.16 $(RESULTS_DIR_CB_RUN)/K_MCMC21_L0_MCMC5_L1_MCMC3_tau0_10.0_tau1_10.0_SEED0_smartinittrue_subsample1.0_dnoisynormal_noisy_scale3.16
+
+
 retrieveall:
 	aws s3 sync $(AWS_BUCKET_CB_RUN) $(RESULTS_DIR_CB_RUN) --exclude '*EXCLUDE_ME*'
 
@@ -158,3 +162,7 @@ flowsom:
 # send FlowSOM CB results
 sendflowsom:
 	aws s3 sync results/cb-paper/flowsom s3://cytof-cb-results/cb-paper/flowsom/
+
+# send metrics
+sendmetrics:
+	aws s3 sync results/cb-paper/metrics s3://cytof-cb-results/cb-paper/metrics/
