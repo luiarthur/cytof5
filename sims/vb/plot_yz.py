@@ -56,9 +56,27 @@ def plot_y(yi, wi_mean, lami_est, fs_lab=10, fs_cbar=10, lw=3,
     cbar = colorbar(im, cax=cax, orientation="horizontal")
     cbar.ax.tick_params(labelsize=fs_cbar)
 
+
+def plot_Z_only(Z, fs=10, xlab=None, ylab=None, rotate_xticks=True,
+                cm_greys=plt.cm.get_cmap('Greys', 5)):
+    plt.imshow(Z, aspect='auto', vmin=0, vmax=1, cmap=cm_greys)
+    plt.xlabel(xlab, fontsize=fs)
+    plt.ylabel(ylab, fontsize=fs)
+
+    J, K = Z.shape
+    plt.yticks(np.arange(J), np.arange(J) + 1, fontsize=fs)
+    add_gridlines_Z(Z)
+    if rotate_xticks:
+        plt.xticks(rotation=90, fontsize=fs)
+    else:
+        plt.xticks(fontsize=fs)
+    plt.xticks(np.arange(K), np.arange(K) + 1)
+  
+
 def plot_Z(Z_mean, wi_mean, lami_est, w_thresh=.01,
            cm_greys = plt.cm.get_cmap('Greys', 5), fs_lab=10,
-           fs_cbar=10, fs_w=10, fs_celltypes=10, fs_markers=10, w_digits=1):
+           add_colorbar=True, fs_cbar=10, fs_w=10, fs_celltypes=10,
+           fs_markers=10, w_digits=1):
 
     J = Z_mean.shape[0]
     k_ord = wi_mean.argsort()
@@ -95,11 +113,12 @@ def plot_Z(Z_mean, wi_mean, lami_est, w_thresh=.01,
     # ax2.tick_params(length=0)
 
     # colorbar
-    ax_divider = make_axes_locatable(ax)
-    cax = ax_divider.append_axes("top", size="7%", pad="2%")
-    cax.xaxis.set_ticks_position("top")
-    cbar = colorbar(im, cax=cax, orientation="horizontal")
-    cbar.ax.tick_params(labelsize=fs_cbar)
+    if add_colorbar:
+      ax_divider = make_axes_locatable(ax)
+      cax = ax_divider.append_axes("top", size="7%", pad="2%")
+      cax.xaxis.set_ticks_position("top")
+      cbar = colorbar(im, cax=cax, orientation="horizontal")
+      cbar.ax.tick_params(labelsize=fs_cbar)
 
 
 def plot_yz(yi, Z_mean, wi_mean, lami_est, w_thresh=.01,

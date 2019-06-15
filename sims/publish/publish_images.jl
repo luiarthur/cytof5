@@ -31,7 +31,7 @@ end
 
 # plot y/z
 function make_yz(y, Zs, Ws, lams, imgdir; w_thresh=.01, lw=3,
-                 fs_y=22, fs_z=22, fs_ycbar=22, fs_zcbar=22)
+                 Z_true=nothing, fs_y=22, fs_z=22, fs_ycbar=22, fs_zcbar=22)
   mkpath(imgdir)
   I = length(y)
   for i in 1:I
@@ -42,16 +42,34 @@ function make_yz(y, Zs, Ws, lams, imgdir; w_thresh=.01, lw=3,
     lami = Int64.(lams[idx_best][i])
     yi = Float64.(y[i])
 
+    # plot Yi, lami
     plt.figure(figsize=(8, 8))
     plot_yz.plot_y(yi, Wi, lami, vlim=VLIM, cm=blue2red.cm(9), lw=lw,
                    fs_xlab=fs_y, fs_ylab=fs_y, fs_lab=fs_y, fs_cbar=fs_ycbar)
     plt.savefig("$(imgdir)/y$(i).pdf", bbox_inches="tight")
     plt.close()
 
+    # plot Zi, Wi
     plt.figure(figsize=(8, 8))
-    plot_yz.plot_Z(Zi, Wi, lami, w_thresh=w_thresh,
+    plot_yz.plot_Z(Zi, Wi, lami, w_thresh=w_thresh, add_colorbar=false,
                    fs_lab=fs_z, fs_celltypes=fs_z, fs_markers=fs_z, fs_cbar=fs_zcbar)
     plt.savefig("$(imgdir)/Z$(i).pdf", bbox_inches="tight")
+    plt.close()
+  end
+
+  if Z_true != nothing
+    # plot Z true
+    plt.figure(figsize=(8, 8))
+    plot_yz.plot_Z_only(Z_true, fs=fs_z,
+                        xlab="cell types", ylab="markers", rotate_xticks=false)
+    plt.savefig("$(imgdir)/Z_true.pdf", bbox_inches="tight")
+    plt.close()
+
+    # plot ZT true
+    plt.figure(figsize=(8, 8))
+    plot_yz.plot_Z_only(Z_true', fs=fs_z,
+                        xlab="markers", ylab="cell types")
+    plt.savefig("$(imgdir)/ZT_true.pdf", bbox_inches="tight")
     plt.close()
   end
 end
@@ -76,7 +94,13 @@ function make_yz(path_to_output)
   Zs = getPosterior(:Z, out[1])
   Ws = getPosterior(:W, out[1])
   lams = getPosterior(:lam, out[1])
-  make_yz(y, Zs, Ws, lams, results_dir)
+
+  if haskey(output, :simdat)
+    Z_true = output[:simdat][:Z]
+  else
+    Z_true = nothing
+  end
+  make_yz(y, Zs, Ws, lams, results_dir, Z_true=Z_true)
 end
 
 # MAIN
@@ -84,8 +108,8 @@ end
 @time for (root, dirs, files) in walkdir(RESULTS_DIR)
   for file in files
     if occursin("output.jld2", file) || occursin("output.bson", file)
+    # if occursin("output.bson", file)
       path_to_output = "$(root)/$(file)"
-      # path_to_output = "/scratchdata/alui2/cytof/results/cb/mm1/output.jld2"
       println("Current: $(path_to_output)")
       make_yz(path_to_output)
     end
