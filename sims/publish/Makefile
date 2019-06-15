@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: get send
+.PHONY: get send build
 
 SCRATCH_DIR = /scratchdata/alui2/cytof
 RESULTS_DIR = results
@@ -62,4 +62,8 @@ get2scratch:
 	cd $(SCRATCH_DIR)/ && make get
 	# ln -s $(SCRATCH_DIR)/results results
 
+build:
+	julia publish_images.jl
 
+all: get2scratch build send
+	

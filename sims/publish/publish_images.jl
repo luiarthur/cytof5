@@ -31,7 +31,7 @@ end
 
 # plot y/z
 function make_yz(y, Zs, Ws, lams, imgdir; w_thresh=.01,
-                 fs_y=18, fs_z=15, fs_ycbar=15, fs_zcbar=15)
+                 fs_y=22, fs_z=22, fs_ycbar=22, fs_zcbar=22)
   mkpath(imgdir)
   I = length(y)
   for i in 1:I
@@ -42,11 +42,13 @@ function make_yz(y, Zs, Ws, lams, imgdir; w_thresh=.01,
     lami = Int64.(lams[idx_best][i])
     yi = Float64.(y[i])
 
+    plt.figure(figsize=(8, 8))
     plot_yz.plot_y(yi, Wi, lami, vlim=VLIM, cm=blue2red.cm(9),
                    fs_xlab=fs_y, fs_ylab=fs_y, fs_lab=fs_y, fs_cbar=fs_ycbar)
     plt.savefig("$(imgdir)/y$(i).pdf", bbox_inches="tight")
     plt.close()
 
+    plt.figure(figsize=(8, 8))
     plot_yz.plot_Z(Zi, Wi, lami, w_thresh=w_thresh,
                    fs_lab=fs_z, fs_celltypes=fs_z, fs_markers=fs_z, fs_cbar=fs_zcbar)
     plt.savefig("$(imgdir)/Z$(i).pdf", bbox_inches="tight")
