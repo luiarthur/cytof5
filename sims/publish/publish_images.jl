@@ -61,14 +61,14 @@ function make_yz(y, Zs, Ws, lams, imgdir; w_thresh=.01, lw=3,
     # plot Z true
     plt.figure(figsize=(8, 8))
     plot_yz.plot_Z_only(Z_true, fs=fs_z,
-                        xlab="cell types", ylab="markers", rotate_xticks=false)
+                        xlab="cell phenotype", ylab="markers", rotate_xticks=false)
     plt.savefig("$(imgdir)/Z_true.pdf", bbox_inches="tight")
     plt.close()
 
     # plot ZT true
     plt.figure(figsize=(8, 8))
     plot_yz.plot_Z_only(Z_true', fs=fs_z,
-                        xlab="markers", ylab="cell types")
+                        xlab="markers", ylab="cell phenotype")
     plt.savefig("$(imgdir)/ZT_true.pdf", bbox_inches="tight")
     plt.close()
   end
