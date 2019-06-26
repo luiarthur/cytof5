@@ -5,6 +5,7 @@ import subprocess
 import numpy as np
 import re
 import matplotlib.pyplot as plt
+from elbow import elbow
 
 
 def readFile(fname):
@@ -85,6 +86,11 @@ if __name__ == '__main__':
             plt.savefig('{}/lpml.pdf'.format(METRICS_DIR), bbox_inches='tight')
             plt.close()
 
+            # LPML_elbow = elbow(K[order], LPML[order])['knot-loc']
+            # print(LPML_elbow)
+            # LPML_knot_loc = K[order][LPML_elbow]
+            # print('LPML change-point: {}'.format(LPML_knot_loc))
+
             DIC = np.array(DIC)
             plt.figure()
             plt.plot(K[order], DIC[order], linestyle='--', marker='o', markersize=ms)
@@ -95,6 +101,11 @@ if __name__ == '__main__':
             plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
             plt.savefig('{}/dic.pdf'.format(METRICS_DIR), bbox_inches='tight')
             plt.close()
+
+            # DIC_elbow = elbow(K[order], DIC[order])['knot-loc']
+            # print(DIC_elbow)
+            # DIC_knot_loc = K[order][DIC_elbow]
+            # print('DIC change-point: {}'.format(DIC_knot_loc))
 
             pD = np.array(pD)
             plt.figure()
