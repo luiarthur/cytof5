@@ -3,6 +3,7 @@ using PyCall
 matplotlib = pyimport("matplotlib")
 plt = pyimport("matplotlib.pyplot")
 matplotlib.use("Agg")
+using DelimitedFiles
 
 # Load current dir
 pushfirst!(PyVector(pyimport("sys")."path"), "")
@@ -326,6 +327,8 @@ function post_process(output_path; thresh=.99, w_thresh=.01)
     # lambda
     # lami_est, k_ord = relabel_lam(lam_mode[i], W_mean[i, :])
     lami_est, k_ord = relabel_lam2(lam_mode[i], W_mean[i, :])
+    writedlm("$(IMG_DIR)/yz/clustering_$(i).txt", lami_est)
+
     if has_simdat
       yi = simdat[:y][i]
     else
