@@ -74,4 +74,11 @@ serve-nb:
 	jupyter notebook --no-browser --port=$(REMOTE_SERVER_PORT)
 
 connect-nb:
-	ssh -N -f -L localhost:$(LOCAL_PORT):localhost:$(REMOTE_SERVER_PORT)
+	ssh -N -f -L localhost:$(LOCAL_PORT):localhost:$(REMOTE_SERVER_PORT) jerez
+
+local-port-kill:
+	ps aux | grep "localhost:$(LOCAL_PORT)"
+	@echo "kill -9 with the correct PID"
+
+remote-port-kill:
+	@echo "TODO"
