@@ -82,3 +82,7 @@ local-port-kill:
 
 remote-port-kill:
 	@echo "TODO"
+
+nbconvert:
+	jupyter nbconvert investigate_low_ARI.ipynb --to=script
+	mv investigate_low_ARI.jl converts/
