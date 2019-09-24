@@ -2,6 +2,9 @@ SHELL := /bin/bash
 
 .PHONY: get send build
 
+REMOTE_SERVER_PORT = 8889
+LOCAL_PORT = 8887
+
 SCRATCH_DIR = /scratchdata/alui2/cytof
 RESULTS_DIR = results
 PAPER_AWS_BUCKET = s3://cytof-fam-paper/img/post/
@@ -67,3 +70,8 @@ build:
 
 all: get2scratch build send
 	
+serve-nb:
+	jupyter notebook --no-browser --port=$(REMOTE_SERVER_PORT)
+
+connect-nb:
+	ssh -N -f -L localhost:$(LOCAL_PORT):localhost:$(REMOTE_SERVER_PORT)
