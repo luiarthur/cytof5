@@ -41,7 +41,7 @@
 }
 
 % Title Settings
-\title{Template Doc}
+\title{Repulsive Feature Allocation Model Draft}
 \author{Arthur Lui}
 \date{18 October, 2018} % \date{} to set date to empty
 
@@ -50,10 +50,9 @@
 
 \maketitle
 
-\tableofcontents \newpage % Comment to remove table of contents
+% \tableofcontents \newpage % Comment to remove table of contents
 
-\section{A section}\label{sec:a-section} % add labels to refer to other sections easily
-\section{Repulsive Feature Allocation Model (rep-FAM)}{sec:repfam}
+\section{Repulsive Feature Allocation Model}\label{sec:repfam}
 
 % IDEAS: HMC?
 
@@ -61,11 +60,16 @@ Recall that a $J \times K$ binary matrix $Z$ characterizes $K$ different cell ph
 Let $v_k \mid \alpha \iid \Beta(\alpha, 1)$, $k = 1, \dots , K$.
 We define a joint distribution of $Z = \bk{z_1, \dots, z_K}$ as
 
-$$
-P(\bm Z \mid \bm v , C_\phi) \propto \bc{\prod_{k=1}^K \prod_{j=1}^J v_k^{z_{jk}} (1 - v_k)^{1 - z_{jk}}}
-\times
-\bc{\prod_{k_1=1}^{K-1} \prod_{k_2=k_1+1}^K 1 - C_\phi(\rho(\bm z_{k1}, \bm z_{k2}))}
-$$
+\begin{eqnarray}
+P(\bm Z \mid v, C_\phi) \propto \bc{\prod_{k=1}^K  \prod_{j=1}^J
+v_k^{z_{jk}}(1-v_k)^{1-z_{jk}}} \times
+  \bc{
+    \prod_{k_1=1}^{K-1}\prod_{k_2=k_1+1}^{K}
+    1 - C_\phi\p{\rho(\bm z_{k_1}, \bm z_{k_2})}
+  },
+\label{eq:rep-FAM}
+\end{eqnarray}
+
 
 where $\rho(\bm z_{k_1}, \bm z_{k_2})$ measure distance between columns $k_1$ and
 $k_2$, for $k_1 \neq k_2$, and $C_\phi(\cdot)$ is a continuous decreasing
@@ -87,6 +91,31 @@ proper.
 % \eqref{eq:rep-FAM}, $\Prob(z_{jk}=1) \neq v_k$ due to the repulsive function.
 % We place a prior on $\alpha$, such that $\alpha \sim \text{Gamma}(a_\alpha,
 % b_\alpha)$.
+
+
+\paragraph*{Feature Selection} We assume that cord blood samples ($x_i=0$) and
+healthy subject samples ($x_i=1$) can have distinct sets of cell phenotypes.
+We introduce binary indicators, $\delta_{xk}\in \{0, 1\}$, $x=0,1$, and
+$k=1,\ldots, K$, to indicate whether samples from $x$ possess phenotype $k$
+($\delta_{xk}=1$), or do not possess phenotype $k$ ($\delta_{xk}=0$). Assume
+$\delta_{xk} \ind \text{Bernoulli}(p_{x})$ and $p_x \iid \text{Beta}(a_p, b_p)$.  Let
+the un-normalized cell phenotype abundances be $\tilde w_{ik} \ind \G(a_W/K,
+1)$, $i=1, \ldots, I$, and $k=1, \ldots, K$. We define relative abundances in
+sample $i$ from $x_i$ as 
+$
+w_{ik} =\tilde w_{ik} \delta_{x_i k}/\sum_{\ell=1}^K\tilde w_{i\ell} \delta_{x_i \ell}.
+$
+Relative abundance $w_{ik}$ is exactly zero for $\delta_{x_ik}=0$. Samples
+from $x$ have the same subset of phenotypes but can have different relative
+abundances over the selected phenotypes. Phenotypes with
+$\delta_{0k}=\delta_{1k}=1$ appear in all samples, while some are present in only
+one type of samples. Feature-selection by $\delta_{xk}$ efficiently facilitates
+joint analysis of samples obtained from different sources. The model also
+allows phenotypes to absent in all samples, implying that some phenotypes are not
+used to describe any cells, providing a more parsimonious representation of 
+cell-populations in samples. The probability models for the other parameters
+remain unchanged as in \S~\ref{prob-model}.  
+
 
 \bibliography{bib}
 \end{document}
