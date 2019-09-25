@@ -1,0 +1,92 @@
+\documentclass[12pt]{article} % 12-point font
+
+\usepackage[margin=1in]{geometry} % set page to 1-inch margins
+\usepackage{amsmath} % for math
+\usepackage{amssymb} % like \Rightarrow
+\usepackage{bm} % bold math
+\setlength\parindent{0pt} % Suppresses the indentation of new paragraphs.
+
+% Bibliography
+\usepackage{natbib}
+\bibliographystyle{plainnat}
+
+% Big display
+\newcommand{\ds}{ \displaystyle }
+% Parenthesis
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\p}[1]{\left(#1\right)}
+\newcommand{\bk}[1]{\left[#1\right]}
+\newcommand{\bc}[1]{ \left\{#1\right\} }
+\newcommand{\abs}[1]{ \left|#1\right| }
+% Derivatives
+\newcommand{\df}[2]{ \frac{d#1}{d#2} }
+\newcommand{\ddf}[2]{ \frac{d^2#1}{d{#2}^2} }
+\newcommand{\pd}[2]{ \frac{\partial#1}{\partial#2} }
+\newcommand{\pdd}[2]{\frac{\partial^2#1}{\partial{#2}^2} }
+% Distributions
+\newcommand{\Normal}{ \text{Normal} }
+\newcommand{\Beta}{ \text{Beta} }
+\newcommand{\G}{ \text{Gamma} }
+\newcommand{\InvGamma}{ \text{Inv-Gamma} }
+\newcommand{\Uniform}{ \text{Uniform} }
+% Statistics
+\newcommand{\E}{ \text{E} }
+\newcommand{\iid}{\overset{iid}{\sim}}
+\newcommand{\ind}{\overset{ind}{\sim}}
+
+% Adds settings for hyperlinks. (Mainly for table of contents.)
+\usepackage{hyperref}
+\hypersetup{
+  pdfborder={0 0 0} % removes red box from links
+}
+
+% Title Settings
+\title{Template Doc}
+\author{Arthur Lui}
+\date{18 October, 2018} % \date{} to set date to empty
+
+% MAIN %
+\begin{document}
+
+\maketitle
+
+\tableofcontents \newpage % Comment to remove table of contents
+
+\section{A section}\label{sec:a-section} % add labels to refer to other sections easily
+\section{Repulsive Feature Allocation Model (rep-FAM)}{sec:repfam}
+
+% IDEAS: HMC?
+
+Recall that a $J \times K$ binary matrix $Z$ characterizes $K$ different cell phenotypes.
+Let $v_k \mid \alpha \iid \Beta(\alpha, 1)$, $k = 1, \dots , K$.
+We define a joint distribution of $Z = \bk{z_1, \dots, z_K}$ as
+
+$$
+P(\bm Z \mid \bm v , C_\phi) \propto \bc{\prod_{k=1}^K \prod_{j=1}^J v_k^{z_{jk}} (1 - v_k)^{1 - z_{jk}}}
+\times
+\bc{\prod_{k_1=1}^{K-1} \prod_{k_2=k_1+1}^K 1 - C_\phi(\rho(\bm z_{k1}, \bm z_{k2}))}
+$$
+
+where $\rho(\bm z_{k_1}, \bm z_{k_2})$ measure distance between columns $k_1$ and
+$k_2$, for $k_1 \neq k_2$, and $C_\phi(\cdot)$ is a continuous decreasing
+function in distance with $C_\phi(0)=1$ and
+$\lim_{d\rightarrow\infty}C_\phi(d)= 0$. For a distance metric, we use
+$\rho(\bm z_{k_1}, \bm z_{k_2})=\sum_{j=1}^J \abs{z_{jk_1} - z_{jk_2}}$, the number
+of discordances between columns $k_1$ and $k_2$. The function $C_\phi(\cdot)$
+can be interpreted as a proximity function. A suitable form is $C_\phi(d) =
+\exp\p{-d/\phi}$. \cite{quinlan2017parsimonious} showed that the model in
+\eqref{eq:rep-FAM} has a finite normalizing constant and the distribution is
+proper.
+
+% Under the model in \eqref{eq:rep-FAM}, probability 0 is assigned to
+% $\bm Z$ having identical columns.  For matrices $\bm Z$ that have the same number
+% of 0's and 1's, $\bm Z$ with similar columns has a smaller probability since
+% $C_\phi(\cdot)$ is decreasing in distance. $C_\phi(\cdot)$ smoothly penalizes
+% any $\bm Z$ having similar columns in the prior and can remove redundant columns in
+% posterior inference. Note that different from the IBP, under the model in
+% \eqref{eq:rep-FAM}, $\Prob(z_{jk}=1) \neq v_k$ due to the repulsive function.
+% We place a prior on $\alpha$, such that $\alpha \sim \text{Gamma}(a_\alpha,
+% b_\alpha)$.
+
+\bibliography{bib}
+\end{document}

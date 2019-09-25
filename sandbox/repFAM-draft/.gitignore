@@ -1,0 +1,2 @@
+*.{log,aux,nav,out,snm,toc,blg,bbl,fdb_latexmk,fls,synctex.gz}
+*.pdf
