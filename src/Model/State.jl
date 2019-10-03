@@ -20,7 +20,10 @@ is in Constants.jl.
 =#
 
 function compress(state::State)
-  println("WARNING: The `compress` function has not been fully tested and will result in errors!")
+  warn_msg = "WARNING: The `compress` function has not been fully tested "
+  warn_msg *= "and may result in errors!"
+  @warn warn_msg
+
   if typeof(state) == State{Float32}
     return state
   else
