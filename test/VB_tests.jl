@@ -32,7 +32,8 @@ using BSON
                                    mus=mus,
                                    a_W=a_W,
                                    a_eta=a_eta,
-                                   sortLambda=false, propMissingScale=0.7,
+                                   sortLambda=false,
+                                   propMissingScale=0.7,
                                    eps=fill(.005, I))
 
   tau = .0001 # FIXME: why can't I do .001?
@@ -43,7 +44,8 @@ using BSON
   priors = Cytof5.VB.Priors(K=K_MCMC, L=L_MCMC, use_stickbreak=use_stickbreak)
   mc = Cytof5.Model.defaultConstants(Cytof5.Model.Data(dat[:y]),
                                      K_MCMC, Dict{Int64,Int64}(L_MCMC),
-                                     yQuantiles=[0.0, 0.25, 0.5], pBounds=[.05, .8, .05])
+                                     yQuantiles=[0.0, 0.25, 0.5],
+                                     pBounds=[.05, .8, .05])
 
   beta = [mc.beta[:, i] for i in 1:I]
   c = Cytof5.VB.Constants(I, N, J, K_MCMC, L_MCMC, tau, beta, use_stickbreak,

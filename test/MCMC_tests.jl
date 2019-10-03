@@ -1,3 +1,7 @@
+#=
+using Revise, Test, Random, LinearAlgebra, RCall, Distributions
+using Cytof5
+=#
 Random.seed!(10)
 printDebug = true
 
@@ -7,7 +11,7 @@ printDebug = true
   @test true
 
   lfc(x::Vector{Float64}) = sum(x)
-  MCMC.metropolis(randn(4), lfc, Matrix{Float64}(I,4,4))
+  MCMC.metropolis(randn(4), lfc, Matrix{Float64}(LinearAlgebra.I, 4, 4))
   @test true
 end
 

@@ -3,6 +3,8 @@ printDebug = false
 using RCall, Distributions
 using JLD2, FileIO
 using BSON
+@rimport graphics
+@rimport grDevices
 
 @testset "Compile Model.State." begin
   I = 3
@@ -52,7 +54,7 @@ end
   plot_dat = R"cytof3::plot_dat"
   myImage = R"cytof3::my.image"
 
-  R"pdf('result/simdat_test.pdf')"
+  grDevices.pdf("result/simdat_test.pdf")
   myImage(dat[:Z])
   myImage(Cytof5.Model.genZ(J, K, .6))
 
@@ -61,7 +63,7 @@ end
       plot_dat(dat[:y_complete], i, j)
     end
   end
-  R"dev.off()"
+  grDevices.dev_off()
   @test true
 end
 
@@ -83,7 +85,8 @@ end
   K_MCMC = K #10
   L_MCMC = L #5
   @time c = Cytof5.Model.defaultConstants(y_dat, K_MCMC, L_MCMC,
-                                          noisyDist=Normal(0, sqrt(10)), yBounds=[-5., -3.5, -2.])
+                                          noisyDist=Normal(0, sqrt(10)),
+                                          yBounds=[-5., -3.5, -2.])
   Cytof5.Model.printConstants(c)
   # Plot miss mech
   R"pdf('result/beta.pdf')"
@@ -91,7 +94,8 @@ end
   R"par(mfrow=c($(y_dat.I), 1))"
   for i in 1:y_dat.I
     p = [Cytof5.Model.prob_miss(yy, c.beta[:, i]) for yy in y_grid]
-    R"plot"(y_grid, p, main="i: $i", typ="l", xlab="y", ylab="prob of missing", xlim=[-10, 5])
+    R"plot"(y_grid, p, main="i: $i", typ="l",
+            xlab="y", ylab="prob of missing", xlim=[-10, 5])
   end
   R"par(mfrow=c(1,1))"
   R"dev.off()"

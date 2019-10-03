@@ -1,7 +1,5 @@
-#=
-using Test
-include("../src/Util/Util.jl")
-import .Util: similarity_FM, meanabsdiff, sumabsdiff
+#= NOTE: If running tests incrementally, import the following packages:
+using Revise, Test
 =#
 
 import Cytof5.Util: similarity_FM, meanabsdiff, sumabsdiff
