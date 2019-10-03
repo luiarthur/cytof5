@@ -9,7 +9,7 @@ function flip_bit(z::Bool, probFlip::Float64)::Bool
 end
 
 """
-default similarity function used in computing log probability of Z_repulsive.
+default similarity function used in computing log probability of Z_repFAM.
 = sum(abs.(z1 .- z2))
 """
 function similarity_default(z1::Vector{Bool}, z2::Vector{Bool})::Float64
@@ -26,7 +26,7 @@ We require similarity(⋅, ⋅) ∈ (0, 1). And when z_{k1} == z_{k2} exactly,
 similarity = 1. Similarly, when distance between z_{k1} and z_{k2} approaches
 ∞, similarity = 0.
 """
-function logprob_Z_repulsive(Z::Matrix{Bool}, v::Vector{Float64},
+function logprob_Z_repFAM(Z::Matrix{Bool}, v::Vector{Float64},
                              similarity::Function)::Float64
   J, K = size(Z)
 
@@ -52,7 +52,7 @@ function update_Z_repFAM(s::State, c::Constants, d::Data, tuners::Tuners,
 
   function log_fc(Z)
     v = sb_ibp ? cumprod(s.v) : s.v
-    lp = logprob_Z_repulsive(Z, v, c.similarity_Z)
+    lp = logprob_Z_repFAM(Z, v, c.similarity_Z)
     ll = 0.0
 
     for i in 1:d.I
