@@ -104,11 +104,11 @@ end
   printstyled("Test Model Fitting...\n", color=:yellow)
   @time out, lastState, ll, metrics, dden = Cytof5.Model.cytof5_fit(
     init, c, y_dat,
-    nmcmc=200, nburn=1000,
+    nmcmc=200, nburn=200,
     computeLPML=true,
     computeDIC=true,
     computedden=true,
-    joint_update_Z=true)
+    joint_update_Z=false)
   println("Type of dden: $(typeof(dden[end]))")
 
   println("Type of output: $(typeof(out[1])))")
