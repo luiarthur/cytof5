@@ -19,6 +19,10 @@ include("Constants.jl")
 include("Tuners.jl")
 include("update.jl")
 include("repFAM/repFAM.jl")
+include("FeatureSelect/update_p_feature_select.jl")
+include("FeatureSelect/update_r_feature_select.jl")
+include("FeatureSelect/update_W_feature_select.jl")
+include("FeatureSelect/update_lam_feature_select.jl")
 include("genInitialState.jl")
 
 @namedargs mutable struct DICparam
@@ -32,7 +36,9 @@ printFreq: defaults to 0 => prints every 10%. turn off printing by setting to -1
 """
 function cytof5_fit(init::State, c::Constants, d::Data;
                     nmcmc::Int=1000, nburn::Int=1000, 
-                    monitors=[[:Z, :lam, :W, :v, :sig2, :delta, :alpha, :v, :eta, :eps]],
+                    monitors=[[:Z, :lam, :W, :v,
+                               :sig2, :delta, :alpha, :v,
+                               :eta, :eps]],
                     fix::Vector{Symbol}=Symbol[],
                     thins::Vector{Int}=[1],
                     thin_dden::Int=1,
