@@ -43,8 +43,8 @@ function logprob_Z_repulsive(Z::Matrix{Bool}, v::Vector{Float64},
   return lp
 end
 
-function update_Z_repulsive(s::State, c::Constants, d::Data, tuners::Tuners,
-                            sb_ibp::Bool)
+function update_Z_repFAM(s::State, c::Constants, d::Data, tuners::Tuners,
+                         sb_ibp::Bool)
   #cand_Z = flip_bit.(s.Z, MCMC.logit(tuners.Z.value, a=0.0, b=1.0))
   cand_Z = Matrix{Bool}(flip_bit.(s.Z, c.probFlip_Z))
 

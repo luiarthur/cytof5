@@ -1,6 +1,6 @@
 include("dmixture.jl")
 include("update_Z.jl")
-include("update_Z_repulsive.jl")
+include("repFAM/update_Z_repFAM.jl")
 include("update_Z_v2.jl")
 include("update_delta.jl")
 include("update_alpha.jl")
@@ -12,19 +12,20 @@ include("update_lam.jl")
 include("update_eps.jl")
 include("update_gam.jl")
 include("update_y_imputed.jl")
-include("compute_loglike.jl") # TODO
+include("compute_loglike.jl")
 
 function update_state(s::State, c::Constants, d::Data, tuners::Tuners,
                       ll::Vector{Float64}, fix::Vector{Symbol},
                       use_repulsive::Bool, joint_update_Z::Bool, sb_ibp::Bool)
-  # Note: `@doIf` is defined in "util.jl"
 
-  # Return true if sym not is not fixed
+  # NOTE: `@doIf` is defined in "util.jl"
+
+  # Return true if parameter (sym) is not fixed
   isRandom(sym::Symbol)::Bool = !(sym in fix)
 
   # Gibbs.
   @doIf isRandom(:Z) if use_repulsive
-    update_Z_repulsive(s, c, d, tuners, sb_ibp)
+    update_Z_repFAM(s, c, d, tuners, sb_ibp)
   else
     if joint_update_Z
       update_Z_v2(s, c, d, tuners, sb_ibp)
@@ -40,7 +41,8 @@ function update_state(s::State, c::Constants, d::Data, tuners::Tuners,
   @doIf isRandom(:W)          update_W(s, c, d)
   @doIf isRandom(:eps)        update_eps(s, c, d) 
 
-  @doIf isRandom(:gam)        update_gam(s, c, d) # must be done between updating Z and delta
+  # gam update must be done after updating Z and before updating delta
+  @doIf isRandom(:gam)        update_gam(s, c, d)
   @doIf isRandom(:eta)        update_eta(s, c, d)
 
   @doIf isRandom(:delta)      update_delta(s, c, d) 

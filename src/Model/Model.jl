@@ -18,7 +18,7 @@ include("Data.jl")
 include("Constants.jl")
 include("Tuners.jl")
 include("update.jl")
-include("repFAM.jl")
+include("repFAM/repFAM.jl")
 include("genInitialState.jl")
 
 @namedargs mutable struct DICparam
