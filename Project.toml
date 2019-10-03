@@ -1,7 +1,7 @@
 name = "Cytof5"
 uuid = "9d2f02b2-a32d-11e8-1157-5507aac9729b"
 authors = ["Arthur Lui <luiarthur@gmail.com>"]
-version = "0.3.0"
+version = "0.6.0"
 
 [deps]
 BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
