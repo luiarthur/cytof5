@@ -1,7 +1,8 @@
 module MCMC
 using Distributions
 
-export gibbs, TuningParam, metropolis, metropolisAdaptive, logpdfLogX, metLogAdaptive, metLogitAdaptive
+export gibbs, TuningParam, metropolis, metropolisAdaptive, logpdfLogX
+export metLogAdaptive, metLogitAdaptive
 
 include("gibbs.jl")
 include("TuningParam.jl")
