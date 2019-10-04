@@ -6,7 +6,8 @@ function update_W(s::StateFS, c::ConstantsFS, d::DataFS)
 end
 
 function update_W(i::Int, s::StateFS, c::ConstantsFS, d::DataFS)
-  s.theta.W[i, :] .= s.W_star[i, :] ./ sum(s.W_star[i, :], dims=2)
+  wr_i = s.W_star[i, :] .* s.r[i, :]
+  s.theta.W[i, :] .= wr_i ./ sum(wr_i, dims=2)
 end
 
 # Update W star
