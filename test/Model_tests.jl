@@ -1,8 +1,15 @@
-Random.seed!(10)
-printDebug = false
+#=
+using Revise, Test
+=#
+using Cytof5
+using Random
 using RCall, Distributions
 using JLD2, FileIO
 using BSON
+
+Random.seed!(10)
+printDebug = false
+
 @rimport graphics
 @rimport grDevices
 
@@ -16,17 +23,18 @@ using BSON
   import Cytof5.Model
   import Cytof5.Model.Cube
 
-  Model.State(Z=Matrix{Bool}(undef, J, K),
-              delta=Dict{Bool, Vector{Float16}}(),
-              alpha=Float16(1.0),
-              v=ones(Float16, K),
-              W=rand(Float16, I, K),
-              sig2=Vector{Float16}(undef, I),
-              eta=Dict{Bool, Cube{Float16}}(),
-              lam=[ones(Int8, N[i]) for i in 1:I],
-              gam=[ones(Int8, N[i], J) for i in 1:I],
-              y_imputed=[randn(Float16, N[i], J) for i in 1:I],
-              eps=[Float16(.05) for i in 1:I])
+  state = Model.State{Float16}()
+  state.Z=Matrix{Bool}(undef, J, K)
+  state.delta=Dict{Bool, Vector{Float16}}()
+  state.alpha=Float16(1.0)
+  state.v=ones(Float16, K)
+  state.W=rand(Float16, I, K)
+  state.sig2=Vector{Float16}(undef, I)
+  state.eta=Dict{Bool, Cube{Float16}}()
+  state.lam=[ones(Int8, N[i]) for i in 1:I]
+  state.gam=[ones(Int8, N[i], J) for i in 1:I]
+  state.y_imputed=[randn(Float16, N[i], J) for i in 1:I]
+  state.eps=[Float16(.05) for i in 1:I]
   @test true
 
   # Debug Data constructor

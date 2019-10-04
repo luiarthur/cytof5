@@ -63,8 +63,23 @@ function genInitialState(c::Constants, d::Data)
 
   eps = mean.(c.eps_prior)
 
-  return State(Z=Z, delta=delta, alpha=alpha, v=v, W=W, sig2=sig2, eps=eps,
-               eta=eta, lam=lam, gam=gam, y_imputed=y_imputed)
+  # Create State object
+  state = State{Float64}()
+
+  # Initialize State
+  state.Z = Z
+  state.delta = delta
+  state.alpha = alpha
+  state.v = v
+  state.W = W
+  state.sig2 = sig2
+  state.eps = eps
+  state.eta = eta
+  state.lam = lam
+  state.gam = gam
+  state.y_imputed = y_imputed
+
+  return state
 end
 
 include("SmartInit.jl")
