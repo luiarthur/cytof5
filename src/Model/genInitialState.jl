@@ -31,14 +31,14 @@ function genInitialState(c::Constants, d::Data)
   end
 
   alpha = mean(c.alpha_prior)
-  println("alpha: $alpha")
+  # println("alpha: $alpha")
   # v = rand(Beta(alpha / c.K, 1), K)
   # Z = [ Bool(rand(Bernoulli(v[k]))) for j in 1:J, k in 1:K ]
   # v = rand(Beta(alpha, 1), K)
   v = [mean(Beta(alpha, 1)) for k in 1:K]
-  println("v: $v")
+  # println("v: $v")
   b = cumprod(v)
-  println("b: $b")
+  # println("b: $b")
   Z = [ Bool(rand(Bernoulli(b[k]))) for j in 1:J, k in 1:K ]
   delta = Dict(false => rand(c.delta_prior[0], L[0]),
                true  => rand(c.delta_prior[1], L[1]))
