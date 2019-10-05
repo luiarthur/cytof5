@@ -20,6 +20,9 @@ include("Tuners.jl")
 include("update.jl")
 include("repFAM/repFAM.jl")
 include("FeatureSelect/StateFS.jl")
+include("FeatureSelect/DataFS.jl")
+include("FeatureSelect/ConstantsFS.jl")
+include("FeatureSelect/TunersFS.jl")
 include("FeatureSelect/update_p_feature_select.jl")
 include("FeatureSelect/update_r_feature_select.jl")
 include("FeatureSelect/update_W_feature_select.jl")
@@ -150,7 +153,8 @@ function cytof5_fit(init::State, c::Constants, d::Data;
       mu = [[s.lam[i][n] > 0 ? mus(i, n, j, s, c, d) : 0.0 
              for n in 1:d.N[i], j in 1:d.J] for i in 1:d.I]
 
-      sig = [[s.lam[i][n] > 0 ? sqrt(s.sig2[i]) : std(c.noisyDist) for n in 1:d.N[i]] for i in 1:d.I]
+      sig = [[s.lam[i][n] > 0 ? sqrt(s.sig2[i]) : std(c.noisyDist)
+              for n in 1:d.N[i]] for i in 1:d.I]
 
       return DICparam(p, mu, sig)
     end

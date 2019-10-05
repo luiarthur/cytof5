@@ -1,5 +1,3 @@
-#const VecMissMat = Vector{Matrix{Union{T, Missing}}} where T
-
 function nrow(m::Matrix)
   return size(m, 1)
 end
@@ -8,8 +6,7 @@ function ncol(m::Matrix)
   return size(m, 2)
 end
 
-@namedargs struct Data
-  #y::VecMissMat{Float64}
+struct Data
   y::Vector{Matrix{Float64}}
   I::Int
   J::Int
@@ -17,7 +14,7 @@ end
   m::Vector{Matrix{Int8}}
 
   function Data(y) 
-    @assert all( ncol.(y) .== ncol(y[1]) )
+    @assert all(ncol.(y) .== ncol(y[1]))
     I = length(y)
     J = ncol(y[1])
     N = nrow.(y)

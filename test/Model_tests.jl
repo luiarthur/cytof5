@@ -13,6 +13,36 @@ printDebug = false
 @rimport graphics
 @rimport grDevices
 
+function init_state_const_data(; N=[300, 200, 100], J=32, K=4,
+                               L=Dict(0=>5, 1=>3))
+
+  I = length(N)
+  simdat = Cytof5.Model.genData(J, N, K, L, sortLambda=true)
+  d = Cytof5.Model.Data(simdat[:y])
+  c = Cytof5.Model.defaultConstants(d, K * 2, Dict(0=>5, 1=>5))
+  s = Cytof5.Model.genInitialState(c, d)
+  X = Float64.(reshape([i for i in 1:I], I, 1))
+
+
+  return Dict(:d => d, :c => c, :s => s, :X => X)
+end
+
+
+@testset "update_W_star" begin
+  config = init_state_const_data() 
+  cfs = Cytof5.Model.ConstantsFS(config[:c])
+  dfs = Cytof5.Model.DataFS(config[:d], config[:X])
+  sfs = Cytof5.Model.StateFS{Float64}(config[:s], p=rand(config[:d].I))
+  tfs = Cytof5.Model.Tuners(config[:d].y, config[:c].K)
+
+  println(sfs.W_star)
+
+  # TODO
+  # tfs = Cytof5.Model.TunersFS
+  # Model.update_W_star(1, 1, sfs, cfs, dfs)
+end
+
+
 @testset "Compile Model.State." begin
   I = 3
   J = 8
@@ -135,46 +165,6 @@ end
     :dat => dat,
     :ll => ll,
     :lastState => lastState))
-
-  #=
-  using JLD2, FileIO, RCall
-
-  R"""
-  my.image($(dat[:y][1]), col=blueToRed(11), zlim=c(-3,3), addL=T, na.col='black')
-  """
-  @load "result/out.jld2" out dat ll lastState
-  R"plot"(ll, type="l", ylab="")
-  Zpost = [o[:Z] for o in out[1]]
-  Zmean = zeros(size(Zpost[1]));
-  for z in Zpost
-    Zmean .+= z / length(Zpost)
-  end
-
-  myImage = R"cytof3::my.image"
-
-  for i in 1:length(Zpost)
-    z = Zpost[i]
-    sleep(.1)
-    myImage(z, main=i)
-  end
-
-  R"pdf('result/cytof_test.pdf')"
-  myImage(Zmean)
-  myImage(dat[:Z])
-
-  lastState.sig2
-  lastState.eta
-  dat[:eta]
-  lastState.W - dat[:W]
-  lastState.lam[1]
-  dat[:lam][1]
-
-  plotPosts = R"rcommon::plotPosts"
-
-  
-  R"my.image($(lastState.y_imputed[1]), col=blueToRed(11), addL=T, zlim=c(-5,5))"
-  R"dev.off()"
-  =#
 
 
   @test true

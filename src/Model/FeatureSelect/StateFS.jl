@@ -29,3 +29,24 @@ mutable struct StateFS{F <: AbstractFloat}
   # Primary constructor returns an uninitialized stateFS.
   StateFS{F}() where {F <: AbstractFloat} = new()
 end
+
+
+function StateFS{F}(theta::State{F};
+                    p=nothing, omega=nothing) where {F <: AbstractFloat}
+  sfs = StateFS{F}()
+  I, K = size(theta.W)
+
+  sfs.theta = theta
+  sfs.r = rand(Bool, I, K)
+  sfs.W_star = ones(I, K)
+
+  if p != nothing
+    sfs.p = p
+  end
+
+  if omega != nothing
+    sfs.omega = omega
+  end
+
+  return sfs
+end
