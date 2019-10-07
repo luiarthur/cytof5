@@ -36,7 +36,8 @@ end
 """
 convert: converts state to param
 """
-function updateDIC(x::DICstream{T}, state::S, updateParams::Function, loglike::Function, convert::Function) where {T, S}
+function updateDIC(x::DICstream{T}, state::S, updateParams::Function,
+                   loglike::Function, convert::Function) where {T, S}
   param = convert(state)
 
   # update Dsum
@@ -62,7 +63,8 @@ DIC = Dmean + pD, where
 - Dmean is a measure of fit. Higher is better.
 - pD is a measure of (non) complexity. Higher is better.
 """
-function computeDIC(x::DICstream{T}, loglike::Function, paramMeanCompute::Function;
+function computeDIC(x::DICstream{T}, loglike::Function,
+                    paramMeanCompute::Function;
                     return_Dmean_pD::Bool=false) where {T}
   Dmean = x.Dsum / x.counter
   paramMean = paramMeanCompute(x)

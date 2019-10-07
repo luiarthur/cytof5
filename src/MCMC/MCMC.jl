@@ -100,18 +100,6 @@ function logabsjacobian_logitx(real_x::Float64;
 end
 
 
-# function logpdfLogX(logX::Float64, logpdfX::Function)
-#   return logpdfX(exp(logX)) + logX
-# end
-# 
-#
-# function logpdfLogitX(logitX::Float64, logpdfX::Function, a::Float64, b::Float64)
-#   x = sigmoid(logitX, a=a, b=b)
-#   logJacobian = logpdf(Logistic(), logitX) + log(b - a)
-#   logpdfX(x) + logJacobian
-# end
-
-
 function metLogAdaptive(curr::Float64, log_prob::Function, tuner::TuningParam;
                         update::Function=update_tuning_param_default)
 
@@ -137,7 +125,8 @@ function metLogitAdaptive(curr::Float64, log_prob::Function,
   end
 
   logit_x = metropolisAdaptive(logit(curr,a=a,b=b),
-                               log_prob_plus_logabsjacobian, tuner, update=update)
+                               log_prob_plus_logabsjacobian,
+                               tuner, update=update)
 
   return sigmoid(logit_x, a=a, b=b)
 end

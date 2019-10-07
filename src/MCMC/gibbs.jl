@@ -56,8 +56,10 @@ function gibbs(init::T,
   if printFreq > 0
     println("Preallocating memory...")
   end
-  # Object to return
-  @time out = [ fill(deepcopyFields(state, monitors[i]), numSamps[i]) for i in 1:numMonitors ]
+
+  # Create object to return
+  @time out = [fill(deepcopyFields(state, monitors[i]), numSamps[i])
+               for i in 1:numMonitors]
 
   function printMsg(i::Int)
     if printFreq > 0 && i % printFreq == 0

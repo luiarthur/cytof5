@@ -4,7 +4,8 @@ harmonicMean(x) = 1 / mean(1 / x)
 """
 CPO for one data point
 
-likelihood: likelihood for that data point. Note that this should take one sample of the parameters and return the likelihood, and NOT the log-likelihood.
+likelihood: likelihood for that data point. Note that this should take one
+sample of the parameters and return the likelihood, and NOT the log-likelihood.
 
 http://webpages.math.luc.edu/~ebalderama/myfiles/modelchecking101_pres.pdf
 """
@@ -15,7 +16,8 @@ end
 
 """
 Methods to implement:
-- updateInvLikelihood(c::CPOstream{T}, invLike::T) where T, to add invLikelihoods to c.invLikelihoodSum
+- updateInvLikelihood(c::CPOstream{T}, invLike::T) where T, to add
+  invLikelihoods to c.invLikelihoodSum
 """
 mutable struct CPOstream{T}
   invLikelihoodSum::T
@@ -24,11 +26,13 @@ mutable struct CPOstream{T}
   CPOstream{T}(tmp) where T = new(tmp, 0)
 end
 
-function updateInvLikelihood(c::CPOstream{Vector{Array{T,N}}}, invLike::Vector{Array{T,N}}) where {T, N}
+function updateInvLikelihood(c::CPOstream{Vector{Array{T,N}}},
+                             invLike::Vector{Array{T,N}}) where {T, N}
   c.invLikelihoodSum += invLike
 end
 
-function updateInvLikelihood(c::CPOstream{Array{T, N}}, invLike::Array{T, N}) where {T, N}
+function updateInvLikelihood(c::CPOstream{Array{T, N}},
+                             invLike::Array{T, N}) where {T, N}
   c.invLikelihoodSum += invLike
 end
 
@@ -57,7 +61,8 @@ function computeLPML(x::CPOstream{Array{T, N}}; verbose::Int=1) where {T, N}
   return mean(log.(computeCPO(x)))
 end
 
-function computeLPML(x::CPOstream{Vector{Array{T, N}}}; verbose::Int=1) where {T, N}
+function computeLPML(x::CPOstream{Vector{Array{T, N}}};
+                     verbose::Int=1) where {T, N}
   cpos = computeCPO(x)
   logCpos = [ log.(cpo) for cpo in cpos ]
   logCpos = vcat(vec.(logCpos)...)
