@@ -96,22 +96,26 @@ end
 
     function update_sig2()
 
-      function ll(sig2::Float64)
-        return sum( sum(logpdf.(Normal(s.mu[j], sqrt(sig2)), y[j])) for j in 1:J )
+      # If true, test `metLogAdaptive`
+      # otherwise, test `metLogitAdaptive`
+      test_metlogadaptive = true
+
+      function log_prob(sig2::Float64)
+        ll = sum( sum(logpdf.(Normal(s.mu[j], sqrt(sig2)), y[j])) for j in 1:J )
+        if test_metlogadaptive
+          lp = logpdf(InverseGamma(sig2Prior_a, sig2Prior_b), sig2)
+        else
+          lp = logpdf(Uniform(0.0, 5.0), sig2)
+        end
+        
+        return ll + lp
       end
 
-      #= For testing metLogitAdaptive:
-      function lp(sig2::Float64)
-        return logpdf(Uniform(0.0, 5.0), sig2)
+      if test_metlogadaptive
+        s.sig2 = MCMC.metLogAdaptive(s.sig2, log_prob, tunerSig2)
+      else
+        s.sig2 = MCMC.metLogitAdaptive(s.sig2, log_prob, tunerSig2, a=0.0, b=5.0)
       end
-      s.sig2 = MCMC.metLogitAdaptive(s.sig2, ll, lp, tunerSig2, a=0.0, b=5.0)
-      =#
-
-      function lp(sig2::Float64)
-        return logpdf(InverseGamma(sig2Prior_a, sig2Prior_b), sig2)
-      end
-
-      s.sig2 = MCMC.metLogAdaptive(s.sig2, ll, lp, tunerSig2)
 
       return
     end

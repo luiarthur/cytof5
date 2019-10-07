@@ -10,26 +10,31 @@ include("Conjugate.jl")
 include("Fitness.jl")
 include("Util.jl")
 
-function metropolisBase(curr::Float64, logFullCond::Function, stepSD::Float64)
+
+function metropolisBase(curr::Float64, log_prob::Function, stepSD::Float64)
   cand = curr + randn() * stepSD
   logU = log(rand())
-  logP = logFullCond(cand) - logFullCond(curr)
+  logP = log_prob(cand) - log_prob(curr)
   accept = logP > logU
   draw = accept ? cand : curr
   return (draw, accept)
 end
 
-function metropolis(curr::Float64, logFullCond::Function, stepSD::Float64)
-  return metropolisBase(curr, logFullCond, stepSD)[1]
+
+function metropolis(curr::Float64, log_prob::Function, stepSD::Float64)
+  return metropolisBase(curr, log_prob, stepSD)[1]
 end
 
-function metropolis(curr::Vector{Float64}, logFullCond::Function, stepSD::Matrix{Float64})
+
+function metropolis(curr::Vector{Float64}, log_prob::Function,
+                    stepSD::Matrix{Float64})
   cand = rand(MvNormal(curr, stepSD))
   logU = log(rand())
-  p = logFullCond(cand) - logFullCond(curr)
+  p = log_prob(cand) - log_prob(curr)
   out = p > logU ? cand : curr
   return out
 end
+
 
 """
 Adaptive metropolis (within Gibbs). See section 3 of the paper below:
@@ -38,17 +43,19 @@ Adaptive metropolis (within Gibbs). See section 3 of the paper below:
 Another useful website:
   https://m-clark.github.io/docs/ld_mcmc/index_onepage.html
 """
-function metropolisAdaptive(curr::Float64, logFullCond::Function,
+function metropolisAdaptive(curr::Float64, log_prob::Function,
                             tuner::TuningParam;
                             update::Function=update_tuning_param_default)
-  draw, accept = metropolisBase(curr, logFullCond, tuner.value)
+  draw, accept = metropolisBase(curr, log_prob, tuner.value)
   update(tuner, accept)
   return draw
 end
 
+
 function logit(p::Float64; a::Float64=0.0, b::Float64=1.0)
   return log(p - a) - log(b - p)
 end
+
 
 function sigmoid(x::Float64; a::Float64=0.0, b::Float64=1.0)
   out = 0.0
@@ -63,45 +70,78 @@ function sigmoid(x::Float64; a::Float64=0.0, b::Float64=1.0)
   return out
 end
 
-function logpdfLogX(logX::Float64, logpdfX::Function)
-  return logpdfX(exp(logX)) + logX
+
+"""
+Log absolute jacobian term to be added when taking the log of a postiviely
+supported random variable (x), so as to produce a random variable with
+support on the real line. When added to the target log density, the resulting
+expression can be used in a metropolis step conveniently.
+"""
+function logabsjacobian_logx(real_x::Float64)::Float64
+  return real_x
 end
 
-function logpdfLogitX(logitX::Float64, logpdfX::Function, a::Float64, b::Float64)
-  x = sigmoid(logitX, a=a, b=b)
-  logJacobian = logpdf(Logistic(), logitX) + log(b - a)
-  logpdfX(x) + logJacobian
+
+"""
+Log absolute jacobian term to be added when taking the logit of a
+lower-and-upper-bounded random variable (x), so as to produce a random variable
+with support on the real line. When added to the target log density, the
+resulting expression can be used in a metropolis step conveniently.
+
+# Arguments
+- `real_x::Float64`: the unconstrained value of the positively-supported
+                     parameter x (i.e. log x) 
+- `a::Float64`: lower bound for unconstrained parameter (default: 0)
+- `b::Float64`: upper bound for unconstrained parameter (default: 1)
+"""
+function logabsjacobian_logitx(real_x::Float64;
+                               a::Float64=0.0, b::Float64=1.0)::Float64
+  return logpdf(Logistic(), real_x) + log(b - a)
 end
 
-function metLogitAdaptive(curr::Float64, ll::Function, lp::Function,
+
+# function logpdfLogX(logX::Float64, logpdfX::Function)
+#   return logpdfX(exp(logX)) + logX
+# end
+# 
+#
+# function logpdfLogitX(logitX::Float64, logpdfX::Function, a::Float64, b::Float64)
+#   x = sigmoid(logitX, a=a, b=b)
+#   logJacobian = logpdf(Logistic(), logitX) + log(b - a)
+#   logpdfX(x) + logJacobian
+# end
+
+
+function metLogAdaptive(curr::Float64, log_prob::Function, tuner::TuningParam;
+                        update::Function=update_tuning_param_default)
+
+  function log_prob_plus_logabsjacobian(log_x::Float64)
+    x = exp(log_x)
+    return log_prob(x) + logabsjacobian_logx(log_x)
+  end
+
+  log_x = metropolisAdaptive(log(curr), log_prob_plus_logabsjacobian, tuner,
+                             update=update)
+
+  return exp(log_x)
+end
+
+
+function metLogitAdaptive(curr::Float64, log_prob::Function,
                           tuner::TuningParam; a::Float64=0.0, b::Float64=1.0, 
                           update::Function=update_tuning_param_default)
 
-  function lfc_logitX(logit_x::Float64)
+  function log_prob_plus_logabsjacobian(logit_x::Float64)
     x = sigmoid(logit_x, a=a, b=b)
-    #lp_logitX = lp(x) + logpdf(Logistic(), logit_x)
-    lp_logitX = logpdfLogitX(logit_x, lp, a, b)
-    return ll(x) + lp_logitX
+    return log_prob(x) + logabsjacobian_logitx(logit_x)
   end
 
-  logit_x = metropolisAdaptive(logit(curr,a=a,b=b), lfc_logitX, tuner, update=update)
+  logit_x = metropolisAdaptive(logit(curr,a=a,b=b),
+                               log_prob_plus_logabsjacobian, tuner, update=update)
 
   return sigmoid(logit_x, a=a, b=b)
 end
 
-function metLogAdaptive(curr::Float64, ll::Function, lp::Function,
-                        tuner::TuningParam;
-                        update::Function=update_tuning_param_default)
-
-  function lfc_logX(log_x::Float64)
-    x = exp(log_x)
-    return ll(x) + logpdfLogX(log_x, lp)
-  end
-
-  log_x = metropolisAdaptive(log(curr), lfc_logX, tuner, update=update)
-
-  return exp(log_x)
-end
 
 function normalize(x::Vector{T})::Vector{T} where T
   if isprobvec(x)
@@ -126,10 +166,12 @@ function wsample_logprob(logProbs::Vector{T}) where {T <: Number}
   return Distributions.wsample(p)
 end
 
+
 function logsumexp(logx::Vector{T}) where {T <: Number}
   mx = maximum(logx)
   return log(sum(exp.(logx .- mx))) + mx
 end
+
 
 function logsumexp(logx::T...) where {T <: Number}
   mx = maximum(logx)
