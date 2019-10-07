@@ -32,7 +32,7 @@ end
   config = init_state_const_data() 
   cfs = Cytof5.Model.ConstantsFS(config[:c])
   dfs = Cytof5.Model.DataFS(config[:d], config[:X])
-  sfs = Cytof5.Model.StateFS{Float64}(config[:s], p=rand(config[:d].I))
+  sfs = Cytof5.Model.StateFS{Float64}(config[:s], dfs)
   tfs = Cytof5.Model.TunersFS(config[:t], config[:s])
 
 
@@ -42,6 +42,9 @@ end
   Cytof5.Model.update_W_star!(sfs, cfs, dfs, tfs)
   println("W_star after: $(sfs.W_star)")
   println("W after: $(sfs.theta.W)")
+
+  # TODO:
+  # test update_r, update_omega
 end
 
 

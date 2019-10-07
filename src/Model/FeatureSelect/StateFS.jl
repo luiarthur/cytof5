@@ -22,7 +22,6 @@ And `gamma` should be updated after Z and before delta.
 mutable struct StateFS{F <: AbstractFloat}
   r::Matrix{Bool}  # dim: IxK
   W_star::Matrix{F}  # dim: IxK
-  p::Vector{F}  # dim: |C|
   omega::Vector{F}  # dim: number of covariates (`length(x_i)`) + 1
   theta::State{F}  # State
 
@@ -31,22 +30,14 @@ mutable struct StateFS{F <: AbstractFloat}
 end
 
 
-function StateFS{F}(theta::State{F};
-                    p=nothing, omega=nothing) where {F <: AbstractFloat}
+function StateFS{F}(theta::State{F}, dfs::DataFS) where {F <: AbstractFloat}
   sfs = StateFS{F}()
   I, K = size(theta.W)
 
   sfs.theta = theta
   sfs.r = rand(Bool, I, K)
   sfs.W_star = ones(I, K)
-
-  if p != nothing
-    sfs.p = p
-  end
-
-  if omega != nothing
-    sfs.omega = omega
-  end
+  sfs.omega = zeros(dfs.P)
 
   return sfs
 end
