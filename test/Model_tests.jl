@@ -36,7 +36,7 @@ end
   tfs = Cytof5.Model.TunersFS(config[:t], config[:s])
 
 
-  # TODO
+  # Do one update for W_star.
   println("r init: $(sfs.r)")
   println("W_star init: $(sfs.W_star)")
   Cytof5.Model.update_W_star!(sfs, cfs, dfs, tfs)
