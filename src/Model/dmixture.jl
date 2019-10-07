@@ -1,12 +1,13 @@
 function dmixture(z::Integer, i::Integer, n::Integer, j::Integer,
                   s::State, c::Constants, d::Data)::Float64
   sd = sqrt(s.sig2[i])
-  dvec = s.eta[z][i, j, :] .* pdf.(Normal.(mus(Bool(z), s, c, d), sd), s.y_imputed[i][n, j])
+  dvec = s.eta[z][i, j, :]
+  dvec .*= pdf.(Normal.(mus(Bool(z), s, c, d), sd), s.y_imputed[i][n, j])
   return sum(dvec)
 end
 
 function logdmixture(z::Integer, i::Integer, n::Integer, j::Integer,
-                  s::State, c::Constants, d::Data)::Float64
+                     s::State, c::Constants, d::Data)::Float64
   sd = sqrt(s.sig2[i])
   logdvec = log.(s.eta[z][i, j, :])
   logdvec += logpdf.(Normal.(mus(Bool(z), s, c, d), sd), s.y_imputed[i][n, j])
