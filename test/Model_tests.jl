@@ -21,10 +21,10 @@ function init_state_const_data(; N=[300, 200, 100], J=32, K=4,
   d = Cytof5.Model.Data(simdat[:y])
   c = Cytof5.Model.defaultConstants(d, K * 2, Dict(0=>5, 1=>5))
   s = Cytof5.Model.genInitialState(c, d)
+  t = Cytof5.Model.Tuners(d.y, c.K)
   X = Float64.(reshape([i for i in 1:I], I, 1))
 
-
-  return Dict(:d => d, :c => c, :s => s, :X => X)
+  return Dict(:d => d, :c => c, :s => s, :t => t, :X => X)
 end
 
 
@@ -33,13 +33,15 @@ end
   cfs = Cytof5.Model.ConstantsFS(config[:c])
   dfs = Cytof5.Model.DataFS(config[:d], config[:X])
   sfs = Cytof5.Model.StateFS{Float64}(config[:s], p=rand(config[:d].I))
-  tfs = Cytof5.Model.Tuners(config[:d].y, config[:c].K)
+  tfs = Cytof5.Model.TunersFS(config[:t], config[:s])
 
-  println(sfs.W_star)
 
   # TODO
-  # tfs = Cytof5.Model.TunersFS
-  # Model.update_W_star(1, 1, sfs, cfs, dfs)
+  println("r init: $(sfs.r)")
+  println("W_star init: $(sfs.W_star)")
+  Cytof5.Model.update_W_star!(sfs, cfs, dfs, tfs)
+  println("W_star after: $(sfs.W_star)")
+  println("W after: $(sfs.theta.W)")
 end
 
 
