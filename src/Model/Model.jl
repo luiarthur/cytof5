@@ -163,8 +163,8 @@ function cytof5_fit(init::State, c::Constants, d::Data;
 
   dden = Matrix{Vector{Float64}}[]
 
-  function update(s::State, iter::Int, out)
-    update_state(s, c, d, tuners, loglike, fix, use_repulsive, joint_update_Z, sb_ibp)
+  function update!(s::State, iter::Int, out)
+    update_state!(s, c, d, tuners, loglike, fix, use_repulsive, joint_update_Z, sb_ibp)
 
     if computedden && iter > nburn && (iter - nburn) % thin_dden == 0
       append!(dden,
@@ -205,7 +205,7 @@ function cytof5_fit(init::State, c::Constants, d::Data;
     println("")
   end
 
-  out, lastState = MCMC.gibbs(init, update, monitors=monitors,
+  out, lastState = MCMC.gibbs(init, update!, monitors=monitors,
                               thins=thins, nmcmc=nmcmc, nburn=nburn,
                               printFreq=printFreq,
                               loglike=loglike, flushOutput=flushOutput,

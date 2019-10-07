@@ -24,16 +24,16 @@ function mus(i::Integer, n::Integer, j::Integer, s::State, c::Constants, d::Data
   return mus_inj
 end
 
-function update_delta(s::State, c::Constants, d::Data)
+function update_delta!(s::State, c::Constants, d::Data)
   for z in 0:1
     for l in 1:c.L[z]
-      update_delta(Bool(z), l, s, c, d)
+      update_delta!(Bool(z), l, s, c, d)
     end
   end
 end
 
 # TODO: TEST!
-function update_delta(z::Bool, l::Int, s::State, c::Constants, d::Data)
+function update_delta!(z::Bool, l::Int, s::State, c::Constants, d::Data)
   (psi_z, tau_z, _, _) = params(c.delta_prior[z])
 
   cardinality = zeros(Int, d.I)

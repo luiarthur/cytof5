@@ -1,4 +1,4 @@
-function update_v(k::Int, s::State, c::Constants, d::Data)
+function update_v!(k::Int, s::State, c::Constants, d::Data)
   sumZk = sum(s.Z[:, k])
   newA = s.alpha / c.K + sumZk
   newB = 1 + d.J - sumZk
@@ -6,7 +6,7 @@ function update_v(k::Int, s::State, c::Constants, d::Data)
   s.v[k] = rand(Beta(newA, newB))
 end
 
-function update_v_sb(k::Int, s::State, c::Constants, d::Data, tuners::Tuners)
+function update_v_sb!(k::Int, s::State, c::Constants, d::Data, tuners::Tuners)
   lp(vk::Float64) = log(s.alpha) + (s.alpha - 1.0) * log(vk) 
 
   function ll(vk::Float64)
@@ -31,12 +31,13 @@ function update_v_sb(k::Int, s::State, c::Constants, d::Data, tuners::Tuners)
   s.v[k] = MCMC.metLogitAdaptive(s.v[k], ll, lp, tuners.v[k])
 end
 
-function update_v(s::State, c::Constants, d::Data, tuners::Tuners, sb_ibp::Bool)
+function update_v!(s::State, c::Constants, d::Data,
+                   tuners::Tuners, sb_ibp::Bool)
   for k in 1:c.K
     if sb_ibp
-      update_v_sb(k, s, c, d, tuners)
+      update_v_sb!(k, s, c, d, tuners)
     else
-      update_v(k, s, c, d)
+      update_v!(k, s, c, d)
     end
   end
 end

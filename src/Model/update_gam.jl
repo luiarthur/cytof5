@@ -1,4 +1,4 @@
-function update_gam(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)
+function update_gam!(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)
   k = s.lam[i][n]
   if k > 0
     z = s.Z[j, k]
@@ -11,11 +11,11 @@ function update_gam(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)
   end
 end
 
-function update_gam(s::State, c::Constants, d::Data)
+function update_gam!(s::State, c::Constants, d::Data)
   for i in 1:d.I
     for j in 1:d.J
       for n in 1:d.N[i]
-        update_gam(i, n, j, s, c, d)
+        update_gam!(i, n, j, s, c, d)
       end
     end
   end

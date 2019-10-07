@@ -1,4 +1,4 @@
-function update_y_imputed(i::Int, n::Int, j::Int, s::State, c::Constants,
+function update_y_imputed!(i::Int, n::Int, j::Int, s::State, c::Constants,
                           d::Data, tuners::Tuners)
 
   function logFullCond(yinj)
@@ -21,12 +21,12 @@ function update_y_imputed(i::Int, n::Int, j::Int, s::State, c::Constants,
                                                  tuners.y_imputed[i, n, j])
 end
 
-function update_y_imputed(s::State, c::Constants, d::Data, tuners::Tuners)
+function update_y_imputed!(s::State, c::Constants, d::Data, tuners::Tuners)
   for i in 1:d.I
     for j in 1:d.J
       for n in 1:d.N[i]
         if d.m[i][n, j] == 1
-          update_y_imputed(i, n, j, s, c, d, tuners)
+          update_y_imputed!(i, n, j, s, c, d, tuners)
         end
       end
     end

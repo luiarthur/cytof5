@@ -1,4 +1,4 @@
-function update_eta(i::Int, j::Int, s::State, c::Constants, d::Data)
+function update_eta!(i::Int, j::Int, s::State, c::Constants, d::Data)
   counts = Dict(z => zeros(c.L[z]) for z in 0:1)
 
   for n in 1:d.N[i]
@@ -17,10 +17,10 @@ function update_eta(i::Int, j::Int, s::State, c::Constants, d::Data)
   s.eta[1][i, j, :] = rand(Dirichlet(updatedParam1))
 end
 
-function update_eta(s::State, c::Constants, d::Data)
+function update_eta!(s::State, c::Constants, d::Data)
   for i in 1:d.I
     for j in 1:d.J
-      update_eta(i, j, s, c, d)
+      update_eta!(i, j, s, c, d)
     end
   end
 end

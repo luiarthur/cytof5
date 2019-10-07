@@ -7,7 +7,7 @@ function print_debug_Z(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)
   println("etaz1_i$(i)_j$(j): $(s.eta[1][i, j, :])")
 end
 
-function update_Z(s::State, c::Constants, d::Data, sb_ibp::Bool)
+function update_Z!(s::State, c::Constants, d::Data, sb_ibp::Bool)
   ll0 = zeros(d.J, c.K)
   ll1 = zeros(d.J, c.K)
 

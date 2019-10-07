@@ -1,5 +1,5 @@
 # TODO: Test
-function update_alpha(s::State, c::Constants, d::Data, sb_ibp::Bool)
+function update_alpha!(s::State, c::Constants, d::Data, sb_ibp::Bool)
   newShape = shape(c.alpha_prior) + c.K
 
   if sb_ibp

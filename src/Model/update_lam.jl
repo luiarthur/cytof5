@@ -1,4 +1,4 @@
-function update_lam_logpostvec(i::Int, n::Int, s::State, c::Constants, d::Data)
+function update_lam_logpostvec!(i::Int, n::Int, s::State, c::Constants, d::Data)
   logprior0 = log(s.eps[i])
   loglike0 = logdnoisy(i, n, s, c, d)
   logPost0 = logprior0 + loglike0
@@ -19,16 +19,16 @@ function update_lam_logpostvec(i::Int, n::Int, s::State, c::Constants, d::Data)
   return [logPost0; logPostVec]
 end
 
-function update_lam(i::Int, n::Int, s::State, c::Constants, d::Data)
-  logPostVec = update_lam_logpostvec(i, n, s, c, d)
+function update_lam!(i::Int, n::Int, s::State, c::Constants, d::Data)
+  logPostVec = update_lam_logpostvec!(i, n, s, c, d)
   k = MCMC.wsample_logprob(logPostVec) - 1
   s.lam[i][n] = k
 end
 
-function update_lam(s::State, c::Constants, d::Data)
+function update_lam!(s::State, c::Constants, d::Data)
   for i in 1:d.I
     for n in 1:d.N[i]
-      update_lam(i, n, s, c, d)
+      update_lam!(i, n, s, c, d)
     end
   end
 end

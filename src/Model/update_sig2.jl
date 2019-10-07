@@ -1,4 +1,4 @@
-function update_sig2(i::Int, s::State, c::Constants, d::Data)
+function update_sig2!(i::Int, s::State, c::Constants, d::Data)
   ss = 0.0
 
   cardinality = 0
@@ -27,8 +27,8 @@ function update_sig2(i::Int, s::State, c::Constants, d::Data)
   end
 end
 
-function update_sig2(s::State, c::Constants, d::Data)
+function update_sig2!(s::State, c::Constants, d::Data)
   for i in 1:d.I
-    update_sig2(i, s, c, d)
+    update_sig2!(i, s, c, d)
   end
 end
