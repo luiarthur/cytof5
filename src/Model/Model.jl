@@ -29,7 +29,8 @@ include("genInitialState.jl")
 end
 
 """
-printFreq: defaults to 0 => prints every 10%. turn off printing by setting to -1.
+printFreq: defaults to 0 => prints every 10%. turn off printing by 
+           setting to -1.
 """
 function cytof5_fit(init::State, c::Constants, d::Data;
                     nmcmc::Int=1000, nburn::Int=1000, 
@@ -129,7 +130,8 @@ function cytof5_fit(init::State, c::Constants, d::Data;
               # ll += logpdf(Bernoulli(param.p[i][n, j]), d.m[i][n, j])
               ll += log(param.p[i][n, j])
             else
-              ll += logpdf(Normal(param.mu[i][n, j], param.sig[i][n]), d.y[i][n, j])
+              ll += logpdf(Normal(param.mu[i][n, j], param.sig[i][n]),
+                           d.y[i][n, j])
             end
           end
         end
@@ -157,7 +159,8 @@ function cytof5_fit(init::State, c::Constants, d::Data;
   dden = Matrix{Vector{Float64}}[]
 
   function update!(s::State, iter::Int, out)
-    update_state!(s, c, d, tuners, loglike, fix, use_repulsive, joint_update_Z, sb_ibp)
+    update_state!(s, c, d, tuners, loglike, fix, use_repulsive,
+                  joint_update_Z, sb_ibp)
 
     if computedden && iter > nburn && (iter - nburn) % thin_dden == 0
       append!(dden,
@@ -178,7 +181,8 @@ function cytof5_fit(init::State, c::Constants, d::Data;
 
     if computeDIC && iter > nburn
       # Update DIC
-      MCMC.updateDIC(dicStream, s, updateParams, loglikeDIC, convertStateToDicParam)
+      MCMC.updateDIC(dicStream, s, updateParams,
+                     loglikeDIC, convertStateToDicParam)
 
       # Add to printMsg
       printMsg(iter, " -- DIC: $(MCMC.computeDIC(dicStream, loglikeDIC,
@@ -214,9 +218,14 @@ function cytof5_fit(init::State, c::Constants, d::Data;
 
   if computeDIC || computeLPML
     LPML = computeLPML ? MCMC.computeLPML(cpoStream) : NaN
-    Dmean, pD = computeDIC ? MCMC.computeDIC(dicStream, loglikeDIC, paramMeanCompute,
+    Dmean, pD = computeDIC ? MCMC.computeDIC(dicStream,
+                                             loglikeDIC,
+                                             paramMeanCompute,
                                              return_Dmean_pD=true) : (NaN, NaN)
-    metrics = Dict(:LPML => LPML, :DIC => Dmean + pD, :Dmean => Dmean, :pD => pD)
+    metrics = Dict(:LPML => LPML,
+                   :DIC => Dmean + pD,
+                   :Dmean => Dmean,
+                   :pD => pD)
     println()
     println("metrics:")
     for (k, v) in metrics
@@ -233,6 +242,8 @@ function cytof5_fit(init::State, c::Constants, d::Data;
   return mega_out
 end
 
-#precompile(cytof5_fit, (State, Constants, Data, Int, Int, Vector{Vector{Symbol}}, Vector{Int}, Bool, Int, Bool, Bool, Bool))
+# precompile(cytof5_fit, (State, Constants, Data, Int, Int,
+#                         Vector{Vector{Symbol}}, Vector{Int}, Bool, Int, Bool,
+#                         Bool, Bool))
 
 end # Model
