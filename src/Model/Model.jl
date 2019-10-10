@@ -193,7 +193,13 @@ function cytof5_fit(init::State, c::Constants, d::Data;
 
   if isinf(compute_loglike(init, c, d, normalize=true))
     println("Warning: Initial state yields likelihood of zero.")
-    println("It is likely the case that the initialization of missing values is not consistent with the provided missing mechanism. The MCMC will almost certainly reject the initial values and sample new ones in its place.")
+    msg = """
+    It is likely the case that the initialization of missing values
+    is not consistent with the provided missing mechanism. The MCMC
+    will almost certainly reject the initial values and sample new
+    ones in its place.
+    """
+    println(join(split(msg), " "))
   else
     println("")
   end
