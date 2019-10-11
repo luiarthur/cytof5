@@ -354,14 +354,16 @@ function post_process(output_path; thresh=.99, w_thresh=.01)
     plot_yz.plot_yz(yi, Z_mean, W_mean[i, :],
                     lam_mode[i], w_thresh=w_thresh,
                     cm_y=blue2red.cm(9), vlim_y=VLIM)
-    plt.savefig("$(IMG_DIR)/yz/yz$(i)_post.pdf", dpi=500)
+    plt.savefig("$(IMG_DIR)/yz/yz$(i)_post_highres.pdf", dpi=500)
+    plt.savefig("$(IMG_DIR)/yz/yz$(i)_post.pdf")
     plt.close()
 
     # yi
     plt.figure(figsize=(8,8))
     plot_yz.plot_y(yi, W_mean[i, :], lam_mode[i], fs_lab=18,
                    cm=blue2red.cm(9), vlim=VLIM, fs_xlab=18, fs_ylab=18)
-    plt.savefig("$(IMG_DIR)/yz/y$(i)_post.pdf", dpi=500, bbox_inches="tight")
+    plt.savefig("$(IMG_DIR)/yz/y$(i)_post_highres.pdf", dpi=500, bbox_inches="tight")
+    plt.savefig("$(IMG_DIR)/yz/y$(i)_post.pdf", bbox_inches="tight")
     plt.close()
   end
 end
