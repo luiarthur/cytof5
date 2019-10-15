@@ -22,7 +22,7 @@ function init_state_const_data(; N=[300, 200, 100], J=32, K=4,
   c = Cytof5.Model.defaultConstants(d, K * 2, Dict(0=>5, 1=>5))
   s = Cytof5.Model.genInitialState(c, d)
   t = Cytof5.Model.Tuners(d.y, c.K)
-  X = Float64.(reshape([i for i in 1:I], I, 1))
+  X = Cytof5.Model.eye(Float64, d.I)
 
   return Dict(:d => d, :c => c, :s => s, :t => t, :X => X)
 end
@@ -33,20 +33,21 @@ end
   cfs = Cytof5.Model.ConstantsFS(config[:c])
   dfs = Cytof5.Model.DataFS(config[:d], config[:X])
   sfs = Cytof5.Model.StateFS{Float64}(config[:s], dfs)
-  tfs = Cytof5.Model.TunersFS(config[:t], config[:s])
+  tfs = Cytof5.Model.TunersFS(config[:t], config[:s], config[:X])
 
   # Do one update for W_star, r, omega.
   println("r init: $(sfs.r)")
   println("W_star init: $(sfs.W_star)")
+  println("omega init: $(sfs.omega)")
 
   Cytof5.Model.update_W_star!(sfs, cfs, dfs, tfs)
   Cytof5.Model.update_r!(sfs, cfs, dfs)
-  # TODO:
-  # test update_omega
+  Cytof5.Model.update_omega!(sfs, cfs, dfs, tfs)
 
   println("W_star after: $(sfs.W_star)")
   println("W after: $(sfs.theta.W)")
   println("r after: $(sfs.r)")
+  println("omega after: $(sfs.omega)")
 end
 
 
