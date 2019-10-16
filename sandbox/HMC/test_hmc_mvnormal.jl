@@ -24,7 +24,7 @@ State(K::Int) = State(param(randn(K)))
 function gen_distribution(P)
   S = rand(Wishart(P, eye(Float64, P)))
   m = zeros(P)
-  return MvNormal(m, S)
+  return (m, S)
 end
 
 function logpdf_mvn(x, m, S)
@@ -36,8 +36,9 @@ end
 Random.seed!(0)
 
 K = 250
-mvn = gen_distribution(K)
-log_prob(s::State) = logpdf_mvn(s.x, mvn.μ, Matrix(mvn.Σ))
+m, S = gen_distribution(K)
+log_prob(s::State) = logpdf_mvn(s.x, m, S)
+mvn = MvNormal(m, Matrix(LinearAlgebra.Hermitian(inv(S))))
 
 
 function simulate(init; nburn, nsamps, eps, num_leapfrog_steps)
@@ -62,8 +63,9 @@ state = State(K)
 _ = simulate(state, nburn=1, nsamps=1, num_leapfrog_steps=1, eps=.1)
 
 # Simulate
-samps = simulate(state, nburn=500, nsamps=500, num_leapfrog_steps=30, eps=.1)
+samps = simulate(state, nburn=1000, nsamps=500, num_leapfrog_steps=30, eps=1/K)
 
 # Plot
 head_x = Matrix(hcat([Tracker.data(s.x[1:2]) for s in samps]...)')
-rcommon.plotPosts(head_x)
+rcommon.plotPosts(head_x);
+cor(rand(mvn, 100))
