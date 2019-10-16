@@ -53,14 +53,14 @@ function logprior(state::State)
 end
 
 ### MAIN ###
-Random.seed!(0)
+Random.seed!(1)
 
 N, K = (1000, 20)
 dat = sim_data(K=K)
 log_prob(state::State) = loglike(dat[:X], dat[:y], state) + logprior(state)
 state = State(K)
-epsilon = 20. / N
-num_leapfrog_steps = 30
+epsilon = 5 / N
+num_leapfrog_steps = 100
 
 # Compile
 _ = HMC.hmc_update(state, log_prob, num_leapfrog_steps, epsilon)
@@ -68,26 +68,32 @@ _ = HMC.hmc_update(state, log_prob, num_leapfrog_steps, epsilon)
 function simulate(init; nburn=500, nsamps=1000)
   state = deepcopy(init)
 
+  log_prob_hist = zeros(nsamps)
   samps = [state for i in 1:nsamps]
   for i in 1:(nburn + nsamps)
     print("\rProgress: $i / $(nburn + nsamps)")
-    state = HMC.hmc_update(state, log_prob, num_leapfrog_steps, epsilon)
+    state, log_prob_curr = HMC.hmc_update(state, log_prob,
+                                          num_leapfrog_steps, epsilon)
     if i > nburn
       samps[i - nburn] = state
+      log_prob_hist[i - nburn] = log_prob_curr
     end
   end
-  return samps
+  return samps, log_prob_hist
 end
 
-samps = simulate(state, nburn=500, nsamps=500)
+samps, log_prob_hist = simulate(state, nburn=500, nsamps=500)
 println(pretty(samps[end]));
 dat
 
+acceptance_rate = length(unique(log_prob_hist)) / length(log_prob_hist)
+println("Acceptance rate: $acceptance_rate")
+rgraphics.plot(log_prob_hist, main="", xlab="iter", ylab="log prob", typ="l");
+
 sig2_post = [exp(Tracker.data(s.log_sig2[1])) for s in samps]
 b_first_2_post = cat([Tracker.data(s.beta[1:2])' for s in samps]..., dims=1)
-rgraphics.plot(b_first_2_post, xlab="", ylab="", main="", typ="l")
+rgraphics.plot(b_first_2_post, xlab="", ylab="", main="", typ="l");
 
-rcommon.plotPosts(b_first_2_post)
-
-rcommon.plotPost(sqrt.(sig2_post))
-rgraphics.abline(v=dat[:sig], lwd=3, col="orange")
+rcommon.plotPosts(b_first_2_post);
+rcommon.plotPost(sqrt.(sig2_post));
+rgraphics.abline(v=dat[:sig], lwd=3, col="orange");
