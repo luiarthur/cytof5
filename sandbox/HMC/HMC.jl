@@ -41,11 +41,11 @@ end
 See p. 14 of
 https://arxiv.org/pdf/1206.1901.pdf
 """
-function hmc_update(state::S, log_prob::Function,
+function hmc_update(curr_state::S, log_prob::Function,
                     num_leapfrog_steps::Int, eps::Float64) where S
-  curr_state = deepcopy(state)
+  state = deepcopy(curr_state)
 
-  # Current tracked parameters
+  # Get tracked parameters
   qs = get_params(state)
 
   # Create a dictionary state -> momentum
@@ -55,13 +55,13 @@ function hmc_update(state::S, log_prob::Function,
   curr_K = compute_kinetic_energy(values(ps))
   
   # Potential enerdy
-  U() = -log_prob(state)
+  U(s) = -log_prob(s)
 
   # Current potential energy
-  curr_U = U()
+  curr_U = Tracker.data(U(state))
 
   # Compute gradient of U
-  grad_U(qs) = Tracker.gradient(() -> U(), qs)
+  grad_U(qs) = Tracker.gradient(() -> U(state), qs)
 
   # Make a half step for momentum at the beginning
   gs = grad_U(qs)
@@ -72,7 +72,6 @@ function hmc_update(state::S, log_prob::Function,
   # Alternate full steps for position and momentum
   for i in 1:num_leapfrog_steps
     # Make a full step for the position
-    gs = grad_U(qs)
     for (q, p) in zip(qs, ps)
       Flux.Tracker.update!(q, eps .* p)
     end
@@ -86,21 +85,20 @@ function hmc_update(state::S, log_prob::Function,
   end
 
   # Proposed potential energy
-  cand_U = U()
+  cand_U = Tracker.data(U(state))
 
   # Proposed kinetic  energy
-  cand_K = compute_kinetic_energy(values(ps))
+  cand_K = Tracker.data(compute_kinetic_energy(values(ps)))
 
   ### Metropolis step ###
-  # log acceptance ratio
-  # NOTE: potential = -log_prob
-  log_acceptance_ratio = -cand_U - cand_K + curr_U + curr_K 
+  # log acceptance ratio.  NOTE: potential = -log_prob
+  log_acceptance_ratio = curr_U + curr_K - cand_U - cand_K
 
   # Accept or reject
   if log_acceptance_ratio > log(rand())
-    return state
+    return state, -cand_U
   else
-    return curr_state
+    return curr_state, -curr_U
   end
   ### End of Metropolis step ###
 end
