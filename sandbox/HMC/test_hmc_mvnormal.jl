@@ -35,8 +35,10 @@ easy = true  # bivariate normal
 # easy = false  # 250-variate normal
 
 if easy 
-  K = 2
-  S = eye(2); S[1,2] = S[2,1] = -0.8
+  K = 3
+  S = eye(K)
+  S[1,2] = S[2,1] = -0.8
+  S[1,3] = S[3,1] = 0.5
 else
   K = 250
   S = rand(InverseWishart(K, eye(K)))
@@ -46,7 +48,8 @@ log_prob(s::MX) = -s.x' * inv_S * s.x / 2.0
 mvn = MvNormal(S)
 
 
-function simulate(init; nburn, nsamps, eps, num_leapfrog_steps, kappa=nothing)
+function simulate(init; nburn, nsamps, eps, num_leapfrog_steps, 
+                  kappa=nothing, momentum_sd=1.0)
   state = deepcopy(init)
 
   samps = [state for i in 1:nsamps]
@@ -56,12 +59,14 @@ function simulate(init; nburn, nsamps, eps, num_leapfrog_steps, kappa=nothing)
     print("\rProgress: $i / $(nburn + nsamps)")
     eta = (kappa == nothing ? eps : eps * i ^ -kappa)
     state, curr_log_prob = HMC.hmc_update(state, log_prob,
-                                          num_leapfrog_steps, eta)
+                                          num_leapfrog_steps, eta,
+                                          momentum_sd=momentum_sd)
     if i > nburn
       samps[i - nburn] = state
       log_prob_hist[i - nburn] = curr_log_prob
     end
   end
+  println()
 
   return Dict(:samps => samps, :log_prob => log_prob_hist)
 end
@@ -73,7 +78,15 @@ state = MX(param(zeros(K)))
 _ = simulate(state, nburn=1, nsamps=1, num_leapfrog_steps=1, eps=.1, kappa=.7)
 
 # Simulate
-out = simulate(state, nburn=100, nsamps=500, num_leapfrog_steps=100, eps=.01)
+@time if easy
+  out = simulate(state, nburn=1000, nsamps=10000,
+                 num_leapfrog_steps=2^5, eps=.05)
+  # out = simulate(state, nburn=10000, nsamps=10000,
+  #                num_leapfrog_steps=2^2, eps=.05)
+else
+  out = simulate(state, nburn=1000, nsamps=1000,
+                 num_leapfrog_steps=2^8, eps=.001)
+end
 samps = out[:samps]
 log_prob_hist = out[:log_prob]
 acceptance_rate = (length(unique(log_prob_hist)) - 1) / length(log_prob_hist)
@@ -83,7 +96,6 @@ println("acceptance rate: $(acceptance_rate)")
 rgraphics.plot(log_prob_hist, xlab="iteration", ylab="log pdf",
                main="trace", typ="l");
 post_x = Matrix(hcat([Tracker.data(s.x) for s in samps]...)')
-head_x = post_x[:, 1:2]
-rcommon.plotPosts(head_x);
+rcommon.plotPosts(post_x[:, 1:3]);
 cor(mvn)
 cor(post_x)

@@ -42,14 +42,15 @@ See p. 14 of
 https://arxiv.org/pdf/1206.1901.pdf
 """
 function hmc_update(curr_state::S, log_prob::Function,
-                    num_leapfrog_steps::Int, eps::Float64) where S
+                    num_leapfrog_steps::Int, eps::Float64;
+                    momentum_sd::Real=1) where S
   state = deepcopy(curr_state)
 
   # Get tracked parameters
   qs = get_params(state)
 
   # Create a dictionary state -> momentum
-  ps = [rand_momentum(q) for q in qs]
+  ps = [rand_momentum(q) * momentum_sd for q in qs]
 
   # Current kinetic energy
   curr_K = compute_kinetic_energy(values(ps))
