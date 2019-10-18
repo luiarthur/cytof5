@@ -77,10 +77,12 @@ rcommon.plotPost(qs, typ="l", xlab="", ylab="", main="");
 
 
 function simulate_gamma(; L, eps, n, sd=.5, init=0.0, plot_bound=4)
-  log_prob(logx) = logpdf(Gamma(1, sd), exp(logx)) + logx
+  shape = 2
+  dist = Gamma(shape, sd/sqrt(shape))
+  log_prob(logx) = logpdf(dist, exp(logx)) + logx
   rgraphics.par(mfrow=[2, 1])
   x = collect(range(0, sd*plot_bound, step=.01))
-  rgraphics.plot(x, exp.(log_prob.(x)), ylab="", xlab="", main="", typ="l")
+  rgraphics.plot(x, pdf.(dist, x), ylab="", xlab="", main="", typ="l")
   rgraphics.plot(0, xlab="q", ylab="p", typ="n",
                  ylim=[-1, 1]*plot_bound, xlim=[0, sd]*plot_bound)
   sim = hmc(init, log_prob, L, eps)
@@ -89,20 +91,22 @@ function simulate_gamma(; L, eps, n, sd=.5, init=0.0, plot_bound=4)
 
   for i in 1:n
     sim = hmc(sim[:q], log_prob, L, eps)
-    rgraphics.lines(exp.(sim[:qhist]), sim[:phist], typ="l")
-    rgraphics.points(exp(sim[:qhist][end]), sim[:phist][end], pch=4, lwd=2)
+    rgraphics.lines(exp.(sim[:qhist]), sim[:phist], typ="l");
+    rgraphics.points(exp(sim[:qhist][end]), sim[:phist][end], pch=4, lwd=2);
     # rgraphics.abline(v=[exp(sim[:qhist][end]), sim[:phist][end]], lty=2, lwd=.5)
     # rgraphics.points(exp(sim[:qhist][1]), sim[:phist][1], pch="$i", lwd=2)
     qs[i + 1] = sim[:q]
   end
+  rgraphics.abline(v=mean(dist), lty=2, col="grey")
   rgraphics.par(mfrow=[1, 1])
 
   return qs
 end
 
 Random.seed!(3);
-qs = simulate_gamma(L=2^3, eps=.1, n=200, sd=2, plot_bound=3)
+qs = simulate_gamma(L=2^4, eps=.1, n=10, sd=1, plot_bound=5)
 rcommon.plotPost(exp.(qs), typ="l", xlab="", ylab="", main="");
+_ = nothing
 
 # sim = hmc(0.0, logx -> logpdf(Gamma(2, 3), exp(logx)) + logx, 10, .1)
 # rgraphics.plot(sim[:qhist], main="", xlab="", ylab="")
