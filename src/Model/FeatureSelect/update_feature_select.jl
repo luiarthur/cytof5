@@ -1,8 +1,8 @@
-function update_state_select_features!(s::StateFS, c::ConstantsFS, d::DataFS,
-                                       t::TunersFS, ll::Vector{Float64},
-                                       fix::Vector{Symbol},
-                                       use_repulsive::Bool,
-                                       joint_update_Z::Bool, sb_ibp::Bool)
+function update_state_feature_select!(s::StateFS, c::ConstantsFS, d::DataFS,
+                                      t::TunersFS, ll::Vector{Float64},
+                                      fix::Vector{Symbol},
+                                      use_repulsive::Bool,
+                                      joint_update_Z::Bool, sb_ibp::Bool)
   # NOTE: `@doIf` is defined in "../util.jl"
 
   # Return true if parameter (sym) is not fixed
