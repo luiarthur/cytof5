@@ -127,8 +127,10 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
 
   function update!(s::StateFS, iter::Int, out)
     update_state_feature_select!(s, c, d, tuners, 
-                                 loglike, fix, use_repulsive,
-                                 joint_update_Z, sb_ibp)
+                                 ll=loglike, fix=fix,
+                                 use_repulsive=use_repulsive,
+                                 joint_update_Z=joint_update_Z,
+                                 sb_ibp=sb_ibp)
 
     if computedden && iter > nburn && (iter - nburn) % thin_dden == 0
       append!(dden,

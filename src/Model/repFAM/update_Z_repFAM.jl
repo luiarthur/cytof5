@@ -42,7 +42,7 @@ function logprob_Z_repFAM(Z::Matrix{Bool}, v::Vector{Float64},
 end
 
 function update_Z_repFAM!(s::State, c::Constants, d::Data, tuners::Tuners,
-                         sb_ibp::Bool)
+                          sb_ibp::Bool; debug::Bool=false)
   #cand_Z = flip_bit.(s.Z, MCMC.logit(tuners.Z.value, a=0.0, b=1.0))
   cand_Z = Matrix{Bool}(flip_bit.(s.Z, c.probFlip_Z))
 
@@ -70,7 +70,9 @@ function update_Z_repFAM!(s::State, c::Constants, d::Data, tuners::Tuners,
 
   accept = log_fc(cand_Z) - log_fc(curr_Z) > log(rand())
   if accept
-    println("Joint-update of Z resulted in a move.")
+    if debug
+      println("Joint-update of Z resulted in a move.")
+    end
     s.Z .= cand_Z
   end
 

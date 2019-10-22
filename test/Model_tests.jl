@@ -50,9 +50,13 @@ end
 
   ll = Float64[]
   fix = Symbol[]
-  Cytof5.Model.update_state_select_features!(sfs, cfs, dfs, tfs,
-                                             ll, fix, true, false, false)
-  out = Cytof5.Model.fit_fs!(sfs, cfs, dfs, tuners=tfs, nmcmc=200, nburn=200)
+  Cytof5.Model.update_state_feature_select!(sfs, cfs, dfs, tfs,
+                                            ll=ll, fix=fix,
+                                            use_repulsive=true,
+                                            joint_update_Z=false,
+                                            sb_ibp=false)
+  out = Cytof5.Model.fit_fs!(sfs, cfs, dfs, tuners=tfs, nmcmc=200, nburn=200,
+                             printFreq=1)
 end
 
 
