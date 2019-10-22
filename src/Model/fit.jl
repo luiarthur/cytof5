@@ -1,10 +1,3 @@
-@namedargs mutable struct DICparam
-  p::Vector{Matrix{Float64}}
-  mu::Vector{Matrix{Float64}}
-  sig::Vector{Vector{Float64}}
-end
-
-
 """
 printFreq: defaults to 0 => prints every 10%. turn off printing by 
            setting to -1.

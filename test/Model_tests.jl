@@ -4,7 +4,6 @@ using Revise, Test
 using Cytof5
 using Random
 using RCall, Distributions
-using JLD2, FileIO
 using BSON
 
 Random.seed!(10)
@@ -53,6 +52,7 @@ end
   fix = Symbol[]
   Cytof5.Model.update_state_select_features!(sfs, cfs, dfs, tfs,
                                              ll, fix, true, false, false)
+  out = Cytof5.Model.fit_fs!(sfs, cfs, dfs, tuners=tfs, nmcmc=200, nburn=200)
 end
 
 
@@ -157,7 +157,7 @@ end
   println("init delta: $(init.delta)")
 
   printstyled("Test Model Fitting...\n", color=:yellow)
-  @time out, lastState, ll, metrics, dden = Cytof5.Model.cytof5_fit(
+  @time out, lastState, ll, metrics, dden=Cytof5.Model.cytof5_fit(
     init, c, y_dat,
     nmcmc=200, nburn=200,
     computeLPML=true,

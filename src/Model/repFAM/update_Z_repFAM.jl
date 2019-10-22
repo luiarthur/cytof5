@@ -1,5 +1,3 @@
-# TODO
-
 """
 `z` is required to be 0 or 1.
 With probability `probFlip`, change z to 1 or 0.

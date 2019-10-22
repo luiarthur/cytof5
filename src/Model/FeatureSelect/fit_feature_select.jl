@@ -2,21 +2,32 @@
 printFreq: defaults to 0 => prints every 10%. turn off printing by 
            setting to -1.
 """
-function fit_fs(init::StateFS, c::ConstantsFS, d::DataFS;
-                tuners::Union{Nothing, TunersFS}=nothing,
-                nmcmc::Int=1000, nburn::Int=1000, 
-                monitors=[[:Z, :v, :alpha, :omega,
-                           :r, :lam, :W_star, :eta,
-                           :delta, :sig2]],
-                fix::Vector{Symbol}=Symbol[],
-                thins::Vector{Int}=[1],
-                thin_dden::Int=1,
-                printFreq::Int=0, flushOutput::Bool=false,
-                computeDIC::Bool=false, computeLPML::Bool=false,
-                computedden::Bool=false,
-                sb_ibp::Bool=false,
-                use_repulsive::Bool=true, joint_update_Z::Bool=false,
-                verbose::Int=1)
+function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
+                 tuners::Union{Nothing, TunersFS}=nothing,
+                 nmcmc::Int=1000, nburn::Int=1000, 
+                 monitors=[[:theta__Z, :theta__v, :theta__alpha,
+                            :omega, :r, :theta__lam, :W_star, :theta__eta,
+                            :theta__delta, :theta__sig2]],
+                 fix::Vector{Symbol}=Symbol[],
+                 thins::Vector{Int}=[1],
+                 thin_dden::Int=1,
+                 printFreq::Int=0, flushOutput::Bool=false,
+                 computeDIC::Bool=false, computeLPML::Bool=false,
+                 computedden::Bool=false,
+                 sb_ibp::Bool=false,
+                 use_repulsive::Bool=true, joint_update_Z::Bool=false,
+                 verbose::Int=1)
+
+  # We don't want to use noisy distribution.
+  # Assert that all eps == 0
+  if any(init.theta.eps .!= 0)
+    msg = "`init.theta.eps`: $(init.theta.eps) contains non-zeros values! "
+    msg *= "Setting all eps to 0!"
+    @warn msg
+
+    # Set eps == 0
+    init.theta.eps .= 0
+  end
 
   if verbose >= 1
     fixed_vars_str = join(fix, ", ")
@@ -36,7 +47,7 @@ function fit_fs(init::StateFS, c::ConstantsFS, d::DataFS;
   # Initialize tuners if needed
   if tuners == nothing
     t = Tuners(d.data.y, c.constants.K)
-    TunersFS(t, init.theta, d.X)
+    TunersFS(t, init.theta, d.data.X)
   end
 
   function printMsg(iter::Int, msg::String)
@@ -48,24 +59,19 @@ function fit_fs(init::StateFS, c::ConstantsFS, d::DataFS;
   # Loglike
   loglike = Float64[]
 
-  # TODO:
-  # - Implement computation of ll
-  # - Implement computation of lpml
-  # - Implement computation of dic
-
   # CPO
   if computeLPML
-    invLike = [[1.0 / compute_like(i, n, init, c, d) for n in 1:d.N[i]]
-               for i in 1:d.I ]
+    invLike = [[1.0 / compute_like(i, n, init.theta, c.constants, d.data)
+                for n in 1:d.data.N[i]] for i in 1:d.data.I ]
     invLikeType = typeof(invLike)
     cpoStream = MCMC.CPOstream{invLikeType}(invLike)
   end
 
   # DIC
   if computeDIC
-    local tmp = DICparam(p=deepcopy(d.y),
-                         mu=deepcopy(d.y),
-                         sig=[zeros(Float64, d.N[i]) for i in 1:d.I])
+    local tmp = DICparam(p=deepcopy(d.data.y),
+                         mu=deepcopy(d.data.y),
+                         sig=[zeros(Float64, d.data.N[i]) for i in 1:d.data.I])
     dicStream = MCMC.DICstream{DICparam}(tmp)
 
     function updateParams(d::MCMC.DICstream{DICparam}, param::DICparam)
@@ -84,17 +90,16 @@ function fit_fs(init::StateFS, c::ConstantsFS, d::DataFS;
     function loglikeDIC(param::DICparam)::Float64
       ll = 0.0
 
-      for i in 1:d.I
-        for j in 1:d.J
-          for n in 1:d.N[i]
-            y_inj_is_missing = (d.m[i][n, j] == 1)
+      for i in 1:d.data.I
+        for j in 1:d.data.J
+          for n in 1:d.data.N[i]
+            y_inj_is_missing = (d.data.m[i][n, j] == 1)
 
             if y_inj_is_missing
-              # ll += logpdf(Bernoulli(param.p[i][n, j]), d.m[i][n, j])
               ll += log(param.p[i][n, j])
             else
               ll += logpdf(Normal(param.mu[i][n, j], param.sig[i][n]),
-                           d.y[i][n, j])
+                           d.data.y[i][n, j])
             end
           end
         end
@@ -103,38 +108,38 @@ function fit_fs(init::StateFS, c::ConstantsFS, d::DataFS;
       return ll
     end
 
-    # FIXME: Doesn't work for c.noisyDist not Normal
     function convertStateToDicParam(s::State)::DICparam
-      p = [[prob_miss(s.y_imputed[i][n, j], c.beta[:, i])
-            for n in 1:d.N[i], j in 1:d.J] for i in 1:d.I]
+      p = [[prob_miss(s.y_imputed[i][n, j], c.constants.beta[:, i])
+            for n in 1:d.data.N[i], j in 1:d.data.J] 
+           for i in 1:d.data.I]
 
-      mu = [[s.lam[i][n] > 0 ? mus(i, n, j, s, c, d) : 0.0 
-             for n in 1:d.N[i], j in 1:d.J] for i in 1:d.I]
+      mu = [[mus(i, n, j, s, c.constants, d.data)
+             for n in 1:d.data.N[i], j in 1:d.data.J] 
+            for i in 1:d.data.I]
 
-      sig = [[s.lam[i][n] > 0 ? sqrt(s.sig2[i]) : std(c.noisyDist)
-              for n in 1:d.N[i]] for i in 1:d.I]
+      sig = [fill(sqrt(s.sig2[i]), d.data.N[i]) for i in 1:d.data.I]
 
       return DICparam(p, mu, sig)
     end
   end
 
-
   dden = Matrix{Vector{Float64}}[]
 
-  function update!(s::State, iter::Int, out)
+  function update!(s::StateFS, iter::Int, out)
     update_state_feature_select!(s, c, d, tuners, 
                                  loglike, fix, use_repulsive,
                                  joint_update_Z, sb_ibp)
 
     if computedden && iter > nburn && (iter - nburn) % thin_dden == 0
       append!(dden,
-              [[datadensity(i, j, s, c, d) for i in 1:d.I, j in 1:d.J]])
+              [[datadensity(i, j, s.theta, c.constats, d.data)
+                for i in 1:d.data.I, j in 1:d.data.J]])
     end
 
     if computeLPML && iter > nburn
       # Inverse likelihood for each data point
-      invLike = [[1.0 / compute_like(i, n, s, c, d) for n in 1:d.N[i]]
-                 for i in 1:d.I ]
+      invLike = [[1.0 / compute_like(i, n, s.theta, c.constants, d.data)
+                  for n in 1:d.data.N[i]] for i in 1:d.data.I ]
 
       # Update COP
       MCMC.updateCPO(cpoStream, invLike)
@@ -145,7 +150,7 @@ function fit_fs(init::StateFS, c::ConstantsFS, d::DataFS;
 
     if computeDIC && iter > nburn
       # Update DIC
-      MCMC.updateDIC(dicStream, s, updateParams,
+      MCMC.updateDIC(dicStream, s.theta, updateParams,
                      loglikeDIC, convertStateToDicParam)
 
       # Add to printMsg
@@ -159,7 +164,7 @@ function fit_fs(init::StateFS, c::ConstantsFS, d::DataFS;
     end
   end
 
-  if isinf(compute_loglike(init, c, d, normalize=true))
+  if isinf(compute_loglike(init.theta, c.constants, d.data, normalize=true))
     println("Warning: Initial state yields likelihood of zero.")
     msg = """
     It is likely the case that the initialization of missing values

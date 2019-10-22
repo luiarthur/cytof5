@@ -3,11 +3,48 @@ import Dates
 const monitor_default = Vector{Vector{Symbol}}([])
 const thin_default = Int[]
 
+"""
+Partitions a list `xs` into `(good, bad)` according
+to a condition.
+"""
+function partition(condition::Function, xs::Vector{T}) where T
+  good = T[]
+  bad = T[]
+
+  for x in xs
+    if condition(x)
+      append!(good, [x])
+    else
+      append!(bad, [x])
+    end
+  end
+
+  return good, bad
+end
+
+"""
+Checks if a field is a subtype.
+If a field has the form "a__b", the name
+of the field is `a`, and it has a field `b`.
+"""
+issubtype(x::Symbol)::Bool = occursin("__", String(x))
+
 function deepcopyFields(state::T, fields::Vector{Symbol}) where T
   substate = Dict{Symbol, Any}()
 
-  for field in fields
+  # Partition fields into subtypes and regular fields
+  subtypefields, regfields = partition(issubtype, fields)
+
+  # Get level1 fields
+  for field in regfields
     substate[field] = deepcopy(getfield(state, field))
+  end
+
+  # Get level2 fields
+  for field in subtypefields
+    statename, _field = split(String(field), "__")
+    _state = getfield(state, Symbol(statename))
+    substate[field] = deepcopy(getfield(_state, Symbol(_field)))
   end
 
   return substate

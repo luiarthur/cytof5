@@ -1,7 +1,7 @@
 include("dmixture.jl")
 include("update_Z.jl")
-include("repFAM/update_Z_repFAM.jl")
 include("update_Z_v2.jl")
+# include("repFAM/update_Z_repFAM.jl")  # this is done in Model.jl
 include("update_delta.jl")
 include("update_alpha.jl")
 include("update_v.jl")
