@@ -5,6 +5,9 @@ function update_r!(s::StateFS, c::ConstantsFS, d::DataFS)
       update_r!(i, k, s, c, d)
     end
   end
+
+  # NOTE: Make sure to always update W immediately after updating r or W_star!
+  update_W!(s, c, d)
 end
 
 

@@ -48,6 +48,11 @@ end
   println("W after: $(sfs.theta.W)")
   println("r after: $(sfs.r)")
   println("omega after: $(sfs.omega)")
+
+  ll = Float64[]
+  fix = Symbol[]
+  Cytof5.Model.update_state_select_features!(sfs, cfs, dfs, tfs,
+                                             ll, fix, true, false, false)
 end
 
 

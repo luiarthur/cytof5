@@ -7,6 +7,7 @@ function solve_rep_param(; d=[1.0, 10.0], p=[.01, .5])
   return (alpha=alpha, phi=phi)
 end
 
+
 #= Test
 using Distributions
 using RCall
@@ -18,6 +19,7 @@ alpha, phi = solve_rep_param(d=d, p=p)
 
 R"d = 0:32; plot(d, 1-exp(-d^$alpha/$phi), type='o', pch=20); abline(v=$d[2], h=$p[2], lty=2)"
 =#
+
 
 """
 Simulate random bit vectors
@@ -33,6 +35,7 @@ function simulate_prob_differing_bits(bit_vec_length::Int; nsims=100)
 
   return [est_prob_num_diffs(k) for k in 1:bit_vec_length]
 end
+
 
 """
 Find the tolerable number of repeated elements in a bit vec of length `bit_vec_length`,
@@ -61,6 +64,7 @@ function gen_similarity_fn(bit_vec_length::Int, thresh_probs=(.01, .5), nsims::I
   return (z1::Vector{Bool}, z2::Vector{Bool}) -> exp(-sum(abs.(z1 - z2)) ^ psi.alpha / psi.phi)
 end
 
+
 """
 return default similarity function for repFAM, given probability of repeats
 """
@@ -77,6 +81,7 @@ between two vectors < threshold, and zero otherwise.
 function sim_fn_abs(threshold::Int)::Function
   return (z1::Vector{Bool}, z2::Vector{Bool}) -> sum(abs.(z1 - z2)) <= threshold ? 1.0 : 0.0
 end
+
 
 #= Test
 using RCall, Distributions
@@ -105,3 +110,5 @@ end
 
 R"plot(1:$J, $(1 .- p), type='o', xlab='differences', ylab='prior prob')"
 =#
+
+include("update_Z_repFAM.jl")
