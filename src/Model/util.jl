@@ -16,6 +16,9 @@ end
 padZeroCols(randn(3,5), 10)
 =#
 
+"""
+Do `expr` if `condition` holds.
+"""
 macro doIf(condition, expr)
   return quote
     if $(esc(condition))
