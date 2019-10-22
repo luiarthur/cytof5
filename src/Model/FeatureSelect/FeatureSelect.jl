@@ -10,3 +10,4 @@ include("update_r_feature_select.jl")
 include("update_lam_feature_select.jl")
 
 include("update_feature_select.jl")
+include("fit_feature_select.jl")

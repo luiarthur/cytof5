@@ -28,7 +28,7 @@ function update_state_select_features!(s::StateFS, c::ConstantsFS, d::DataFS,
   @doIf isRandom(:omega) update_omega!(s, c, d, t)
   @doIf isRandom(:r) update_r!(s, c, d)
   @doIf isRandom(:lam) update_lam!(s.theta, c.constants, d.data)
-  @doIf isRandom(:W) update_W_star!(s, c, d, t)
+  @doIf isRandom(:W_star) update_W_star!(s, c, d, t)
   @doIf isRandom(:gam) update_gam!(s.theta, c.constants, d.data)
   @doIf isRandom(:eta) update_eta!(s.theta, c.constants, d.data)
   @doIf isRandom(:delta) update_delta!(s.theta, c.constants, d.data)
