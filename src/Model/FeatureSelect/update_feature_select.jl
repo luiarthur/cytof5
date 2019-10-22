@@ -38,6 +38,6 @@ function update_state_feature_select!(s::StateFS, c::ConstantsFS, d::DataFS,
                                                 t.tuners) 
 
   # TODO: Compute loglikelihood.
-  # append!(ll, compute_loglike(s, c, d))
+  append!(ll, compute_loglike(s.theta, c.constants, d.data))
 end
 
