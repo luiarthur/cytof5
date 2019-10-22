@@ -56,7 +56,7 @@ end
                                             joint_update_Z=false,
                                             sb_ibp=false)
   out = Cytof5.Model.fit_fs!(sfs, cfs, dfs, tuners=tfs, nmcmc=200, nburn=200,
-                             printFreq=1)
+                             printFreq=2)
 end
 
 
@@ -176,7 +176,8 @@ end
   R"image"(1 .- mean(Zpost))
   R"dev.off()"
 
-  @save "result/out.jld2" out dat ll lastState
+  # @save "result/out.jld2" out dat ll lastState  # requires JLD2, FileIO
+
   BSON.bson("result/out.bson", Dict(
     :out => out,
     :dat => dat,

@@ -34,10 +34,9 @@ function update_state_feature_select!(s::StateFS, c::ConstantsFS, d::DataFS,
   @doIf isRandom(:eta) update_eta!(s.theta, c.constants, d.data)
   @doIf isRandom(:delta) update_delta!(s.theta, c.constants, d.data)
   @doIf isRandom(:sig2) update_sig2!(s.theta, c.constants, d.data)
-  @doIf isRandom(:y_imputed)  update_y_imputed!(s.theta, c.constants, d.data,
-                                                t.tuners) 
+  @doIf isRandom(:y_imputed) update_y_imputed!(s.theta, c.constants, d.data,
+                                               t.tuners) 
 
   # TODO: Compute loglikelihood.
   append!(ll, compute_loglike(s.theta, c.constants, d.data))
 end
-
