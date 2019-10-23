@@ -8,11 +8,12 @@ using BSON
 
 Random.seed!(10)
 printDebug = false
+println("Threads: $(Threads.nthreads())")
 
 @rimport graphics
 @rimport grDevices
 
-function init_state_const_data(; N=[300, 200, 100], J=32, K=4,
+function init_state_const_data(; N=[300, 200, 100] * 10, J=32, K=4,
                                L=Dict(0=>5, 1=>3))
 
   I = length(N)
@@ -48,15 +49,11 @@ end
   println("r after: $(sfs.r)")
   println("omega after: $(sfs.omega)")
 
-  ll = Float64[]
-  fix = Symbol[]
-  Cytof5.Model.update_state_feature_select!(sfs, cfs, dfs, tfs,
-                                            ll=ll, fix=fix,
-                                            use_repulsive=true,
-                                            joint_update_Z=false,
-                                            sb_ibp=false)
-  out = Cytof5.Model.fit_fs!(sfs, cfs, dfs, tuners=tfs, nmcmc=200, nburn=200,
-                             printFreq=2)
+  # Fit model.
+  out = Cytof5.Model.fit_fs!(sfs, cfs, dfs, tuners=tfs, nmcmc=20, nburn=20,
+                             printFreq=1, time_updates=true,
+                             computeDIC=true, computeLPML=true,
+                             r_marg_lam_freq=1.0)
 end
 
 

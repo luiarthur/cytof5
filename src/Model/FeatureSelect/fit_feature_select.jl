@@ -16,7 +16,8 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
                  computedden::Bool=false,
                  sb_ibp::Bool=false,
                  use_repulsive::Bool=true, joint_update_Z::Bool=false,
-                 verbose::Int=1)
+                 r_marg_lam_freq::Float64=1.0,
+                 verbose::Int=1, time_updates::Bool=false)
 
   # We don't want to use noisy distribution.
   # Assert that all eps == 0
@@ -28,6 +29,8 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
     # Set eps == 0
     init.theta.eps .= 0
   end
+
+  @assert 0 <= r_marg_lam_freq <= 1
 
   if verbose >= 1
     fixed_vars_str = join(fix, ", ")
@@ -130,7 +133,8 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
                                  ll=loglike, fix=fix,
                                  use_repulsive=use_repulsive,
                                  joint_update_Z=joint_update_Z,
-                                 sb_ibp=sb_ibp)
+                                 sb_ibp=sb_ibp, time_updates=time_updates,
+                                 r_marg_lam_freq=r_marg_lam_freq)
 
     if computedden && iter > nburn && (iter - nburn) % thin_dden == 0
       append!(dden,
@@ -183,7 +187,7 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
                               thins=thins, nmcmc=nmcmc, nburn=nburn,
                               printFreq=printFreq,
                               loglike=loglike, flushOutput=flushOutput,
-                              printlnAfterMsg=!(computeDIC || computeLPML))
+                              printlnAfterMsg=false)
 
   mega_out = out, lastState, loglike
 
