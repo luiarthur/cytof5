@@ -189,7 +189,9 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
                               loglike=loglike, flushOutput=flushOutput,
                               printlnAfterMsg=false)
 
-  mega_out = out, lastState, loglike
+  mega_out = Dict{Symbol, Any}(:samples => out,
+                               :lastState => lastState,
+                               :loglike => loglike)
 
   if computeDIC || computeLPML
     LPML = computeLPML ? MCMC.computeLPML(cpoStream) : NaN
@@ -204,14 +206,13 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
     println()
     println("metrics:")
     for (k, v) in metrics
+      mega_out[k] = v
       println("$k => $v")
     end
-
-    mega_out = mega_out ..., metrics
   end
 
   if computedden
-    mega_out = mega_out ..., dden
+    mega_out[:dden] = dden
   end
 
   return mega_out
