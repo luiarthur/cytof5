@@ -1,6 +1,5 @@
 function update_r!(s::StateFS, c::ConstantsFS, d::DataFS;
                    marg_lam::Bool=true)
-  println(s.theta.W)
   # update each r_{i, k}
   for i in 1:d.data.I
     for k in 1:c.constants.K
@@ -58,6 +57,8 @@ function update_r_marg_lam!(i::Integer, k::Integer,
         # Add to log likelihood
         ll += MCMC.logsumexp(log.(wi[non_zero_wri_idx]) + ldmix)
       end
+    else
+      ll = -Inf
     end
 
     return ll
@@ -92,18 +93,28 @@ end
 log1m(x::T) where {T <: Real} = log1p(-x)
 sf_lgamma(x::T) where T = Distributions.SpecialFunctions.lgamma(x)
 # FIXME: spitting out NaN's for W!
+#        pretty sure this is wrong!
 function update_r!(i::Integer, k::Integer,
-                   s::StateFS, c::ConstantsFS, d::DataFS)
+                   s::StateFS, c::ConstantsFS, d::DataFS; verbose::Int=0)
   p_xi = compute_p(d.X[i, :], s.omega)
   aw = shape(c.W_star_prior)
   aw_ri = aw * s.r[i, :]
   aw_ri_sum = sum(aw_ri)
   u = aw_ri_sum - aw_ri[k]
-  log_numer = log1m(p_xi) + sf_lgamma(u) + sf_lgamma(aw)
+  log_numer = log1m(p_xi)
+  if u > 0
+    log_numer += sf_lgamma(u) + sf_lgamma(aw)
+  else
+    log_numer = -Inf
+  end
   log_denom = log(p_xi) + sf_lgamma(aw + u)
-  log_denom += (s.theta.W[i, k] > 0 ? aw * log(s.theta.W[i, k]) : 0)
-  println("log_numer: $log_numer")
-  println("log_denom: $log_denom")
+  if s.theta.W[i, k] > 0
+    log_denom += aw * log(s.theta.W[i, k])
+  end
+  if verbose > 0
+    println("log_numer: $log_numer")
+    println("log_denom: $log_denom")
+  end
   prob = 1 / (1 + exp(log_numer - log_denom))
   s.r[i, k] = prob > rand()
 end
