@@ -9,11 +9,12 @@ using BSON
 Random.seed!(10)
 printDebug = false
 println("Threads: $(Threads.nthreads())")
+println("pid: $(getpid())")
 
 @rimport graphics
 @rimport grDevices
 
-function init_state_const_data(; N=[300, 200, 100] * 10, J=32, K=4,
+function init_state_const_data(; N=[300, 200, 100], J=8, K=4,
                                L=Dict(0=>5, 1=>3))
 
   I = length(N)
@@ -24,7 +25,8 @@ function init_state_const_data(; N=[300, 200, 100] * 10, J=32, K=4,
   t = Cytof5.Model.Tuners(d.y, c.K)
   X = Cytof5.Model.eye(Float64, d.I)
 
-  return Dict(:d => d, :c => c, :s => s, :t => t, :X => X)
+  return Dict(:d => d, :c => c, :s => s, :t => t, :X => X,
+              :simdat => simdat)
 end
 
 
@@ -50,11 +52,46 @@ end
   println("omega after: $(sfs.omega)")
 
   # Fit model.
-  out = Cytof5.Model.fit_fs!(sfs, cfs, dfs, tuners=tfs, nmcmc=20, nburn=20,
+  # For algo tests
+  nmcmc = 100
+  nburn = 1200
+  # For compile tests
+  # nmcmc = 3
+  # nburn = 5
+  out = Cytof5.Model.fit_fs!(sfs, cfs, dfs, tuners=tfs,
+                             nmcmc=nmcmc, nburn=nburn,
                              printFreq=1, time_updates=true,
-                             computeDIC=true, computeLPML=true,
-                             r_marg_lam_freq=1.0)
+                             computeDIC=true, computeLPML=true)
+  BSON.bson("result/out_fs.bson", out)
+  BSON.bson("result/data_fs.bson", Dict(:simdat => config[:simdat]))
 end
+
+#= READ
+@rimport cytof3
+@rimport rcommon
+extract(chain, sym) = [samp[sym] for samp in chain]
+out = BSON.load("result/out_fs.bson")
+println("Number of samples: $(length(out[:samples][1]))")
+simdat = BSON.load("result/data_fs.bson")[:simdat]
+graphics.plot(out[:loglike], ylab="loglike", xlab="iter", main="", typ="l")
+cytof3.my_image(out[:lastState].theta.Z)
+cytof3.my_image(simdat[:Z])
+Wstars = cat(extract(out[:samples][1], :W_star)..., dims=3)
+rs = cat(extract(out[:samples][1], :r)..., dims=3)
+Ws = Wstars .* rs ./ sum(Wstars .* rs, dims=2)
+omegas = Matrix(hcat(extract(out[:samples][1], :omega)...)')
+rcommon.plotPosts(omegas)
+sig2s = Matrix(hcat(extract(out[:samples][1], :theta__sig2)...)')
+graphics.boxplot(Ws[1, :, :]')
+graphics.abline(h=simdat[:W][1, :])
+graphics.boxplot(Wstars[1, :, :]')
+mean(Wstars, dims=3)
+mean(rs, dims=3)
+std(rs, dims=3)
+rcommon.plotPosts(sig2s)
+simdat[:sig2]
+Cytof5.Model.compute_p([0., 0., 1.], omegas[end, :])
+=#
 
 
 @testset "Compile Model.State." begin

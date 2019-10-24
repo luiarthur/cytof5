@@ -3,11 +3,11 @@ printFreq: defaults to 0 => prints every 10%. turn off printing by
            setting to -1.
 """
 function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
+                 nmcmc::Int, nburn::Int, 
                  tuners::Union{Nothing, TunersFS}=nothing,
-                 nmcmc::Int=1000, nburn::Int=1000, 
                  monitors=[[:theta__Z, :theta__v, :theta__alpha,
                             :omega, :r, :theta__lam, :W_star, :theta__eta,
-                            :theta__delta, :theta__sig2]],
+                            :theta__W, :theta__delta, :theta__sig2]],
                  fix::Vector{Symbol}=Symbol[],
                  thins::Vector{Int}=[1],
                  thin_dden::Int=1,
@@ -16,7 +16,7 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
                  computedden::Bool=false,
                  sb_ibp::Bool=false,
                  use_repulsive::Bool=true, joint_update_Z::Bool=false,
-                 r_marg_lam_freq::Float64=1.0,
+                 _r_marg_lam_freq::Float64=1.0,
                  verbose::Int=1, time_updates::Bool=false)
 
   # We don't want to use noisy distribution.
@@ -30,7 +30,7 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
     init.theta.eps .= 0
   end
 
-  @assert 0 <= r_marg_lam_freq <= 1
+  @assert 0 <= _r_marg_lam_freq <= 1
 
   if verbose >= 1
     fixed_vars_str = join(fix, ", ")
@@ -134,7 +134,7 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
                                  use_repulsive=use_repulsive,
                                  joint_update_Z=joint_update_Z,
                                  sb_ibp=sb_ibp, time_updates=time_updates,
-                                 r_marg_lam_freq=r_marg_lam_freq)
+                                 r_marg_lam_freq=_r_marg_lam_freq)
 
     if computedden && iter > nburn && (iter - nburn) % thin_dden == 0
       append!(dden,

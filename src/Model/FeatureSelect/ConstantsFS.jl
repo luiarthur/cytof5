@@ -14,7 +14,7 @@ end
 function ConstantsFS(c::Constants)
   ws_prior = Gamma(1. / c.K, 1.)
   p_prior = Beta(.1, .1)
-  omega_prior = Normal(-10., 1.)
+  omega_prior = Normal(-5, 1.)
 
   return ConstantsFS(ws_prior, p_prior, omega_prior, c)
 end

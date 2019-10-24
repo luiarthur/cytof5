@@ -59,5 +59,8 @@ function update_state_feature_select!(s::StateFS, c::ConstantsFS, d::DataFS,
       end
     end
   end
-  @doIf time_updates println()
+
+  if time_updates
+    println(s.theta.W)
+  end
 end

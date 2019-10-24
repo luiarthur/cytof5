@@ -1,4 +1,5 @@
-function update_Z_v2!(s::State, c::Constants, d::Data, tuners::Tuners, sb_ibp::Bool)
+function update_Z_v2!(s::State, c::Constants, d::Data, tuners::Tuners,
+                      sb_ibp::Bool)
   # if 0.5 > rand()
   # if 0.1 > rand()
   if 0.1 > rand()
@@ -16,10 +17,10 @@ function update_Z_v2!(s::State, c::Constants, d::Data, tuners::Tuners, sb_ibp::B
 end
 
 function update_Z_marg_lamgam!(j::Int, k::Int,
-                              A::Vector{Vector{Float64}},
-                              B0::Vector{Matrix{Float64}},
-                              B1::Vector{Matrix{Float64}},
-                              s::State, c::Constants, d::Data, sb_ibp::Bool)
+                               A::Vector{Vector{Float64}},
+                               B0::Vector{Matrix{Float64}},
+                               B1::Vector{Matrix{Float64}},
+                               s::State, c::Constants, d::Data, sb_ibp::Bool)
   v = sb_ibp ? cumprod(s.v) : s.v
   Z0 = deepcopy(s.Z)
   Z0[j, k] = false 
@@ -41,9 +42,10 @@ end
 function update_Z_marg_lamgam!(s::State, c::Constants, d::Data, sb_ibp::Bool)
   # Precompute A, B0, B1
   A = [[logdnoisy(i, n, s, c, d) for n in 1:d.N[i]] for i in 1:d.I]
-  B0 = [[logdmixture(0, i, n, j, s, c, d) for n in 1:d.N[i], j in 1:d.J] for i in 1:d.I]
-  B1 = [[logdmixture(1, i, n, j, s, c, d) for n in 1:d.N[i], j in 1:d.J] for i in 1:d.I]
-
+  B0 = [[logdmixture(0, i, n, j, s, c, d) for n in 1:d.N[i], j in 1:d.J]
+        for i in 1:d.I]
+  B1 = [[logdmixture(1, i, n, j, s, c, d) for n in 1:d.N[i], j in 1:d.J]
+        for i in 1:d.I]
 
   for j in 1:d.J
     for k in 1:c.K
