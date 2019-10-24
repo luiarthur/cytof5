@@ -91,6 +91,8 @@ std(rs, dims=3)
 rcommon.plotPosts(sig2s)
 simdat[:sig2]
 Cytof5.Model.compute_p([0., 0., 1.], omegas[end, :])
+Zs = cat(extract(out[:samples][1], :theta__Z)..., dims=3)
+cytof3.my_image(dropdims(mean(Zs, dims=3), dims=3))
 =#
 
 
