@@ -24,7 +24,7 @@ end
 function simulatedata1(; Z, N=[300, 300], L=Dict(0=>1, 1=>1),
                        mus=Dict(0=>[-2.0], 1=>[2.0]),
                        W=Matrix([[.7, 0, .3] [.6, .1, .3]]'),
-                       sig2=[.1, .1], propmissingscale=0.7,
+                       sig2=[.1, .1], propmissingscale=0.3,
                        beta=[-9.2, -2.3],  # linear missing mechanism
                        sortLambda=false, seed=nothing)
   if seed != nothing
@@ -34,7 +34,6 @@ function simulatedata1(; Z, N=[300, 300], L=Dict(0=>1, 1=>1),
   J, K = size(Z)
   I = length(N)
 
-  println(size(W))
   @assert size(W) == (I, K)
   @assert length(sig2) == I
   @assert all(sig2 .> 0)
@@ -65,19 +64,26 @@ function simulatedata1(; Z, N=[300, 300], L=Dict(0=>1, 1=>1),
       for n in 1:N[i]
         y_complete[i][n, j] = rand(Normal(mu(i, n, j), sig_i))
       end
-    end
+      # Set some y to be missing
+      # Using a linear missing mechanism to rate missingness
+      p_miss = [Cytof5.Model.prob_miss(y_complete[i][n, j], beta)
+                for n in 1:N[i]]
+      # If this is not used, then many positive markers may be missing too.
+      prop_not_expressed = sum(W[i,:] .* (1 .- Z[j,:]))
+      # If propmissingscale is 1, about all the non-expressed observations
+      # will be missing. Best to set propmissingscale to about 0.3.
+      prop_missing = propmissingscale * prop_not_expressed
 
-    # Set some y to be missing
-    # p_miss = [Cytof5.Model.prob_miss(y_complete[i][n, j], beta)
-    #           for n in 1:N[i]]
-    # prop_missing = rand() * propMissingScale * sum(W[i, :] .* (1 .- Z[j, :]))
-    # num_missing = Int(round(N[i] * prop_missing))
-    # idx_missing = Distributions.wsample(1:N[i], p_miss, num_missing, replace=false)
-    # y[i][:, j] .= y_complete[i][:, j] .+ 0
-    # y[i][idx_missing, j] .= NaN
+      num_missing = Int(round(N[i] * prop_missing))
+      idx_missing = Distributions.wsample(1:N[i], p_miss, num_missing,
+                                          replace=false)
+      y[i][:, j] .= y_complete[i][:, j] .+ 0
+      y[i][idx_missing, j] .= NaN
+    end
   end
 
 
   return Dict(:Z => Z, :N => N, :L => L, :mus => mus, :W => W, :seed => seed,
-              :lam => lam, :sig2 => sig2, :y => y, :y_complete => y_complete)
+              :lam => lam, :sig2 => sig2, :y => y, :y_complete => y_complete,
+              :beta => beta)
 end
