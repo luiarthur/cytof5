@@ -117,4 +117,4 @@ BSON.bson("$(RESULTS_DIR)/simdat.bson", Dict(:simdat => config[:simdat]))
 
 # TODO: send to s3?
 
-# Sims: (Z1, Z2) x (repFAM_with_fs x (dist1, dist2, dist3), IBP_with_fs) x (K in 2:5))
+println("Completed!")
