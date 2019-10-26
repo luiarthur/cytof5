@@ -1,3 +1,7 @@
+println("pid: $(getpid())")
+println("Threads: $(Threads.nthreads())")
+flush(stdout)
+
 using Revise
 using Cytof5
 using Random
@@ -7,15 +11,12 @@ using BSON
 include("simulatedata.jl")
 
 Random.seed!(0)
-println("Threads: $(Threads.nthreads())")
-println("pid: $(getpid())")
-
 include("simulatedata.jl")
 
 # Parse arguments
 if length(ARGS) == 0
-  RESULTS_DIR = "results/test/"
-  REPFAMDISTSCALE = .1
+  RESULTS_DIR = "results/test-test/"
+  REPFAMDISTSCALE = 0
   KMCMC = 5
   Z_idx = 1
 else
@@ -33,6 +34,8 @@ println("    - RESULTS_DIR: $(RESULTS_DIR)")
 println("    - REPFAMDISTSCALE: $(REPFAMDISTSCALE)")
 println("    - KMCMC: $(KMCMC)")
 println("    - Z_idx: $(Z_idx)")
+println("    - USE_REPULSIVE: $(USE_REPULSIVE)")
+flush(stdout)
 
 function sim_z_generator(phi)::Function
   return function sim_z(z1::Vector{Bool}, z2::Vector{Bool})
@@ -49,7 +52,7 @@ function init_state_const_data(simdat; K, L)
   d = Cytof5.Model.Data(simdat[:y])
   c = Cytof5.Model.defaultConstants(d, K, L,
                                     tau0=1.0, tau1=1.0,
-                                    sig2_prior=InvereGamma(3, 2),
+                                    sig2_prior=InverseGamma(3, 2),
                                     alpha_prior=Gamma(0.1, 10.0),
                                     yQuantiles=[.0, .25, .5], 
                                     pBounds=[.05, .8, .05],
@@ -103,9 +106,10 @@ config = init_state_const_data(simdat, K=KMCMC, L=Dict(0 => 2, 1 => 2))
                                  monitors=[monitor1, monitor2],
                                  computedden=true,
                                  thin_dden=nsamps_to_thin(200, MCMC_ITER),
-                                 printFreq=1, time_updates=false,
+                                 printFreq=10, time_updates=false,
                                  computeDIC=true, computeLPML=true,
-                                 use_repulsive=use_repulsive)
+                                 use_repulsive=USE_REPULSIVE,
+                                 flushOutput=true)
 
 # Dump output
 BSON.bson("$(RESULTS_DIR)/output.bson", out)

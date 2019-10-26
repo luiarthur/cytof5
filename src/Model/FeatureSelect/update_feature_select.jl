@@ -12,16 +12,13 @@ function update_state_feature_select!(s::StateFS, c::ConstantsFS, d::DataFS,
   # Return true if parameter (sym) is not fixed
   isRandom(sym::Symbol)::Bool = !(sym in fix)
 
-  function update_Z!()
+  function update_Z_!()
     if use_repulsive
       update_Z_repFAM!(s.theta, c.constants, d.data, t.tuners, sb_ibp)
-    else
-      if joint_update_Z
-        update_Z_v2!(s.theta, c.constants, d.data, t.tuners, sb_ibp)
-      else
-        # Do regular updates
-        update_Z!(s.theta, c.constants, d.data, sb_ibp)
-      end
+    elseif joint_update_Z
+      update_Z_v2!(s.theta, c.constants, d.data, t.tuners, sb_ibp)
+    else  # Do regular updates
+      update_Z!(s.theta, c.constants, d.data, sb_ibp)
     end
   end
 
@@ -31,7 +28,7 @@ function update_state_feature_select!(s::StateFS, c::ConstantsFS, d::DataFS,
   # Z -> v -> alpha -> 
   # omega -> r -> lam -> W* -> gamma -> eta -> delta -> sig2 -> y*
   gibbs_sampler = [
-    (:Z, () -> update_Z!()),
+    (:Z, () -> update_Z_!()),
     (:v, () -> update_v!(s.theta, c.constants, d.data, t.tuners, sb_ibp)),
     (:alpha, () -> update_alpha!(s.theta, c.constants, d.data, sb_ibp)), 
     (:omega, () -> update_omega!(s, c, d, t)),
