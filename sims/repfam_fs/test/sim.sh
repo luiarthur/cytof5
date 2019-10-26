@@ -32,7 +32,7 @@ for kmcmc in $KMCMC; do
       echo $EXP_DIR
 
       # julia command to run
-      jlCmd="julia vb_sim.jl $EXP_DIR $scale $kmcmc $zidx"
+      jlCmd="julia small_sim.jl $EXP_DIR $scale $kmcmc $zidx"
 
       engine $RESULTS_DIR $AWS_BUCKET $EXP_NAME "$jlCmd" $MAX_CORES $STAGGER_TIME
     done

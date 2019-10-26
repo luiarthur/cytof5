@@ -19,10 +19,10 @@ if length(ARGS) == 0
   KMCMC = 5
   Z_idx = 1
 else
-  RESULTS_DIR = ARGS[2]
-  REPFAMDISTSCALE = parse(Float64, ARGS[3])
-  KMCMC = parse(Int, ARGS[4])
-  Z_idx = parse(Int, ARGS[5])
+  RESULTS_DIR = ARGS[1]
+  REPFAMDISTSCALE = parse(Float64, ARGS[2])
+  KMCMC = parse(Int, ARGS[3])
+  Z_idx = parse(Int, ARGS[4])
 end
 mkpath(RESULTS_DIR)
 USE_REPULSIVE = REPFAMDISTSCALE > 0
