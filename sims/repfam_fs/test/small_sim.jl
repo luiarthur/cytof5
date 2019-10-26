@@ -8,8 +8,6 @@ using Random
 using Distributions
 using BSON
 
-include("simulatedata.jl")
-
 Random.seed!(0)
 include("simulatedata.jl")
 

@@ -4,12 +4,8 @@ using Random
 using Distributions
 import PyPlot, PyCall
 const plt = PyPlot.plt
+PyPlot.matplotlib.use("Agg")
 using BSON
-using RCall
-@rimport rcommon
-
-include("../Util/Util.jl")
-include("simulatedata.jl")
 
 #= Interactive plot
 PyPlot.matplotlib.use("TkAgg")
@@ -19,86 +15,133 @@ PyPlot.matplotlib.use("TkAgg")
 PyPlot.matplotlib.use("Agg")
 =#
 
-# Some python ploting setup
+# Load python defs
 path_to_plot_defs = "../../vb"
 pushfirst!(PyCall.PyVector(PyCall.pyimport("sys")."path"), "$path_to_plot_defs")
-include("$(path_to_plot_defs)/post_process_defs_pyplot.jl")
-VLIM = (-4, 4)
+plot_yz = PyCall.pyimport("plot_yz")
+blue2red = PyCall.pyimport("blue2red")
+pyrange(n) = collect(range(0, stop=n-1))
 
-# Plot settings
-# http://blog.juliusschulz.de/blog/ultimate-ipython-notebook
+# General plot settings
 rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
 rcParams["font.size"] = 15
 rcParams["xtick.labelsize"] = 15
 rcParams["ytick.labelsize"] = 15
 plt.rcParams["figure.figsize"] = (6, 6)
 
-#= Interactive plot
-PyPlot.matplotlib.use("TkAgg")
-=#
-
-# Post process
-extract(chain, sym) = [samp[sym] for samp in chain]
-extract(sym) = [samp[sym] for samp in out[:samples][1]]
-out = BSON.load("results/out_fs.bson")
-simdat = BSON.load("results/data_fs.bson")[:simdat]
-boxplot(x) = plt.boxplot(x, whis=[2.5, 97.5], showfliers=false, showmeans=true)
-
-# Plot log likelihood
-plt.plot(out[:loglike]); plt.xlabel("iter"); plt.ylabel("log-likelihood")
-
-# Plot Wi
-Ws = cat(extract(:theta__W)..., dims=3)
-I = config[:dfs].data.I
-plt.figure()
-for i in 1:I
-  plt.subplot(I, 1, i)
-  boxplot(Ws[i, :, :]')
-  plt.xlabel("cell phenotypes")
-  plt.ylabel("W$(i)")
+function boxplot(x; showmeans=true, whis=[2.5, 97.5], showfliers=false, kw...)
+  plt.boxplot(x, showmeans=showmeans, whis=whis, showfliers=showfliers; kw...)
 end
-plt.tight_layout()
 
-# Plot mus
-deltas = extract(:theta__delta)
-mus0 = Matrix(hcat([-cumsum(d[0]) for d in deltas]...)')
-mus1 = Matrix(hcat([cumsum(d[1]) for d in deltas]...)')
-mus = [mus0 mus1]
-boxplot(mus)
-plt.axhline(0)
+function add_gridlines_Z(Z)
+  J, K = size(Z)
+  for j in pyrange(J)
+    plt.axhline(y=j+.5, color="grey", linewidth=.5)
+  end
 
-# Plot sig2
-sig2s = Matrix(hcat(extract(:theta__sig2)...)')
-boxplot(sig2s)
-plt.axhline(0)
+  for k in pyrange(K)
+    plt.axvline(x=k+.5, color="grey", linewidth=.5)
+  end
+end
 
-rcommon.plotPosts(sig2s)
+axhlines(x; kw...) = for xi in x plt.axhline(xi; kw...) end
+cm_greys = plt.cm.get_cmap("Greys", 5)
 
-# lambda
-lams = extract(:theta__lam)
+function plot_Z(Z; colorbar=true)
+  J, K = size(Z)
+  p = plt.imshow(Z, aspect="auto", vmin=0, vmax=1, cmap=cm_greys)
+  add_gridlines_Z(Z)
+  plt.yticks(pyrange(J), pyrange(J) .+ 1, fontsize=10)
+  plt.xticks(pyrange(K), pyrange(K) .+ 1, fontsize=10, rotation=90)
+  if colorbar
+    plt.colorbar()
+  end
+  return p
+end
 
-# Plot Z
-Zs_vec = extract(:theta__Z)
-Zs = cat(Zs_vec..., dims=3)
-plot_yz.plot_Z_only(Zs[:, :, end])
+getpath(x) = join(split(x, "/")[1:end-1], "/")
 
-plot_yz.plot_Z_only(mean(Zs_vec))
+function post_process(path_to_output; vlim=(-4, 4))
+  results_path = getpath(path_to_output)
+  path_to_simdat = "$(results_path)/simdat.bson"
 
-i = 1
-plot_yz.plot_Z(mean(Zs_vec), mean(Ws, dims=3)[i, :], lam[end][i],
-               w_thresh=0.01, fs_markers=18, fs_celltypes=18, fs_lab=18)
+  # Define path to put images
+  img_path = "$(results_path)/img"
+  # Create dir if needed
+  mkpath(img_path)
 
-i = 1
-plot_yz.plot_Z(Zs_vec[end], mean(Ws, dims=3)[i, :], lam[end][i],
-               w_thresh=0.01, fs_markers=18, fs_celltypes=18, fs_lab=18)
-i = 2
-plot_yz.plot_Z(Zs_vec[end], mean(Ws, dims=3)[i, :], lam[end][i],
-               w_thresh=0.01, fs_markers=18, fs_celltypes=18, fs_lab=18)
+  # Load sim output
+  out = BSON.load(path_to_output)
 
+  # Load sim data
+  simdat = BSON.load(path_to_simdat)[:simdat]
 
-# Plot eta
-etas = extract(:theta__eta)
-etas0 = [x[0] for x in etas]
-etas1 = [x[1] for x in etas]
-mean(etas0)
-mean(etas1)
+  # Define extraction functions
+  extract(chain, sym) = [samp[sym] for samp in chain]
+  extract(sym) = extract(out[:samples][1], sym)
+
+  # Plot log likelihood
+  println("loglike ...")
+  plt.plot(out[:loglike]); plt.xlabel("iter"); plt.ylabel("log-likelihood")
+  plt.savefig("$(img_path)/loglike.pdf")
+  plt.close()
+
+  # Plot Wi
+  println("W ...")
+  Ws = cat(extract(:theta__W)..., dims=3)
+  I = length(simdat[:y])
+  plt.figure()
+  for i in 1:I
+    plt.subplot(I, 1, i)
+    boxplot(Ws[i, :, :]')
+    plt.xlabel("cell phenotypes")
+    plt.ylabel("W$(i)")
+    axhlines(simdat[:W][i, :])
+  end
+  plt.tight_layout()
+  plt.savefig("$(img_path)/W.pdf")
+  plt.close()
+
+  # Plot mus
+  println("mus ...")
+  deltas = extract(:theta__delta)
+  mus0 = Matrix(hcat([-cumsum(d[0]) for d in deltas]...)')
+  mus1 = Matrix(hcat([cumsum(d[1]) for d in deltas]...)')
+  mus = [mus0 mus1]
+  boxplot(mus)
+  plt.axhline(0)
+  plt.savefig("$(img_path)/mus.pdf")
+  plt.close()
+
+  # Plot sig2
+  println("sig2 ...")
+  sig2s = Matrix(hcat(extract(:theta__sig2)...)')
+  boxplot(sig2s)
+  plt.axhline(0)
+  plt.savefig("$(img_path)/sig2.pdf")
+  plt.close()
+
+  # Plot Z
+  println("Z ...")
+  Zs_vec = extract(:theta__Z)
+  Zs = cat(Zs_vec..., dims=3)
+  plot_Z(mean(Zs_vec))
+  plt.savefig("$(img_path)/Zmean.pdf")
+  plt.close()
+
+  # Plot eta
+  etas = extract(:theta__eta)
+  etas0 = [x[0] for x in etas]
+  etas1 = [x[1] for x in etas]
+  mean(etas0)
+  mean(etas1)
+
+  # lambda
+  lams = extract(:theta__lam)
+
+  println("Done!")
+end
+
+#=
+post_process("results/test-sims/KMCMC2/z1/scale0/output.bson")
+=#
