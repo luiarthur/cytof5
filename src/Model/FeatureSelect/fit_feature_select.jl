@@ -138,7 +138,7 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
 
     if computedden && iter > nburn && (iter - nburn) % thin_dden == 0
       append!(dden,
-              [[datadensity(i, j, s.theta, c.constats, d.data)
+              [[datadensity(i, j, s.theta, c.constants, d.data)
                 for i in 1:d.data.I, j in 1:d.data.J]])
     end
 
