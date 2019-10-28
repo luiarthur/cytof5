@@ -24,8 +24,7 @@ for path_to_output in paths_to_output
   println("Processing: $(path_to_output)")
   pathdir = getpath(path_to_output)
   path_to_simdat = "$(pathdir)/simdat.bson"
-  post_process(path_to_output, path_to_simdat)
-
+  post_process(path_to_output, path_to_simdat=path_to_simdat)
 end
 
 Util.s3sync(RESULTS_DIR, AWS_SIM_BUCKET)
