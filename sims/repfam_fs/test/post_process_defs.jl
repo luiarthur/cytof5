@@ -6,6 +6,7 @@ import PyPlot, PyCall
 const plt = PyPlot.plt
 PyPlot.matplotlib.use("Agg")
 using BSON
+include("../../publish/salso.jl")
 
 #= Interactive plot
 PyPlot.matplotlib.use("TkAgg")
@@ -27,7 +28,7 @@ rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
 rcParams["font.size"] = 15
 rcParams["xtick.labelsize"] = 15
 rcParams["ytick.labelsize"] = 15
-plt.rcParams["figure.figsize"] = (6, 6)
+rcParams["figure.figsize"] = (6, 6)
 
 function boxplot(x; showmeans=true, whis=[2.5, 97.5], showfliers=false, kw...)
   plt.boxplot(x, showmeans=showmeans, whis=whis, showfliers=showfliers; kw...)
@@ -51,19 +52,73 @@ function plot_Z(Z; colorbar=true)
   J, K = size(Z)
   p = plt.imshow(Z, aspect="auto", vmin=0, vmax=1, cmap=cm_greys)
   add_gridlines_Z(Z)
-  plt.yticks(pyrange(J), pyrange(J) .+ 1, fontsize=10)
-  plt.xticks(pyrange(K), pyrange(K) .+ 1, fontsize=10, rotation=90)
+  plt.yticks(pyrange(J), pyrange(J) .+ 1, fontsize=rcParams["font.size"])
+  plt.xticks(pyrange(K), pyrange(K) .+ 1, fontsize=rcParams["font.size"],
+             rotation=90)
   if colorbar
     plt.colorbar()
   end
   return p
 end
 
+# plot y/z
+function make_yz(y, Zs, Ws, lams, imgdir; vlim, 
+                 w_thresh=.01, lw=3,
+                 Z_true=nothing, 
+                 fs_y=rcParams["font.size"],
+                 fs_z=rcParams["font.size"],
+                 fs_ycbar=rcParams["font.size"],
+                 fs_zcbar=rcParams["font.size"])
+  mkpath(imgdir)
+  I = length(y)
+  for i in 1:I
+    idx_best = estimate_ZWi_index(Zs, Ws, i)
+
+    Zi = Int.(Zs[idx_best])
+    Wi = Float64.(Ws[idx_best][i, :])
+    lami = Int64.(lams[idx_best][i])
+    yi = Float64.(y[i])
+
+    # plot Yi, lami
+    plt.figure(figsize=(6, 6))
+    plot_yz.plot_y(yi, Wi, lami, vlim=vlim, cm=blue2red.cm(9), lw=lw,
+                   fs_xlab=fs_y, fs_ylab=fs_y, fs_lab=fs_y, fs_cbar=fs_ycbar)
+    plt.savefig("$(imgdir)/y$(i).pdf", bbox_inches="tight")
+    plt.close()
+
+    # plot Zi, Wi
+    plt.figure(figsize=(6, 6))
+    plot_yz.plot_Z(Zi, Wi, lami, w_thresh=w_thresh, add_colorbar=false,
+                   fs_lab=fs_z, fs_celltypes=fs_z, fs_markers=fs_z,
+                   fs_cbar=fs_zcbar)
+    plt.savefig("$(imgdir)/Z$(i).pdf", bbox_inches="tight")
+    plt.close()
+  end
+
+  if Z_true != nothing
+    # plot Z true
+    plt.figure(figsize=(6, 6))
+    plot_yz.plot_Z_only(Z_true, fs=fs_z,
+                        xlab="cell phenotypes", ylab="markers",
+                        rotate_xticks=false)
+    plt.savefig("$(imgdir)/Z_true.pdf", bbox_inches="tight")
+    plt.close()
+
+    # plot ZT true
+    plt.figure(figsize=(6, 6))
+    plot_yz.plot_Z_only(Z_true', fs=fs_z,
+                        xlab="markers", ylab="cell phenotype")
+    plt.savefig("$(imgdir)/ZT_true.pdf", bbox_inches="tight")
+    plt.close()
+  end
+end
+
+
 getpath(x) = join(split(x, "/")[1:end-1], "/")
 
-function post_process(path_to_output; vlim=(-4, 4))
+function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
+                      w_thresh=.01)
   results_path = getpath(path_to_output)
-  path_to_simdat = "$(results_path)/simdat.bson"
 
   # Define path to put images
   img_path = "$(results_path)/img"
@@ -74,11 +129,18 @@ function post_process(path_to_output; vlim=(-4, 4))
   out = BSON.load(path_to_output)
 
   # Load sim data
-  simdat = BSON.load(path_to_simdat)[:simdat]
+  if path_to_simdat != nothing
+    simdat = BSON.load(path_to_simdat)[:simdat]
+  else
+    simdat = nothing
+  end
 
   # Define extraction functions
   extract(chain, sym) = [samp[sym] for samp in chain]
   extract(sym) = extract(out[:samples][1], sym)
+
+  # Print number of samples
+  println("Number of MCMC samples: $(length(extract(:theta__delta)))")
 
   # Plot log likelihood
   println("loglike ...")
@@ -88,15 +150,18 @@ function post_process(path_to_output; vlim=(-4, 4))
 
   # Plot Wi
   println("W ...")
-  Ws = cat(extract(:theta__W)..., dims=3)
-  I = length(simdat[:y])
+  Ws_vec = extract(:theta__W)
+  Ws = cat(Ws_vec..., dims=3)
+  I = length(out[:lastState].theta.y_imputed)
   plt.figure()
   for i in 1:I
     plt.subplot(I, 1, i)
     boxplot(Ws[i, :, :]')
     plt.xlabel("cell phenotypes")
     plt.ylabel("W$(i)")
-    axhlines(simdat[:W][i, :])
+    if simdat != nothing
+      axhlines(simdat[:W][i, :])
+    end
   end
   plt.tight_layout()
   plt.savefig("$(img_path)/W.pdf")
@@ -138,6 +203,15 @@ function post_process(path_to_output; vlim=(-4, 4))
 
   # lambda
   lams = extract(:theta__lam)
+
+  # y/z plots
+  if simdat != nothing
+    println("Making y/z plots ...")
+    make_yz(simdat[:y], Zs_vec, Ws_vec, lams, "$(img_path)/yz",
+            vlim=vlim, w_thresh=w_thresh, lw=3, Z_true=simdat[:Z])
+  else
+    println("Not implemented! No y/z plots ...")
+  end
 
   println("Done!")
 end
