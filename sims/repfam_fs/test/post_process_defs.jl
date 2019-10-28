@@ -2,6 +2,7 @@ using Revise
 using Cytof5
 using Random
 using Distributions
+using DelimitedFiles
 import PyPlot, PyCall
 const plt = PyPlot.plt
 PyPlot.matplotlib.use("Agg")
@@ -69,7 +70,10 @@ function make_yz(y, Zs, Ws, lams, imgdir; vlim,
                  fs_z=rcParams["font.size"],
                  fs_ycbar=rcParams["font.size"],
                  fs_zcbar=rcParams["font.size"])
+  # Make img dir if needed
   mkpath(imgdir)
+  mkpath("$(imgdir)/txt")
+
   I = length(y)
   for i in 1:I
     idx_best = estimate_ZWi_index(Zs, Ws, i)
@@ -77,6 +81,27 @@ function make_yz(y, Zs, Ws, lams, imgdir; vlim,
     Zi = Int.(Zs[idx_best])
     Wi = Float64.(Ws[idx_best][i, :])
     lami = Int64.(lams[idx_best][i])
+
+    # Write best idx
+    open("$(imgdir)/txt/best_idx_$(i).txt", "w") do io
+      println(io, idx_best)
+    end
+
+    # Write Zi
+    open("$(imgdir)/txt/Z$(i)_hat.txt", "w") do io
+      writedlm(io, Zi)
+    end
+
+    # Write Wi
+    open("$(imgdir)/txt/W$(i)_hat.txt", "w") do io
+      writedlm(io, Wi)
+    end
+
+    # Write lami
+    open("$(imgdir)/txt/lam$(i)_hat.txt", "w") do io
+      writedlm(io, lami)
+    end
+
     yi = Float64.(y[i])
 
     # plot Yi, lami
@@ -124,6 +149,7 @@ function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
   img_path = "$(results_path)/img"
   # Create dir if needed
   mkpath(img_path)
+  mkpath("$(img_path)/txt")
 
   # Load sim output
   out = BSON.load(path_to_output)
@@ -167,6 +193,10 @@ function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
   plt.savefig("$(img_path)/W.pdf")
   plt.close()
 
+  open("$(img_path)/txt/W_mean.txt", "w") do io
+    writedlm(io, mean(Ws_vec))
+  end
+
   # Plot mus
   println("mus ...")
   deltas = extract(:theta__delta)
@@ -194,6 +224,10 @@ function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
   plt.savefig("$(img_path)/Zmean.pdf")
   plt.close()
 
+  open("$(img_path)/txt/Z_mean.txt", "w") do io
+    writedlm(io, mean(Zs_vec))
+  end
+
   # Plot eta
   etas = extract(:theta__eta)
   etas0 = [x[0] for x in etas]
@@ -215,7 +249,3 @@ function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
 
   println("Done!")
 end
-
-#=
-post_process("results/test-sims/KMCMC2/z1/scale0/output.bson")
-=#
