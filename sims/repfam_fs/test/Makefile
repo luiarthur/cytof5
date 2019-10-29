@@ -34,3 +34,6 @@ sendsim:
 
 metrics:
 	python3 metrics.py
+
+notebook:
+	jupyter notebook
