@@ -54,6 +54,16 @@ def count_num_small_phenotypes(path, thresh=.01):
     return num_small_phenotypes
 
 
+def compute_num_selected_features(path):
+    rgx = lambda f: re.match('W\d+_hat', f)
+    w_hat_paths = list(filter(rgx, os.listdir(path)))
+    di = []
+    for wpath in sorted(w_hat_paths):
+        wi = np.genfromtxt('{}/{}'.format(path, wpath))
+        di.append((wi > 0).sum())
+    return di
+
+
 def get_metrics_for_each_dir(results_dir, thresh=.01):
     # Create dict to store results
     out = dict()
@@ -64,12 +74,10 @@ def get_metrics_for_each_dir(results_dir, thresh=.01):
             if f == 'log.txt':
                 path_to_log = '{}/{}'.format(root, f)
                 metrics = parse_log(path_to_log)
-                # TODO:
-                # Include number of small phenotypes in metrics
                 path_to_W = '{}/img/yz/txt/'.format(root)
                 num_small_phenotypes = count_num_small_phenotypes(path_to_W,
                                                                   thresh)
-
+                metrics['num_selected_features'] = compute_num_selected_features(path_to_W)
                 metrics['num_small_phenotypes'] = num_small_phenotypes
                 out[path_to_log] = metrics
 

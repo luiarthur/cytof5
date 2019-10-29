@@ -212,7 +212,9 @@ function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
   println("sig2 ...")
   sig2s = Matrix(hcat(extract(:theta__sig2)...)')
   boxplot(sig2s)
-  plt.axhline(0)
+  if simdat != nothing
+    axhlines(simdat[:sig2])
+  end
   plt.savefig("$(img_path)/sig2.pdf")
   plt.close()
 

@@ -1,6 +1,6 @@
 SHELL:=/bin/bash
 
-.PHONY: cleansim sim retrieveallsim retrievesim postprocsim
+.PHONY: cleansim sim retrieveallsim retrievesim postprocsim metrics
 
 # Simulation data experiment name
 SIM_EXP_NAME = test-sims
@@ -31,3 +31,6 @@ postprocsim:
 
 sendsim:
 	aws s3 sync $(SIM_RESULTS_DIR) $(SIM_AWS_BUCKET) --exclude '*.nfs'
+
+metrics:
+	python3 metrics.py
