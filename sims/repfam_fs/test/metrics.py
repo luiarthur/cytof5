@@ -1,5 +1,6 @@
 import collections
 import os
+import re
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -9,14 +10,6 @@ plt.rcParams['font.size'] = fontsize
 plt.rcParams['xtick.labelsize'] = fontsize
 plt.rcParams['ytick.labelsize'] = fontsize
 plt.rcParams['figure.figsize'] = (6, 5)
-
-# For each Z in (Z1, Z2) 
-#     For each scale in (0, .01, .1, 1, 10)
-#         Draw a curve for each k in {2, 3, 4, 5}
-
-# zs = ['z1', 'z2']
-# scales = [0, 0.01, 0.1, 1, 10]
-# ks = [2, 3, 4, 5]
 
 def get_ks(results_dir):
     # Get dir names for each K
@@ -50,7 +43,18 @@ def parse_log(path_to_log):
     return out
 
 
-def get_metrics_for_each_dir(results_dir):
+def count_num_small_phenotypes(path, thresh=.01):
+    rgx = lambda f: re.match('W\d+_hat', f)
+    w_hat_paths = list(filter(rgx, os.listdir(path)))
+    num_small_phenotypes = 0
+    for wpath in w_hat_paths:
+        wi = np.genfromtxt('{}/{}'.format(path, wpath))
+        # num_small_phenotypes += ((0 < wi) * (wi < thresh)).sum()
+        num_small_phenotypes += (wi < thresh).sum()
+    return num_small_phenotypes
+
+
+def get_metrics_for_each_dir(results_dir, thresh=.01):
     # Create dict to store results
     out = dict()
 
@@ -60,9 +64,14 @@ def get_metrics_for_each_dir(results_dir):
             if f == 'log.txt':
                 path_to_log = '{}/{}'.format(root, f)
                 metrics = parse_log(path_to_log)
-                out[path_to_log] = metrics
                 # TODO:
                 # Include number of small phenotypes in metrics
+                path_to_W = '{}/img/yz/txt/'.format(root)
+                num_small_phenotypes = count_num_small_phenotypes(path_to_W,
+                                                                  thresh)
+
+                metrics['num_small_phenotypes'] = num_small_phenotypes
+                out[path_to_log] = metrics
 
     return out
 
@@ -93,17 +102,29 @@ def get_exp_dict(results_dir):
 
 def graph_for_setting(setting, exp_dict, metric, label):
     d = exp_dict[setting]
-    ks = []
-    ms = []
+    if metric == 'num_small_phenotypes':
+        lpml = []
+        num_small = []
+        ks = []
+        for kmcmc in sorted(d.keys()):
+            ks.append(kmcmc)
+            lpml.append(d[kmcmc]['LPML'])
+            num_small.append(d[kmcmc]['num_small_phenotypes'])
+        plt.plot(num_small, lpml, marker='o', label=label)
+        plt.xlabel('number of obscure phenotypes')
+        plt.ylabel('LPML')
+    else:
+        ks = []
+        ms = []
 
-    for kmcmc in sorted(d.keys()):
-        ks.append(kmcmc)
-        ms.append(d[kmcmc][metric])
+        for kmcmc in sorted(d.keys()):
+            ks.append(kmcmc)
+            ms.append(d[kmcmc][metric])
 
-    plt.plot(ks, ms, marker='o', label=label)
-    plt.xlabel('K')
-    plt.ylabel(metric)
-    plt.xticks(ks)
+        plt.plot(ks, ms, marker='o', label=label)
+        plt.xlabel('K')
+        plt.ylabel(metric)
+        plt.xticks(ks)
 
 
 if __name__ == '__main__':
@@ -114,7 +135,7 @@ if __name__ == '__main__':
     exp_dict = get_exp_dict(results_dir) 
     
     # Metrics to plot
-    metrics = ['LPML', 'DIC']
+    metrics = ['LPML', 'DIC', 'num_small_phenotypes']
 
     # Name of metrics dir
     metrics_dir = '{}/metrics'.format(results_dir) 
