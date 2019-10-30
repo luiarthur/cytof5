@@ -1,5 +1,6 @@
 import collections
 import os
+import sys
 import re
 import matplotlib.pyplot as plt
 import numpy as np
@@ -136,7 +137,11 @@ def graph_for_setting(setting, exp_dict, metric, label):
 
 
 if __name__ == '__main__':
-    results_dir = 'results/test-sims'
+    if len(sys.argv) > 1:
+        results_dir = sys.argv[1]
+    else:
+        results_dir = 'results/test-sims'
+
     print('Results dir: {}'.format(results_dir))
 
     # Get a dictionary indexed by experiment setting (z, scale)

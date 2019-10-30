@@ -34,7 +34,7 @@ sendsim:
 	aws s3 sync $(SIM_RESULTS_DIR) $(SIM_AWS_BUCKET) --exclude '*.nfs'
 
 metrics:
-	python3 metrics.py
+	python3 metrics.py $(SIM_RESULTS_DIR)
 
 notebook:
 	jupyter notebook
