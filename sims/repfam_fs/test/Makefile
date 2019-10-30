@@ -7,7 +7,7 @@ SHELL:=/bin/bash
 SIM_EXP_NAME = test-sims-1
 
 # Simulation results dir
-SIM_RESULTS_DIR = results/$(SIM_EXP_NAME)/
+SIM_RESULTS_DIR = results/$(SIM_EXP_NAME)
 
 # Sim AWS bukceT
 SIM_AWS_BUCKET = s3://cytof-repfam/$(SIM_EXP_NAME)
