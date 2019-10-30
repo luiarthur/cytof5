@@ -51,13 +51,15 @@ end
   println("r after: $(sfs.r)")
   println("omega after: $(sfs.omega)")
 
+  Cytof5.Model.printConstants(cfs)
+
   # Fit model.
   # For algo tests
-  nmcmc = 100
-  nburn = 1200
+  # nmcmc = 100
+  # nburn = 1200
   # For compile tests
-  # nmcmc = 3
-  # nburn = 5
+  nmcmc = 3
+  nburn = 5
   out = Cytof5.Model.fit_fs!(sfs, cfs, dfs, tuners=tfs,
                              nmcmc=nmcmc, nburn=nburn,
                              printFreq=1, time_updates=true,

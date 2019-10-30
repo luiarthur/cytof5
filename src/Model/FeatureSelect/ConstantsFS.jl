@@ -18,3 +18,33 @@ function ConstantsFS(c::Constants)
 
   return ConstantsFS(ws_prior, p_prior, omega_prior, c)
 end
+
+
+function printConstants(c::ConstantsFS, preprintln::Bool=true)
+  if preprintln
+    println("ConstantsFS:")
+  end
+
+  _fieldnames = collect(fieldnames(typeof(c)))
+
+  for fname in filter(fn -> fn != :constants, _fieldnames)
+    x = getfield(c, fname)
+    T = typeof(x)
+    if T <: Number
+      println("$fname: $x")
+    elseif T <: Vector
+      N = length(x)
+      for i in 1:N
+        println("$(fname)[$i]: $(x[i])")
+      end
+    elseif T <: Dict
+      for (k, v) in x
+        println("$(fname)[$k]: $v")
+      end
+    else
+      println("$fname: $x")
+    end
+  end
+
+  printConstants(c.constants, true)
+end

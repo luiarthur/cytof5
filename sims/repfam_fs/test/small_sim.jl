@@ -51,6 +51,8 @@ function init_state_const_data(simdat; K, L)
   c = Cytof5.Model.defaultConstants(d, K, L,
                                     tau0=1.0, tau1=1.0,
                                     sig2_prior=InverseGamma(3, 2),
+                                    delta0_prior=TruncatedNormal(1, 1, 0.5, Inf),
+                                    delta1_prior=TruncatedNormal(1, 1, 0.5, Inf),
                                     alpha_prior=Gamma(0.1, 10.0),
                                     yQuantiles=[.0, .25, .5], 
                                     pBounds=[.05, .8, .05],
@@ -95,6 +97,10 @@ NBURN = 2000  # burn-in time
 
 # Configurations: priors, initial state, data, etc.
 config = init_state_const_data(simdat, K=KMCMC, L=Dict(0 => 2, 1 => 2))
+
+# Print constants
+Cytof5.Model.printConstants(config[:cfs])
+flush(stdout)
 
 # Fit model
 @time out = Cytof5.Model.fit_fs!(config[:sfs], config[:cfs], config[:dfs],

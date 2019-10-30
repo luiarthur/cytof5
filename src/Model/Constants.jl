@@ -42,6 +42,8 @@ function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
                           sig2_range=[0.0, Inf],
                           alpha_prior = Gamma(3.0, 0.5),
                           tau0::Float64=0.0, tau1::Float64=0.0,
+                          delta0_prior=TruncatedNormal(1.0, 1.0, 0.0, Inf),
+                          delta1_prior=TruncatedNormal(1.0, 1.0, 0.0, Inf),
                           probFlip_Z::Float64=1.0 / (data.J * K),
                           noisyDist::ContinuousDistribution=Cauchy(),
                           # noisyDist::ContinuousDistribution=Normal(0.0, sqrt(10.0)),
@@ -62,8 +64,8 @@ function defaultConstants(data::Data, K::Int, L::Dict{Int, Int};
   end
   # delta_prior[0] = TruncatedNormal(-mean(y_neg) / L[0], tau0 / L[0], 0.0, Inf)
   # delta_prior[1] = TruncatedNormal( mean(y_pos) / L[1], tau1 / L[1], 0.0, Inf)
-  delta_prior[0] = TruncatedNormal(1.0, 1.0, 0.0, Inf)
-  delta_prior[1] = TruncatedNormal(1.0, 1.0, 0.0, Inf)
+  delta_prior[0] = delta0_prior
+  delta_prior[1] = delta1_prior
 
   W_prior = Dirichlet(K, 1 / K)
   eta_prior = Dict(z => Dirichlet(L[z], 1 / L[z]) for z in 0:1)

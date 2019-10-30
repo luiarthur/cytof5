@@ -3,7 +3,8 @@ SHELL:=/bin/bash
 .PHONY: cleansim sim retrieveallsim retrievesim postprocsim metrics
 
 # Simulation data experiment name
-SIM_EXP_NAME = test-sims
+# SIM_EXP_NAME = test-sims
+SIM_EXP_NAME = test-sims-1
 
 # Simulation results dir
 SIM_RESULTS_DIR = results/$(SIM_EXP_NAME)/
@@ -27,7 +28,7 @@ retrieveallsim:
 	aws s3 sync $(SIM_AWS_BUCKET) $(SIM_RESULTS_DIR)
 
 postprocsim:
-	julia post_process.jl $(SIM_RESULTS_DIR)
+	julia post_process.jl $(SIM_RESULTS_DIR) $(SIM_AWS_BUCKET)
 
 sendsim:
 	aws s3 sync $(SIM_RESULTS_DIR) $(SIM_AWS_BUCKET) --exclude '*.nfs'
