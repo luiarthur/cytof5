@@ -215,5 +215,7 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
     mega_out[:dden] = dden
   end
 
+  mega_out[:nburn] = nburn
+
   return mega_out
 end
