@@ -48,7 +48,9 @@ sim_z = sim_z_generator(REPFAMDISTSCALE)
 
 function init_state_const_data(simdat; K, L)
   # deltaz_prior=TruncatedNormal(1.0, 0.3, 0.5, Inf)
-  deltaz_prior=TruncatedNormal(0.0, 0.3, 0.5, Inf)
+  # deltaz_prior=TruncatedNormal(0.0, 0.3, 0.5, Inf)
+  deltaz_prior=TruncatedNormal(1.0, 0.0001, 0.0, Inf)
+  # deltaz_prior=TruncatedNormal(1.0, 0.0001, 0.5, Inf)
   d = Cytof5.Model.Data(simdat[:y])
   c = Cytof5.Model.defaultConstants(d, K, L,
                                     tau0=1.0, tau1=1.0,
