@@ -24,7 +24,8 @@ else
   Z_idx = parse(Int, ARGS[4])
 end
 mkpath(RESULTS_DIR)
-USE_REPULSIVE = REPFAMDISTSCALE > 0
+# USE_REPULSIVE = REPFAMDISTSCALE > 0
+USE_REPULSIVE = true  # use the repulsive joint updates even when scale=0
 Z = Z_idx == 1 ? Z1 : Z2
 
 println("CONFIG:")
