@@ -47,9 +47,9 @@ end
 sim_z = sim_z_generator(REPFAMDISTSCALE)
 
 function init_state_const_data(simdat; K, L)
-  # deltaz_prior=TruncatedNormal(1.0, 0.3, 0.5, Inf)
+  deltaz_prior=TruncatedNormal(1.0, 0.3, 0.5, Inf)
   # deltaz_prior=TruncatedNormal(0.0, 0.3, 0.5, Inf)
-  deltaz_prior=TruncatedNormal(1.0, 0.0001, 0.0, Inf)
+  # deltaz_prior=TruncatedNormal(1.0, 0.0001, 0.0, Inf)
   # deltaz_prior=TruncatedNormal(1.0, 0.0001, 0.5, Inf)
   d = Cytof5.Model.Data(simdat[:y])
   c = Cytof5.Model.defaultConstants(d, K, L,
@@ -97,7 +97,7 @@ monitor2 = [:theta__y_imputed, :theta__gam]
 # MCMC Specs
 nsamps_to_thin(nsamps::Int, nmcmc::Int) = max(1, div(nmcmc, nsamps))
 MCMC_ITER = 1000  # Number of MCMC iterations
-NBURN = 4000  # burn-in time
+NBURN = 10000  # burn-in time
 
 # Configurations: priors, initial state, data, etc.
 config = init_state_const_data(simdat, K=KMCMC, L=Dict(0 => 2, 1 => 2))
