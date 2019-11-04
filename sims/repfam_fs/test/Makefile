@@ -2,10 +2,16 @@ SHELL:=/bin/bash
 
 .PHONY: cleansim sim retrieveallsim retrievesim postprocsim metrics
 
-# Simulation data experiment name
+### Simulation data experiment name ###
+# Initial test
 # SIM_EXP_NAME = test-sims
-# SIM_EXP_NAME = test-sims-1  # all experiments take two components
+
+# all experiments took two components
+# SIM_EXP_NAME = test-sims-1
+
+# Current experiment
 SIM_EXP_NAME = test-sims-2
+### End of Simulation data experiment name ###
 
 # Simulation results dir
 SIM_RESULTS_DIR = results/$(SIM_EXP_NAME)
