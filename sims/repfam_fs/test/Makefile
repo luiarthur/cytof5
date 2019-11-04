@@ -4,7 +4,8 @@ SHELL:=/bin/bash
 
 # Simulation data experiment name
 # SIM_EXP_NAME = test-sims
-SIM_EXP_NAME = test-sims-1
+# SIM_EXP_NAME = test-sims-1  # all experiments take two components
+SIM_EXP_NAME = test-sims-2
 
 # Simulation results dir
 SIM_RESULTS_DIR = results/$(SIM_EXP_NAME)
