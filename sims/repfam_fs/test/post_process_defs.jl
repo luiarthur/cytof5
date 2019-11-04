@@ -142,7 +142,7 @@ end
 getpath(x) = join(split(x, "/")[1:end-1], "/")
 
 function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
-                      w_thresh=.01)
+                      w_thresh=.01, dden_xlim=[-6, 6])
   results_path = getpath(path_to_output)
 
   # Define path to put images
@@ -165,20 +165,27 @@ function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
   extract(chain, sym) = [samp[sym] for samp in chain]
   extract(sym) = extract(out[:samples][1], sym)
 
+  # Get number of samples: I
+  I = length(out[:lastState].theta.y_imputed)
+  # Get number of markers: J
+  J = size(out[:lastState].theta.y_imputed[1], 2)
+
   # Print number of samples
   println("Number of MCMC samples: $(length(extract(:theta__delta)))")
 
   # Plot log likelihood
   println("loglike ...")
   plt.plot(out[:loglike])
-  plt.xlabel("iter"); plt.ylabel("log-likelihood")
-  plt.savefig("$(img_path)/loglike.pdf")
+  plt.xlabel("iter")
+  plt.ylabel("log-likelihood")
+  plt.savefig("$(img_path)/loglike.pdf", bbox_inches="tight")
   plt.close()
 
   nburn = out[:nburn]
   plt.plot(out[:loglike][(nburn + 1):end])
-  plt.xlabel("iter (post-burn)"); plt.ylabel("log-likelihood")
-  plt.savefig("$(img_path)/loglike_postburn.pdf")
+  plt.xlabel("iter (post-burn)")
+  plt.ylabel("log-likelihood")
+  plt.savefig("$(img_path)/loglike_postburn.pdf", bbox_inches="tight")
   plt.close()
 
 
@@ -186,7 +193,6 @@ function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
   println("W ...")
   Ws_vec = extract(:theta__W)
   Ws = cat(Ws_vec..., dims=3)
-  I = length(out[:lastState].theta.y_imputed)
   plt.figure()
   for i in 1:I
     plt.subplot(I, 1, i)
@@ -198,7 +204,7 @@ function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
     end
   end
   plt.tight_layout()
-  plt.savefig("$(img_path)/W.pdf")
+  plt.savefig("$(img_path)/W.pdf", bbox_inches="tight")
   plt.close()
 
   open("$(img_path)/txt/W_mean.txt", "w") do io
@@ -213,7 +219,7 @@ function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
   mus = [mus0 mus1]
   boxplot(mus)
   plt.axhline(0)
-  plt.savefig("$(img_path)/mus.pdf")
+  plt.savefig("$(img_path)/mus.pdf", bbox_inches="tight")
   plt.close()
 
   # Plot sig2
@@ -223,7 +229,7 @@ function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
   if simdat != nothing
     axhlines(simdat[:sig2])
   end
-  plt.savefig("$(img_path)/sig2.pdf")
+  plt.savefig("$(img_path)/sig2.pdf", bbox_inches="tight")
   plt.close()
 
   # Plot Z
@@ -231,7 +237,7 @@ function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
   Zs_vec = extract(:theta__Z)
   Zs = cat(Zs_vec..., dims=3)
   plot_Z(mean(Zs_vec))
-  plt.savefig("$(img_path)/Zmean.pdf")
+  plt.savefig("$(img_path)/Zmean.pdf", bbox_inches="tight")
   plt.close()
 
   open("$(img_path)/txt/Z_mean.txt", "w") do io
@@ -257,5 +263,51 @@ function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
     println("Not implemented! No y/z plots ...")
   end
 
+  # dden
+  if :dden in keys(out)
+    println("Making dden ...")
+    # Create directory for the data densities
+    mkpath("$(img_path)/dden")
+
+    # Get dden
+    dden_vec = out[:dden]
+
+    # Ygrid
+    if :c in keys(out)
+      ygrid = out[:c].y_grid
+    else
+      ygrid = collect(range(-10, stop=4, length=100))
+    end
+
+    for i in 1:I
+      for j in 1:J
+        dden_ij = [ddij[i, j] for ddij in dden_vec]
+        dden_ij_mean = mean(dden_ij)
+        dden_ij_lower = [quantile([ddij[g] for ddij in dden_ij], .025)
+                         for g in 1:length(ygrid)]
+        dden_ij_upper = [quantile([ddij[g] for ddij in dden_ij], .975)
+                         for g in 1:length(ygrid)]
+        plt.plot(ygrid, dden_ij_mean, color="blue")
+        plt.fill_between(ygrid, dden_ij_lower, dden_ij_upper, alpha=.5,
+                         color="blue")
+        plt.xlabel("expression level")
+        plt.ylabel("density")
+        if dden_xlim != nothing
+          plt.xlim(dden_xlim)
+        end
+        plt.savefig("$(img_path)/dden/dden_i$(i)_j$(j).pdf",
+                    bbox_inches="tight")
+        plt.close()
+      end
+    end
+  end
+
   println("Done!")
 end
+
+#= Quick test
+path_to_results = "results/test-sims-2/KMCMC5/z2/scale10"
+path_to_output = "$(path_to_results)/output.bson"
+path_to_simdat = "$(path_to_results)/simdat.bson"
+post_process(path_to_output, path_to_simdat=path_to_simdat)
+=#
