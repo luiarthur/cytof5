@@ -176,7 +176,7 @@ function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
   plt.close()
 
   nburn = out[:nburn]
-  plt.plot(out[:loglike][(end-nburn):end])
+  plt.plot(out[:loglike][(nburn + 1):end])
   plt.xlabel("iter (post-burn)"); plt.ylabel("log-likelihood")
   plt.savefig("$(img_path)/loglike_postburn.pdf")
   plt.close()
