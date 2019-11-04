@@ -191,7 +191,9 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
 
   mega_out = Dict{Symbol, Any}(:samples => out,
                                :lastState => lastState,
-                               :loglike => loglike)
+                               :loglike => loglike,
+                               :c => c,
+                               :init => init)
 
   if computeDIC || computeLPML
     LPML = computeLPML ? MCMC.computeLPML(cpoStream) : NaN
