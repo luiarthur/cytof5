@@ -37,11 +37,11 @@ println("    - USE_REPULSIVE: $(USE_REPULSIVE)")
 flush(stdout)
 
 function sim_z_generator(phi)::Function
-  return function sim_z(z1::Vector{Bool}, z2::Vector{Bool})
-    # larger phi -> higher similarity -> higher penalty
-    # smaller phi -> lower similarity -> lower penalty
-    # phi = 0 -> regular IBP
-    return exp(-sum(abs.(z1 - z2)) / phi)
+  # larger phi -> higher similarity -> higher penalty
+  # smaller phi -> lower similarity -> lower penalty
+  # phi = 0 -> regular IBP
+  return (z1::Vector{Bool}, z2::Vector{Bool}) -> begin
+    exp(-sum(abs.(z1 - z2)) / phi)
   end
 end
 
