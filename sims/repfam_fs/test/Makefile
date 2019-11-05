@@ -9,8 +9,11 @@ SHELL:=/bin/bash
 # all experiments took two components
 # SIM_EXP_NAME = test-sims-1
 
-# Current experiment
-SIM_EXP_NAME = test-sims-2
+# Basically point mass prior mean on at 1 for deltaz
+# SIM_EXP_NAME = test-sims-2
+
+# Current experiment deltaz ~ TN(0, 1, .75, Inf)
+SIM_EXP_NAME = test-sims-3
 ### End of Simulation data experiment name ###
 
 # Simulation results dir
