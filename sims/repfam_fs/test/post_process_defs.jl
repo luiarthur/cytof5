@@ -274,7 +274,7 @@ function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
 
     # Ygrid
     if :c in keys(out)
-      ygrid = out[:c].y_grid
+      ygrid = out[:c].constants.y_grid
     else
       ygrid = collect(range(-10, stop=4, length=100))
     end
