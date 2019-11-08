@@ -17,7 +17,7 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
                  sb_ibp::Bool=false,
                  use_repulsive::Bool=true, joint_update_Z::Bool=false,
                  _r_marg_lam_freq::Float64=1.0,
-                 verbose::Int=1, time_updates::Bool=false)
+                 verbose::Int=1, time_updates::Bool=false, Z_thin::Int=1)
 
   # We don't want to use noisy distribution.
   # Assert that all eps == 0
@@ -134,7 +134,8 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
                                  use_repulsive=use_repulsive,
                                  joint_update_Z=joint_update_Z,
                                  sb_ibp=sb_ibp, time_updates=time_updates,
-                                 r_marg_lam_freq=_r_marg_lam_freq)
+                                 r_marg_lam_freq=_r_marg_lam_freq,
+                                 Z_thin=Z_thin)
 
     if computedden && iter > nburn && (iter - nburn) % thin_dden == 0
       append!(dden,
@@ -218,6 +219,7 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
   end
 
   mega_out[:nburn] = nburn
+  mega_out[:Z_thin] = Z_thin
 
   return mega_out
 end

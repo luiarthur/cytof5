@@ -63,7 +63,7 @@ end
   out = Cytof5.Model.fit_fs!(sfs, cfs, dfs, tuners=tfs,
                              nmcmc=nmcmc, nburn=nburn,
                              printFreq=1, time_updates=true,
-                             computeDIC=true, computeLPML=true)
+                             computeDIC=true, computeLPML=true, Z_thin=5)
   BSON.bson("result/out_fs.bson", out)
   BSON.bson("result/data_fs.bson", Dict(:simdat => config[:simdat]))
 end

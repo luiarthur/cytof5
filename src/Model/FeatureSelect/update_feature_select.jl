@@ -5,7 +5,8 @@ function update_state_feature_select!(s::StateFS, c::ConstantsFS, d::DataFS,
                                       use_repulsive::Bool,
                                       joint_update_Z::Bool, sb_ibp::Bool, 
                                       time_updates::Bool=false,
-                                      r_marg_lam_freq::Float64=1.0)
+                                      r_marg_lam_freq::Float64=1.0,
+                                      Z_thin::Int=1)
 
   # NOTE: `@doIf` is defined in "../util.jl"
 
@@ -13,12 +14,14 @@ function update_state_feature_select!(s::StateFS, c::ConstantsFS, d::DataFS,
   isRandom(sym::Symbol)::Bool = !(sym in fix)
 
   function update_Z_!()
-    if use_repulsive
-      update_Z_repFAM!(s.theta, c.constants, d.data, t.tuners, sb_ibp)
-    elseif joint_update_Z
-      update_Z_v2!(s.theta, c.constants, d.data, t.tuners, sb_ibp)
-    else  # Do regular updates
-      update_Z!(s.theta, c.constants, d.data, sb_ibp)
+    for i in 1:Z_thin
+      if use_repulsive
+        update_Z_repFAM!(s.theta, c.constants, d.data, t.tuners, sb_ibp)
+      elseif joint_update_Z
+        update_Z_v2!(s.theta, c.constants, d.data, t.tuners, sb_ibp)
+      else  # Do regular updates
+        update_Z!(s.theta, c.constants, d.data, sb_ibp)
+      end
     end
   end
 

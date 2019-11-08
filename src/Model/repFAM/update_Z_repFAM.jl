@@ -43,7 +43,7 @@ end
 
 function update_Z_repFAM!(s::State, c::Constants, d::Data, tuners::Tuners,
                           sb_ibp::Bool; debug::Bool=false)
-  #cand_Z = flip_bit.(s.Z, MCMC.logit(tuners.Z.value, a=0.0, b=1.0))
+  # cand_Z = flip_bit.(s.Z, MCMC.logit(tuners.Z.value, a=0.0, b=1.0))
   cand_Z = Matrix{Bool}(flip_bit.(s.Z, c.probFlip_Z))
 
   curr_Z = s.Z
@@ -77,5 +77,5 @@ function update_Z_repFAM!(s::State, c::Constants, d::Data, tuners::Tuners,
   end
 
   # Update tuning param
-  #MCMC.update_tuning_param_default(tuners.Z, accept)
+  # MCMC.update_tuning_param_default(tuners.Z, accept)
 end
