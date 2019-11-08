@@ -3,8 +3,9 @@ using Cytof5
 using Random
 using Distributions
 using DelimitedFiles
-import PyPlot, PyCall
+import PyPlot, PyCall, Seaborn
 const plt = PyPlot.plt
+const sns = Seaborn
 PyPlot.matplotlib.use("Agg")
 using BSON
 include("../../publish/salso.jl")
@@ -254,6 +255,12 @@ function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
   # lambda
   lams = extract(:theta__lam)
 
+  # eta
+  println("eta ...")
+  eta_vec = extract(:theta__eta)
+  mkpath("$(img_path)/txt/eta")
+
+
   # y/z plots
   if simdat != nothing
     println("Making y/z plots ...")
@@ -287,14 +294,69 @@ function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
                          for g in 1:length(ygrid)]
         dden_ij_upper = [quantile([ddij[g] for ddij in dden_ij], .975)
                          for g in 1:length(ygrid)]
-        plt.plot(ygrid, dden_ij_mean, color="blue")
+        # plt.plot(ygrid, dden_ij_mean, color="blue", label="post. mean")
         plt.fill_between(ygrid, dden_ij_lower, dden_ij_upper, alpha=.5,
-                         color="blue")
+                         color="blue", label="95% CI")
         plt.xlabel("expression level")
         plt.ylabel("density")
         if dden_xlim != nothing
           plt.xlim(dden_xlim)
         end
+
+        # Add eta to posterior dden plot
+        eta0_ij_mean = mean(eta[0][i, j, :] for eta in eta_vec)
+        L0 = length(eta0_ij_mean)
+        plt.scatter(mean(mus0, dims=1), zeros(L0), 
+                    s=eta0_ij_mean * 60 .+ 10, marker="X", color="green")
+
+        open("$(img_path)/txt/eta/eta0_i$(i)_j$(j)_mean.txt", "w") do io
+          writedlm(io, eta0_ij_mean)
+        end
+
+        eta1_ij_mean = mean(eta[1][i, j, :] for eta in eta_vec)
+        L1 = length(eta1_ij_mean)
+        plt.scatter(mean(mus1, dims=1), zeros(L1),
+                    s=eta1_ij_mean * 60 .+ 10, marker="X", color="green",
+                    label=PyPlot.L"$\mu^\star$")
+
+        open("$(img_path)/txt/eta/eta1_i$(i)_j$(j)_mean.txt", "w") do io
+          writedlm(io, eta1_ij_mean)
+        end
+ 
+        if simdat != nothing
+          # Plot simulated data truth
+          # sns.kdeplot(simdat[:y_complete][i][:, j], color="red",
+          #             bw=.1, label="truth")
+          if :eta in keys(simdat)
+            eta_true = simdat[:eta]
+          else
+            eta_true = Dict(0 => ones(I, J, simdat[:L][0]),
+                            1 => ones(I, J, simdat[:L][1]))
+          end
+          W_true = simdat[:W]
+          K_true = size(W_true, 2)
+          Z_true = simdat[:Z]
+          dgrid = [begin
+                     si = sqrt(simdat[:sig2][i])
+                     dd = 0.0
+                     for k in 1:K_true
+                       ddk = 0.0
+                       z = Z_true[j, k]
+                       for ell in 1:simdat[:L][z]
+                         mu_zl = simdat[:mus][z][ell]
+                         eta_zijl = eta_true[z][i, j, ell]
+                         ddk += eta_zijl * pdf(Normal(mu_zl, si), yg)
+                       end
+                       dd += W_true[i, k] * ddk
+                     end
+                     dd
+                   end for yg in ygrid]
+          plt.plot(ygrid, dgrid, label="truth", color="black", ls="--")
+        else
+          # TODO: Plot histogram of data
+        end
+
+        plt.legend()
         plt.savefig("$(img_path)/dden/dden_i$(i)_j$(j).pdf",
                     bbox_inches="tight")
         plt.close()
@@ -306,7 +368,7 @@ function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
 end
 
 #= Quick test
-path_to_results = "results/test-sims-2/KMCMC5/z2/scale10"
+path_to_results = "results/test-sims-3/KMCMC5/z2/scale10"
 path_to_output = "$(path_to_results)/output.bson"
 path_to_simdat = "$(path_to_results)/simdat.bson"
 post_process(path_to_output, path_to_simdat=path_to_simdat)
