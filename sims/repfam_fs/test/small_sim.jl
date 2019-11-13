@@ -14,9 +14,9 @@ include("simulatedata.jl")
 # Parse arguments
 if length(ARGS) == 0
   RESULTS_DIR = "results/test-test/"
-  REPFAMDISTSCALE = 0
+  REPFAMDISTSCALE = 10
   KMCMC = 5
-  Z_idx = 1
+  Z_idx = 2
 else
   RESULTS_DIR = ARGS[1]
   REPFAMDISTSCALE = parse(Float64, ARGS[2])
