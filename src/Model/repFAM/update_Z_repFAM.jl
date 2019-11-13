@@ -59,7 +59,8 @@ function update_Z_repFAM!(s::State, c::Constants, d::Data, tuners::Tuners,
                           sb_ibp::Bool; debug::Bool=false)
   # cand_Z = flip_bit.(s.Z, MCMC.logit(tuners.Z.value, a=0.0, b=1.0))
   # cand_Z = Matrix{Bool}(flip_bit.(s.Z, c.probFlip_Z))
-  num_bits_to_flip = max(1, Int(c.probFlip_Z * d.J * c.K))
+  num_bits_to_flip = round(Int, c.probFlip_Z * d.J * c.K)
+  num_bits_to_flip = clamp(num_bits_to_flip, 1, d.J * c.K)
   cand_Z = flip_bits(s.Z, num_bits_to_flip)
 
   curr_Z = s.Z
