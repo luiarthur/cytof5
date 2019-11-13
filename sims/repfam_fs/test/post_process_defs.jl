@@ -217,6 +217,15 @@ function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
   deltas = extract(:theta__delta)
   mus0 = Matrix(hcat([-cumsum(d[0]) for d in deltas]...)')
   mus1 = Matrix(hcat([cumsum(d[1]) for d in deltas]...)')
+
+  open("$(img_path)/txt/mus0_mean.txt", "w") do io
+    writedlm(io, mean(mus0, dims=1))
+  end
+
+  open("$(img_path)/txt/mus1_mean.txt", "w") do io
+    writedlm(io, mean(mus1, dims=1))
+  end
+
   mus = [mus0 mus1]
   boxplot(mus)
   plt.axhline(0)
@@ -226,6 +235,11 @@ function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
   # Plot sig2
   println("sig2 ...")
   sig2s = Matrix(hcat(extract(:theta__sig2)...)')
+
+  open("$(img_path)/txt/sig2_mean.txt", "w") do io
+    writedlm(io, mean(sig2s, dims=1))
+  end
+
   boxplot(sig2s)
   if simdat != nothing
     axhlines(simdat[:sig2])
