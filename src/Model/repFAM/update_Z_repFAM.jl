@@ -7,6 +7,20 @@ function flip_bit(z::Bool, probFlip::Float64)::Bool
 end
 
 """
+`Z` is required to be AbstractArray{Bool}.
+Flip a random selection of `num_bits` bits.
+The resulting `Z` should be different from the original `Z` by 
+`num_bits` bits.
+"""
+function flip_bits(Z::AbstractArray{Bool}, num_bits::Integer)
+  idx = CartesianIndices(Z)
+  idx_to_flip = Distributions.sample(idx, num_bits, replace=false)
+  Z_new = deepcopy(Z)
+  Z_new[idx_to_flip] .= .!Z_new[idx_to_flip]
+  return Z_new
+end
+
+"""
 default similarity function used in computing log probability of Z_repFAM.
 = sum(abs.(z1 .- z2))
 """
@@ -44,7 +58,9 @@ end
 function update_Z_repFAM!(s::State, c::Constants, d::Data, tuners::Tuners,
                           sb_ibp::Bool; debug::Bool=false)
   # cand_Z = flip_bit.(s.Z, MCMC.logit(tuners.Z.value, a=0.0, b=1.0))
-  cand_Z = Matrix{Bool}(flip_bit.(s.Z, c.probFlip_Z))
+  # cand_Z = Matrix{Bool}(flip_bit.(s.Z, c.probFlip_Z))
+  num_bits_to_flip = max(1, Int(c.probFlip_Z * d.J * c.K))
+  cand_Z = flip_bits(s.Z, num_bits_to_flip)
 
   curr_Z = s.Z
 
