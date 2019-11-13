@@ -28,7 +28,9 @@ function update_v_sb!(k::Int, s::State, c::Constants, d::Data, tuners::Tuners)
     return out
   end
 
-  s.v[k] = MCMC.metLogitAdaptive(s.v[k], ll, lp, tuners.v[k])
+  log_prob(vk::Float64) = ll(vk) + lp(vk)
+
+  s.v[k] = MCMC.metLogitAdaptive(s.v[k], log_prob, tuners.v[k])
 end
 
 function update_v!(s::State, c::Constants, d::Data,
