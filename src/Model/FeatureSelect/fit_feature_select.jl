@@ -16,6 +16,7 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
                  computedden::Bool=false,
                  sb_ibp::Bool=false,
                  use_repulsive::Bool=true, joint_update_Z::Bool=false,
+                 joint_update_r::Bool=true,
                  _r_marg_lam_freq::Float64=1.0,
                  verbose::Int=1, time_updates::Bool=false, Z_thin::Int=1)
 
@@ -133,6 +134,7 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
                                  ll=loglike, fix=fix,
                                  use_repulsive=use_repulsive,
                                  joint_update_Z=joint_update_Z,
+                                 joint_update_r=joint_update_r,
                                  sb_ibp=sb_ibp, time_updates=time_updates,
                                  r_marg_lam_freq=_r_marg_lam_freq,
                                  Z_thin=Z_thin)

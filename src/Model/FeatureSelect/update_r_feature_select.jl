@@ -1,19 +1,30 @@
 function update_r!(s::StateFS, c::ConstantsFS, d::DataFS;
-                   marg_lam::Bool=true)
-  # update each r_{i, k}
-  for i in 1:d.data.I
-    for k in 1:c.constants.K
-      if marg_lam
-        update_r_marg_lam!(i, k, s, c, d)
-      else
-        update_r!(i, k, s, c, d)
+                   marg_lam::Bool=true, joint_update::Bool=true)
+  if joint_update  # update r jointly. Proposed r flipped by one bit.
+    idx = CartesianIndices(s.r)
+    idx_to_flip = Distributions.sample(idx)
+    i, k = Tuple(idx_to_flip)
+    if marg_lam
+      update_r_marg_lam!(i, k, s, c, d)
+    else
+      update_r!(i, k, s, c, d)
+    end
+    update_W!(s, c, d)
+  else
+    # update each r_{i, k}
+    for i in 1:d.data.I
+      for k in 1:c.constants.K
+        if marg_lam
+          update_r_marg_lam!(i, k, s, c, d)
+        else
+          update_r!(i, k, s, c, d)
+        end
+        # NOTE: Make sure to always update W immediately after updating r or
+        #       W_star!
+        update_W!(s, c, d)
       end
-      # NOTE: Make sure to always update W immediately after updating r or
-      #       W_star!
-      update_W!(s, c, d)
     end
   end
-
 end
 
 
