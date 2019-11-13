@@ -212,6 +212,32 @@ function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
     writedlm(io, mean(Ws_vec))
   end
 
+  # Plot alpha
+  alphas = extract(:theta__alpha)
+  plt.hist(alphas, density=true)
+  plt.xlabel("alpha")
+  plt.ylabel("density")
+  plt.savefig("$(img_path)/alpha.pdf", bbox_inches="tight")
+  plt.close()
+
+  open("$(img_path)/txt/alpha_mean.txt", "w") do io
+    writedlm(io, mean(alphas))
+  end
+
+  # Plot v
+  v_vec = extract(:theta__v)
+  v = hcat(v_vec...)
+
+  open("$(img_path)/txt/v_mean.txt", "w") do io
+    writedlm(io, mean(v_vec))
+  end
+
+  boxplot(v')
+  plt.xlabel("cell phenotypes")
+  plt.ylabel("v")
+  plt.savefig("$(img_path)/v.pdf", bbox_inches="tight")
+  plt.close()
+
   # Plot mus
   println("mus ...")
   deltas = extract(:theta__delta)
