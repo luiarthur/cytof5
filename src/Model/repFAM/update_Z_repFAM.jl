@@ -6,6 +6,7 @@ function flip_bit(z::Bool, probFlip::Float64)::Bool
   return probFlip > rand() ? !z : z
 end
 
+
 """
 `Z` is required to be AbstractArray{Bool}.
 Flip a random selection of `num_bits` bits.
@@ -20,6 +21,7 @@ function flip_bits(Z::AbstractArray{Bool}, num_bits::Integer)
   return Z_new
 end
 
+
 """
 default similarity function used in computing log probability of Z_repFAM.
 = sum(abs.(z1 .- z2))
@@ -27,6 +29,7 @@ default similarity function used in computing log probability of Z_repFAM.
 function similarity_default(z1::Vector{Bool}, z2::Vector{Bool})::Float64
   exp(-sum(abs.(z1 .- z2)))
 end
+
 
 """
 log probability of Z ~ repFam_K(v, C), WITHOUT NORMALIZING CONSTANT
@@ -54,6 +57,7 @@ function logprob_Z_repFAM(Z::Matrix{Bool}, v::Vector{Float64},
 
   return lp
 end
+
 
 function update_Z_repFAM!(s::State, c::Constants, d::Data, tuners::Tuners,
                           sb_ibp::Bool; debug::Bool=false)
