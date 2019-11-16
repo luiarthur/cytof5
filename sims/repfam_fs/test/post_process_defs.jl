@@ -366,7 +366,11 @@ function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
         if simdat != nothing
           # Plot simulated data truth
           # sns.kdeplot(simdat[:y_complete][i][:, j], color="red",
-          #             bw=.1, label="truth")
+          #             bw=.1, label="y complete (observed)")
+          plt.hist(simdat[:y_complete][i][:, j], color="red",
+                   alpha=.3, label="y complete (observed)",
+                   density=true, bins=30)
+
           if :eta in keys(simdat)
             eta_true = simdat[:eta]
           else
@@ -412,4 +416,13 @@ path_to_results = "results/test-sims-3/KMCMC5/z2/scale10"
 path_to_output = "$(path_to_results)/output.bson"
 path_to_simdat = "$(path_to_results)/simdat.bson"
 post_process(path_to_output, path_to_simdat=path_to_simdat)
+=#
+
+#= investigate
+i = 1
+out[:lastState].theta.gam[i] .== 1
+
+Z_ij = out[:lastState].theta.Z[:, out[:lastState].theta.lam[1]]'
+
+mean(out[:lastState].theta.gam[i] .== 1 .& .!Z_ij)
 =#
