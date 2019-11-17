@@ -60,6 +60,7 @@ function init_state_const_data(simdat; K, L)
   c = Cytof5.Model.defaultConstants(d, K, L,
                                     tau0=1.0, tau1=1.0,
                                     sig2_prior=InverseGamma(3, 2),
+                                    # sig2_prior=InverseGamma(11, 5),  # TODO
                                     delta0_prior=deltaz_prior,
                                     delta1_prior=deltaz_prior,
                                     alpha_prior=Gamma(0.1, 10.0),
