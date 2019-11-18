@@ -11,7 +11,7 @@ struct Data
   I::Int
   J::Int
   N::Vector{Int}
-  m::Vector{Matrix{Int8}}
+  m::Vector{Matrix{Int8}}  # TODO: make this Vector{Matrix{Bool}}
 
   function Data(y) 
     @assert all(ncol.(y) .== ncol(y[1]))

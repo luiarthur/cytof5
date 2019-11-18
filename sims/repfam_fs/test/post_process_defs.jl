@@ -425,12 +425,3 @@ path_to_output = "$(path_to_results)/output.bson"
 path_to_simdat = "$(path_to_results)/simdat.bson"
 post_process(path_to_output, path_to_simdat=path_to_simdat)
 =#
-
-#= investigate
-i = 1
-out[:lastState].theta.gam[i] .== 1
-
-Z_ij = out[:lastState].theta.Z[:, out[:lastState].theta.lam[1]]'
-
-mean(out[:lastState].theta.gam[i] .== 1 .& .!Z_ij)
-=#
