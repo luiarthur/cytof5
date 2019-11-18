@@ -18,7 +18,8 @@ STAGGER_TIME=0
 # SETTINGS
 KMCMC=`seq 2 5`
 Z_idx="1 2"
-repfamdistscale="0 0.01 0.1 1 10"
+# repfamdistscale="0 0.01 0.1 1 10"
+repfamdistscale="0 1 10"
 
 for kmcmc in $KMCMC; do
   for zidx in $Z_idx; do

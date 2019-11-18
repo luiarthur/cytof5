@@ -12,8 +12,20 @@ SHELL:=/bin/bash
 # Basically point mass prior mean on at 1 for deltaz
 # SIM_EXP_NAME = test-sims-2
 
-# Current experiment deltaz ~ TN(0, 1, .75, Inf)
-SIM_EXP_NAME = test-sims-3
+# deltaz ~ TN(0, 1, .75, Inf)
+# SIM_EXP_NAME = test-sims-3
+
+# Current experiment 
+# deltaz ~ TN(0, .1, 0, Inf)
+# sig2 ~ IG(11, 5)
+# Z_thin = J and flip one bit each time -> update one bit in each row, row by row.
+# update each r_ik 
+# plot dden correctly
+# scale = (0, 1, 10)
+# NMCMC = 1000
+# NBURN = 1000
+SIM_EXP_NAME = test-sims-4
+
 ### End of Simulation data experiment name ###
 
 # Simulation results dir
