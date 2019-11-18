@@ -1,6 +1,9 @@
 """
 printFreq: defaults to 0 => prints every 10%. turn off printing by 
            setting to -1.
+joint_update_r (Bool): If true, updates each `r_{ik}` sequentially. 
+                       If false, updates `r` via a metropolis step
+                       (as a matrix), by flipping one random bit in `r`.
 """
 function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
                  nmcmc::Int, nburn::Int, 
@@ -16,9 +19,9 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
                  computedden::Bool=false,
                  sb_ibp::Bool=false,
                  use_repulsive::Bool=true, joint_update_Z::Bool=false,
-                 joint_update_r::Bool=true,
+                 joint_update_r::Bool=false,
                  _r_marg_lam_freq::Float64=1.0,
-                 verbose::Int=1, time_updates::Bool=false, Z_thin::Int=1)
+                 verbose::Int=1, time_updates::Bool=false, Z_thin::Int=0)
 
   # We don't want to use noisy distribution.
   # Assert that all eps == 0
@@ -33,6 +36,11 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
 
   @assert 0 <= _r_marg_lam_freq <= 1
 
+  @assert 0 <= Z_thin
+  if Z_thin == 0
+    Z_thin = d.data.J
+  end
+
   if verbose >= 1
     fixed_vars_str = join(fix, ", ")
     if fixed_vars_str == ""
@@ -40,6 +48,10 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
     end
     println("fixing: $fixed_vars_str")
     println("Use stick-breaking IBP: $(sb_ibp)")
+    println("joint_update_Z: $(joint_update_Z)")
+    println("use_repulsive: $(use_repulsive)")
+    println("Z_thin: $(Z_thin)")
+    println("joint_update_r: $(joint_update_r)")
   end
 
   @assert printFreq >= -1

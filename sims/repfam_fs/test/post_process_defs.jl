@@ -32,6 +32,8 @@ rcParams["xtick.labelsize"] = 15
 rcParams["ytick.labelsize"] = 15
 rcParams["figure.figsize"] = (6, 6)
 
+skipnan(x) = x[.!isnan.(x)]
+
 function boxplot(x; showmeans=true, whis=[2.5, 97.5], showfliers=false, kw...)
   plt.boxplot(x, showmeans=showmeans, whis=whis, showfliers=showfliers; kw...)
 end
@@ -142,7 +144,10 @@ end
 
 getpath(x) = join(split(x, "/")[1:end-1], "/")
 
-function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
+function post_process(path_to_output;
+                      path_to_simdat=nothing,
+                      path_to_dat=nothing,
+                      vlim=(-4, 4),
                       w_thresh=.01, dden_xlim=[-6, 6])
   results_path = getpath(path_to_output)
 
@@ -367,8 +372,10 @@ function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
           # Plot simulated data truth
           # sns.kdeplot(simdat[:y_complete][i][:, j], color="red",
           #             bw=.1, label="y complete (observed)")
-          plt.hist(simdat[:y_complete][i][:, j], color="red",
-                   alpha=.3, label="y complete (observed)",
+
+          # Histogram of observed data only
+          plt.hist(skipnan(simdat[:y][i][:, j]), color="red",
+                   alpha=.3, label="y (observed only)",
                    density=true, bins=30)
 
           if :eta in keys(simdat)
@@ -395,7 +402,8 @@ function post_process(path_to_output; path_to_simdat=nothing, vlim=(-4, 4),
                      end
                      dd
                    end for yg in ygrid]
-          plt.plot(ygrid, dgrid, label="truth", color="black", ls="--")
+          plt.plot(ygrid, dgrid, label="truth (complete)",
+                   color="black", ls="--")
         else
           # TODO: Plot histogram of data
         end

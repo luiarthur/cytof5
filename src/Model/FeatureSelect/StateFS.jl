@@ -35,8 +35,10 @@ function StateFS{F}(theta::State{F}, dfs::DataFS) where {F <: AbstractFloat}
   I, K = size(theta.W)
 
   sfs.theta = theta
-  sfs.r = rand(Bool, I, K)
-  sfs.W_star = ones(I, K)
+  # sfs.r = rand(Bool, I, K)
+  sfs.r = ones(Bool, I, K)
+  # sfs.W_star = ones(I, K)
+  sfs.W_star = theta.W * 5
   sfs.omega = zeros(dfs.P)
 
   return sfs
