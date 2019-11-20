@@ -35,6 +35,12 @@ rcParams["figure.figsize"] = (6, 6)
 
 skipnan(x) = x[.!isnan.(x)]
 
+function quantiles(X, q; dims, drop=false)
+  Q = mapslices(x -> quantile(x, q), X, dims=dims)
+  out = drop ? dropdims(Q, dims=dims) : Q
+  return out
+end
+
 function boxplot(x; showmeans=true, whis=[2.5, 97.5], showfliers=false, kw...)
   plt.boxplot(x, showmeans=showmeans, whis=whis, showfliers=showfliers; kw...)
 end
@@ -178,7 +184,8 @@ function post_process(path_to_output;
   J = size(out[:lastState].theta.y_imputed[1], 2)
 
   # Print number of samples
-  println("Number of MCMC samples: $(length(extract(:theta__delta)))")
+  nsamps = length(extract(:theta__delta))
+  println("Number of MCMC samples: $(nsamps)")
 
   # Plot log likelihood
   println("loglike ...")
@@ -247,6 +254,9 @@ function post_process(path_to_output;
   # Plot mus
   println("mus ...")
   deltas = extract(:theta__delta)
+  mus_vec = [Dict(0 => -cumsum(delta[0]),
+                  1 => cumsum(delta[1]))
+             for delta in deltas]
   mus0 = Matrix(hcat([-cumsum(d[0]) for d in deltas]...)')
   mus1 = Matrix(hcat([cumsum(d[1]) for d in deltas]...)')
 
@@ -334,6 +344,7 @@ function post_process(path_to_output;
 
     for i in 1:I
       for j in 1:J
+        print("\r i: $i j: $j  ")
         dden_ij = [ddij[i, j] for ddij in dden_vec]
         dden_ij_mean = mean(dden_ij)
         dden_ij_lower = [quantile([ddij[g] for ddij in dden_ij], .025)
@@ -342,7 +353,7 @@ function post_process(path_to_output;
                          for g in 1:length(ygrid)]
         # plt.plot(ygrid, dden_ij_mean, color="blue", label="post. mean")
         plt.fill_between(ygrid, dden_ij_lower, dden_ij_upper, alpha=.5,
-                         color="blue", label="95% CI")
+                         color="blue", label="95% CI (observed)")
         plt.xlabel("expression level")
         plt.ylabel("density")
         if dden_xlim != nothing
@@ -376,7 +387,7 @@ function post_process(path_to_output;
 
           # Histogram of observed data only
           plt.hist(skipnan(simdat[:y][i][:, j]), color="red",
-                   alpha=.3, label="y (observed only)",
+                   alpha=.3, label="y (observed)",
                    density=true, bins=30)
 
           if :eta in keys(simdat)
@@ -394,13 +405,29 @@ function post_process(path_to_output;
           # TODO: Plot histogram of data
         end
 
-
+        # Plot complete posterior density (obs and imputed)
+        dd_complete_post = [dden_complete(ygrid, Ws_vec[b],
+                                          eta_vec[b],
+                                          Zs_vec[b],
+                                          mus_vec[b],
+                                          sig2s[b, :], i=i, j=j)
+                            for b in 1:nsamps]
+        dd_complete_post = hcat(dd_complete_post...)  # legnth(ygird) x nsamps
+        dcp_lower = quantiles(dd_complete_post, .025, dims=2, drop=true)
+        dcp_upper = quantiles(dd_complete_post, .975, dims=2, drop=true)
+        plt.fill_between(ygrid, dcp_lower, dcp_upper, alpha=.5,
+                         color="orange", label="95% CI (complete)")
+        # TODO: PICK UP HERE
+ 
+        
         plt.legend()
         plt.savefig("$(img_path)/dden/dden_i$(i)_j$(j).pdf",
                     bbox_inches="tight")
         plt.close()
       end
     end
+    println()
+
   end
 
   println("Done!")
