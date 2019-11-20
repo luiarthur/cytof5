@@ -234,6 +234,7 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
 
   mega_out[:nburn] = nburn
   mega_out[:Z_thin] = Z_thin
+  mega_out[:m] = Matrix{Bool}.(d.data.m)
 
   return mega_out
 end
