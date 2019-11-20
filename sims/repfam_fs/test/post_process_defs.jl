@@ -346,14 +346,15 @@ function post_process(path_to_output;
       for j in 1:J
         print("\r i: $i j: $j  ")
         dden_ij = [ddij[i, j] for ddij in dden_vec]
-        dden_ij_mean = mean(dden_ij)
         dden_ij_lower = [quantile([ddij[g] for ddij in dden_ij], .025)
                          for g in 1:length(ygrid)]
         dden_ij_upper = [quantile([ddij[g] for ddij in dden_ij], .975)
                          for g in 1:length(ygrid)]
-        # plt.plot(ygrid, dden_ij_mean, color="blue", label="post. mean")
-        plt.fill_between(ygrid, dden_ij_lower, dden_ij_upper, alpha=.5,
-                         color="blue", label="95% CI (observed)")
+
+        p_ci_obs = plt.fill_between(ygrid, dden_ij_lower, dden_ij_upper,
+                                     alpha=.5, color="blue")
+
+
         plt.xlabel("expression level")
         plt.ylabel("density")
         if dden_xlim != nothing
@@ -372,9 +373,9 @@ function post_process(path_to_output;
 
         eta1_ij_mean = mean(eta[1][i, j, :] for eta in eta_vec)
         L1 = length(eta1_ij_mean)
-        plt.scatter(mean(mus1, dims=1), zeros(L1),
-                    s=eta1_ij_mean * 60 .+ 10, marker="X", color="green",
-                    label=PyPlot.L"$\mu^\star$")
+        p_mu = plt.scatter(mean(mus1, dims=1), zeros(L1),
+                           s=eta1_ij_mean * 60 .+ 10, marker="X",
+                           color="green")
 
         open("$(img_path)/txt/eta/eta1_i$(i)_j$(j)_mean.txt", "w") do io
           writedlm(io, eta1_ij_mean)
@@ -382,13 +383,14 @@ function post_process(path_to_output;
  
         if simdat != nothing
           # Plot simulated data truth
-          # sns.kdeplot(simdat[:y_complete][i][:, j], color="red",
-          #             bw=.1, label="y complete (observed)")
+          p_yobs = sns.kdeplot(skipnan(simdat[:y][i][:, j]),
+                               color="red", bw=.1, label="tmp")
+          p_yobs = p_yobs.get_legend_handles_labels()[1][1]
 
           # Histogram of observed data only
-          plt.hist(skipnan(simdat[:y][i][:, j]), color="red",
-                   alpha=.3, label="y (observed)",
-                   density=true, bins=30)
+          # plt.hist(skipnan(simdat[:y][i][:, j]), color="red",
+          #          alpha=.3, label="y (observed)",
+          #          density=true, bins=30)
 
           if :eta in keys(simdat)
             eta_true = simdat[:eta]
@@ -396,11 +398,12 @@ function post_process(path_to_output;
             eta_true = Dict(0 => ones(I, J, simdat[:L][0]),
                             1 => ones(I, J, simdat[:L][1]))
           end
+
           dgrid = dden_complete(ygrid, simdat[:W], eta_true,
                                 simdat[:Z], simdat[:mus],
                                 simdat[:sig2], i=i, j=j)
-          plt.plot(ygrid, dgrid, label="truth (complete)",
-                   color="grey", ls="--")
+
+          p_truth_complete, = plt.plot(ygrid, dgrid, color="grey", ls="--")
         else
           # TODO: Plot histogram of data
         end
@@ -412,15 +415,18 @@ function post_process(path_to_output;
                                           mus_vec[b],
                                           sig2s[b, :], i=i, j=j)
                             for b in 1:nsamps]
+
         dd_complete_post = hcat(dd_complete_post...)  # legnth(ygird) x nsamps
         dcp_lower = quantiles(dd_complete_post, .025, dims=2, drop=true)
         dcp_upper = quantiles(dd_complete_post, .975, dims=2, drop=true)
-        plt.fill_between(ygrid, dcp_lower, dcp_upper, alpha=.5,
-                         color="orange", label="95% CI (complete)")
+        p_ci_complete = plt.fill_between(ygrid, dcp_lower, dcp_upper, alpha=.5,
+                                         color="orange")
+
         # TODO: PICK UP HERE
- 
-        
-        plt.legend()
+        plt.legend([p_truth_complete, p_ci_complete,
+                    p_yobs, p_ci_obs, p_mu],
+                   ["truth (complete)", "95% CI (complete)",
+                    "y (obs)", "95% CI (obs)", PyPlot.L"$\mu^\star$"])
         plt.savefig("$(img_path)/dden/dden_i$(i)_j$(j).pdf",
                     bbox_inches="tight")
         plt.close()
