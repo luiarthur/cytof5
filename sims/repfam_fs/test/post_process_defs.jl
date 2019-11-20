@@ -9,6 +9,7 @@ const sns = Seaborn
 PyPlot.matplotlib.use("Agg")
 using BSON
 include("../../publish/salso.jl")
+include("dden_complete.jl")
 
 #= Interactive plot
 PyPlot.matplotlib.use("TkAgg")
@@ -384,29 +385,15 @@ function post_process(path_to_output;
             eta_true = Dict(0 => ones(I, J, simdat[:L][0]),
                             1 => ones(I, J, simdat[:L][1]))
           end
-          W_true = simdat[:W]
-          K_true = size(W_true, 2)
-          Z_true = simdat[:Z]
-          dgrid = [begin
-                     si = sqrt(simdat[:sig2][i])
-                     dd = 0.0
-                     for k in 1:K_true
-                       ddk = 0.0
-                       z = Z_true[j, k]
-                       for ell in 1:simdat[:L][z]
-                         mu_zl = simdat[:mus][z][ell]
-                         eta_zijl = eta_true[z][i, j, ell]
-                         ddk += eta_zijl * pdf(Normal(mu_zl, si), yg)
-                       end
-                       dd += W_true[i, k] * ddk
-                     end
-                     dd
-                   end for yg in ygrid]
+          dgrid = dden_complete(ygrid, simdat[:W], eta_true,
+                                simdat[:Z], simdat[:mus],
+                                simdat[:sig2], i=i, j=j)
           plt.plot(ygrid, dgrid, label="truth (complete)",
-                   color="black", ls="--")
+                   color="grey", ls="--")
         else
           # TODO: Plot histogram of data
         end
+
 
         plt.legend()
         plt.savefig("$(img_path)/dden/dden_i$(i)_j$(j).pdf",
