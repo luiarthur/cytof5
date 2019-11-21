@@ -127,3 +127,14 @@ end
 #                           sb_ibp::Bool; config::Any=nothing)
 #   
 # end
+
+#= TODO:
+Let R_t = number of rows to update at MCMC iteration t. 
+Require that
+- P(R_1 = J) = 0.95
+- P(R_∞ = j) = .05
+- R_t ~ Bin(J - 1; exp(-(t - 1) / 1000)) + 1
+
+1. Row-by-row updates for R_t rows, updating multiple elements at a time.
+2. Row-by-row updates, updating one element at at a time.
+=#
