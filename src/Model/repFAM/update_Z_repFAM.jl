@@ -42,7 +42,7 @@ similarity = 1. Similarly, when distance between z_{k1} and z_{k2} approaches
 ∞, similarity = 0.
 """
 function logprob_Z_repFAM(Z::Matrix{Bool}, v::Vector{Float64},
-                             similarity::Function)::Float64
+                          similarity::Function)::Float64
   J, K = size(Z)
 
   # IBP component
@@ -59,37 +59,45 @@ function logprob_Z_repFAM(Z::Matrix{Bool}, v::Vector{Float64},
 end
 
 
-function update_Z_repFAM!(s::State, c::Constants, d::Data, tuners::Tuners,
-                          sb_ibp::Bool; debug::Bool=false)
-  # cand_Z = flip_bit.(s.Z, MCMC.logit(tuners.Z.value, a=0.0, b=1.0))
-  # cand_Z = Matrix{Bool}(flip_bit.(s.Z, c.probFlip_Z))
-  num_bits_to_flip = round(Int, c.probFlip_Z * d.J * c.K)
-  num_bits_to_flip = clamp(num_bits_to_flip, 1, d.J * c.K)
-  cand_Z = flip_bits(s.Z, num_bits_to_flip)
+function logfullcond_Z_repfam(Z::Matrix{Bool}, s::State, c::Constants,
+                                d::Data, t::Tuners, sb_ibp::Bool)
+  v = sb_ibp ? cumprod(s.v) : s.v
 
-  curr_Z = s.Z
+  # Log prior
+  lp = logprob_Z_repFAM(Z, v, c.similarity_Z)
 
-  function log_fc(Z)
-    v = sb_ibp ? cumprod(s.v) : s.v
-    lp = logprob_Z_repFAM(Z, v, c.similarity_Z)
-    ll = 0.0
+  # log likelihood
+  ll = 0.0
 
-    for i in 1:d.I
-      for j in 1:d.J
-        for n in 1:d.N[i]
-          k = s.lam[i][n]
-          if k > 0
-            z = Z[j, k]
-            ll += log(dmixture(z, i, n, j, s, c, d))
-          end
+  for i in 1:d.I
+    for j in 1:d.J
+      for n in 1:d.N[i]
+        # Cell type
+        k = s.lam[i][n]
+        if k > 0  # if not noisy cell type
+          z = Z[j, k]
+          ll += log(dmixture(z, i, n, j, s, c, d))
         end
       end
     end
-
-    return lp + ll
   end
 
-  accept = log_fc(cand_Z) - log_fc(curr_Z) > log(rand())
+  return lp + ll
+end
+
+
+function update_Z_repFAM!(cand_Z::Matrix{Bool}, s::State, c::Constants,
+                          d::Data, t::Tuners, sb_ibp::Bool; debug::Bool=false)
+  # Current Z
+  curr_Z = s.Z
+
+  # Log full conditional for candidate Z and current Z
+  log_fc_cand = logfullcond_Z_repfam(cand_Z, s, c, d, t, sb_ibp)
+  log_fc_curr = logfullcond_Z_repfam(curr_Z, s, c, d, t, sb_ibp)
+
+  # Whether or not to accept proposed Z
+  accept = log_fc_cand - log_fc_curr > log(rand())
+
   if accept
     if debug
       println("Joint-update of Z resulted in a move.")
@@ -98,5 +106,24 @@ function update_Z_repFAM!(s::State, c::Constants, d::Data, tuners::Tuners,
   end
 
   # Update tuning param
-  # MCMC.update_tuning_param_default(tuners.Z, accept)
+  # MCMC.update_tuning_param_default(t.Z, accept)
 end
+
+
+function update_Z_repFAM!(s::State, c::Constants, d::Data, t::Tuners,
+                          sb_ibp::Bool; debug::Bool=false)
+  # cand_Z = flip_bit.(s.Z, MCMC.logit(t.Z.value, a=0.0, b=1.0))
+  # cand_Z = Matrix{Bool}(flip_bit.(s.Z, c.probFlip_Z))
+
+  num_bits_to_flip = round(Int, c.probFlip_Z * d.J * c.K)
+  num_bits_to_flip = clamp(num_bits_to_flip, 1, d.J * c.K)
+  cand_Z = flip_bits(s.Z, num_bits_to_flip)
+
+  update_Z_repFAM!(cand_Z, s, c, d, t, sb_ibp, debug=debug)
+end
+
+
+# function update_Z_repFAM!(s::State, c::Constants, d::Data, t::Tuners,
+#                           sb_ibp::Bool; config::Any=nothing)
+#   
+# end
