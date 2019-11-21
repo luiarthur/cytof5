@@ -9,6 +9,7 @@ Z1 = begin
   Z
 end
 
+
 """
 Z2 is a binary matrix with two similar phenotypes
 """
@@ -17,6 +18,17 @@ Z2 = begin
   Z[[4, 7], 1] .= 0
   Z[[1, 4, 7], 2] .= 0
   Z[2:6, 3] .= 0
+  Z
+end
+
+
+"""
+Z3 is a binary matrix with several similar phenotypes
+"""
+Z3 = begin
+  Z = [ones(Bool, 7, 2) Z2]
+  Z[end, 1] = false
+  Z[[2, 4, 7], 2] .= false
   Z
 end
 
