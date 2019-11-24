@@ -18,7 +18,7 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
                  computeDIC::Bool=false, computeLPML::Bool=false,
                  computedden::Bool=false,
                  sb_ibp::Bool=false,
-                 use_repulsive::Bool=true, joint_update_Z::Bool=false,
+                 use_repulsive::Bool=true, joint_update_Z::Bool=true,
                  joint_update_r::Bool=false,
                  _r_marg_lam_freq::Float64=1.0,
                  verbose::Int=1, time_updates::Bool=false, Z_thin::Int=0)
