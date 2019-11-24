@@ -42,4 +42,7 @@ function update_v!(s::State, c::Constants, d::Data,
       update_v!(k, s, c, d)
     end
   end
+
+  # Truncate v_k's for numerical stability in update_alpha
+  clamp!(s.v, 1e-6, 1 - 1e-6)
 end
