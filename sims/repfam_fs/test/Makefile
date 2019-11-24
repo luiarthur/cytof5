@@ -1,6 +1,6 @@
 SHELL:=/bin/bash
 
-.PHONY: cleansim sim retrieveallsim retrievesim postprocsim metrics
+.PHONY: cleansim sim retrieveallsim retrievesim postprocsim metrics killsim
 
 ### Simulation data experiment name ###
 # Initial test
@@ -63,3 +63,8 @@ metrics:
 
 notebook:
 	jupyter notebook
+
+killsim:
+	pids=`grep -r pid $(SIM_RESULTS_DIR) | grep -oP '(?<=pid).*' | grep -oP '\d+'`; \
+			 for p in $$pids; do kill $$p; done
+
