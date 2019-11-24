@@ -25,8 +25,8 @@ else
   SEED = parse(Int, ARGS[5])
 end
 mkpath(RESULTS_DIR)
-# USE_REPULSIVE = REPFAMDISTSCALE > 0
-USE_REPULSIVE = true  # use the repulsive joint updates even when scale=0
+USE_REPULSIVE = REPFAMDISTSCALE > 0
+# USE_REPULSIVE = true  # use the repulsive joint updates even when scale=0
 Z = Zs[Z_idx]
 
 # Random.seed!(0)  # before test-sims-5
