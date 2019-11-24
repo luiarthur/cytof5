@@ -46,12 +46,12 @@ function logprob_Z_repFAM(Z::Matrix{Bool}, v::Vector{Float64},
   J, K = size(Z)
 
   # IBP component
-  lp = sum(Z * log.(v) + (1 .- Z) * log.(1 .- v))
+  lp = sum(Z * log.(v) + (1 .- Z) * MCMC.log1m.( v))
 
   # Repulsive component
   for k1 in 1:(K-1)
     for k2 in (k1+1):K
-      lp += log(1 - similarity(Z[:, k1], Z[:, k2]))
+      lp += MCMC.log1m(similarity(Z[:, k1], Z[:, k2]))
     end
   end
 

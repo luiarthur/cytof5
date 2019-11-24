@@ -168,5 +168,9 @@ function logsumexp(logx::T...) where {T <: Number}
 end
 
 
+"""
+log 1 minus. For example, `log1m(.3) == log(1 - .3) == log1p(-.3) == log(.7)`.
+"""
+log1m(x::T) where {T <: Number} = log1p(-x)
 end # MCMC
 
