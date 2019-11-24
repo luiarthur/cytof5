@@ -26,11 +26,16 @@ end
 Z3 is a binary matrix with several similar phenotypes
 """
 Z3 = begin
-  Z = [ones(Bool, 7, 2) Z2]
-  Z[end, 1] = false
-  Z[[2, 4, 7], 2] .= false
+  Z = [Z2 ones(Bool, 7, 2)]
+  Z[end, 4] = false
+  Z[[2, 4, 7], 5] .= false
   Z
 end
+
+
+# All Zs.
+Zs = [Z1, Z2, Z3]
+
 
 
 function simulatedata1(; Z, N=[300, 300], L=Dict(0=>1, 1=>1),
@@ -46,6 +51,8 @@ function simulatedata1(; Z, N=[300, 300], L=Dict(0=>1, 1=>1),
   J, K = size(Z)
   I = length(N)
 
+  println(size(W))
+  println((I, K))
   @assert size(W) == (I, K)
   @assert length(sig2) == I
   @assert all(sig2 .> 0)

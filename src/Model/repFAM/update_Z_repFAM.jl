@@ -60,7 +60,7 @@ end
 
 
 function logfullcond_Z_repfam(Z::Matrix{Bool}, s::State, c::Constants,
-                                d::Data, t::Tuners, sb_ibp::Bool)
+                              d::Data, t::Tuners, sb_ibp::Bool)
   v = sb_ibp ? cumprod(s.v) : s.v
 
   # Log prior
@@ -69,14 +69,16 @@ function logfullcond_Z_repfam(Z::Matrix{Bool}, s::State, c::Constants,
   # log likelihood
   ll = 0.0
 
-  for i in 1:d.I
-    for j in 1:d.J
-      for n in 1:d.N[i]
-        # Cell type
-        k = s.lam[i][n]
-        if k > 0  # if not noisy cell type
-          z = Z[j, k]
-          ll += log(dmixture(z, i, n, j, s, c, d))
+  if lp > -Inf
+    for i in 1:d.I
+      for j in 1:d.J
+        for n in 1:d.N[i]
+          # Cell type
+          k = s.lam[i][n]
+          if k > 0  # if not noisy cell type
+            z = Z[j, k]
+            ll += log(dmixture(z, i, n, j, s, c, d))
+          end
         end
       end
     end
@@ -110,16 +112,51 @@ function update_Z_repFAM!(cand_Z::Matrix{Bool}, s::State, c::Constants,
 end
 
 
+function update_Z_repFAM!(j::Integer, k::Integer,
+                          s::State, c::Constants, d::Data, t::Tuners,
+                          sb_ibp::Bool; debug::Bool=false)
+  # Gibbs:
+  Z0 = deepcopy(s.Z)
+  Z0[j, k] = false
+
+  Z1 = deepcopy(s.Z)
+  Z1[j, k] = true
+
+  log_prob_0 = logfullcond_Z_repfam(Z0, s, c, d, t, sb_ibp)
+  log_prob_1 = logfullcond_Z_repfam(Z1, s, c, d, t, sb_ibp)
+
+  p1 = 1 / (1 + exp(log_prob_0 - log_prob_1))
+
+  s.Z[j, k] = p1 > rand()
+
+
+  # Or Metropolis?
+  # cand_Z = deepcopy(s.Z)
+  # cand_Z[j, k] = !s.Z[j, k]
+  # update_Z_repFAM!(cand_Z, s, c, d, t, sb_ibp, debug=debug)
+end
+
+
 function update_Z_repFAM!(s::State, c::Constants, d::Data, t::Tuners,
                           sb_ibp::Bool; debug::Bool=false)
-  # cand_Z = flip_bit.(s.Z, MCMC.logit(t.Z.value, a=0.0, b=1.0))
-  # cand_Z = Matrix{Bool}(flip_bit.(s.Z, c.probFlip_Z))
+  if c.probFlip_Z == 1  # Update each Z[j, k] sequentially, instead of jointly.
+    for j in 1:d.J
+      for k in 1:c.K
+        update_Z_repFAM!(j, k, s, c, d, t, sb_ibp, debug=debug)
+      end
+    end
+    # Update a bunch at a time
+    cand_Z = flip_bits(s.Z, 3)
+    update_Z_repFAM!(cand_Z, s, c, d, t, sb_ibp, debug=debug)
+  else  # Flip only some bits to obtain proposed Z.
+    num_bits_to_flip = round(Int, c.probFlip_Z * d.J * c.K)
+    num_bits_to_flip = clamp(num_bits_to_flip, 1, d.J * c.K)
 
-  num_bits_to_flip = round(Int, c.probFlip_Z * d.J * c.K)
-  num_bits_to_flip = clamp(num_bits_to_flip, 1, d.J * c.K)
-  cand_Z = flip_bits(s.Z, num_bits_to_flip)
-
-  update_Z_repFAM!(cand_Z, s, c, d, t, sb_ibp, debug=debug)
+    # cand_Z = flip_bit.(s.Z, MCMC.logit(t.Z.value, a=0.0, b=1.0))
+    # cand_Z = Matrix{Bool}(flip_bit.(s.Z, c.probFlip_Z))
+    cand_Z = flip_bits(s.Z, num_bits_to_flip)
+    update_Z_repFAM!(cand_Z, s, c, d, t, sb_ibp, debug=debug)
+  end
 end
 
 

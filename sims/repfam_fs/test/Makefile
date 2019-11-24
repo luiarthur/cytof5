@@ -15,7 +15,6 @@ SHELL:=/bin/bash
 # deltaz ~ TN(0, 1, .75, Inf)
 # SIM_EXP_NAME = test-sims-3
 
-# Current experiment 
 # deltaz ~ TN(0, .1, 0, Inf)
 # sig2 ~ IG(11, 5)
 # Z_thin = J and flip one bit each time -> update one bit in each row, row by row.
@@ -25,6 +24,10 @@ SHELL:=/bin/bash
 # NMCMC = 1000
 # NBURN = 1000
 SIM_EXP_NAME = test-sims-4
+
+# Current experiment 
+# Using Z3, which has several similar columns
+SIM_EXP_NAME = test-sims-5
 
 ### End of Simulation data experiment name ###
 

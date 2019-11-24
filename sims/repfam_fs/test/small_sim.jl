@@ -8,7 +8,6 @@ using Random
 using Distributions
 using BSON
 
-Random.seed!(0)
 include("simulatedata.jl")
 
 # Parse arguments
@@ -16,17 +15,22 @@ if length(ARGS) == 0
   RESULTS_DIR = "results/test-test/"
   REPFAMDISTSCALE = 10
   KMCMC = 5
-  Z_idx = 2
+  Z_idx = 3
+  SEED = 0
 else
   RESULTS_DIR = ARGS[1]
   REPFAMDISTSCALE = parse(Float64, ARGS[2])
   KMCMC = parse(Int, ARGS[3])
   Z_idx = parse(Int, ARGS[4])
+  SEED = parse(Int, ARGS[5])
 end
 mkpath(RESULTS_DIR)
 # USE_REPULSIVE = REPFAMDISTSCALE > 0
 USE_REPULSIVE = true  # use the repulsive joint updates even when scale=0
-Z = Z_idx == 1 ? Z1 : Z2
+Z = Zs[Z_idx]
+
+# Random.seed!(0)  # before test-sims-5
+Random.seed!(SEED)  # after test-sims-5
 
 println("CONFIG:")
 println("    - RESULTS_DIR: $(RESULTS_DIR)")
@@ -34,6 +38,7 @@ println("    - REPFAMDISTSCALE: $(REPFAMDISTSCALE)")
 println("    - KMCMC: $(KMCMC)")
 println("    - Z_idx: $(Z_idx)")
 println("    - USE_REPULSIVE: $(USE_REPULSIVE)")
+println("    - SEED: $(SEED)")
 flush(stdout)
 
 function sim_z_generator(phi)::Function
@@ -67,6 +72,7 @@ function init_state_const_data(simdat; K, L)
                                     alpha_prior=Gamma(0.1, 10.0),
                                     yQuantiles=[.0, .25, .5], 
                                     pBounds=[.05, .8, .05],
+                                    probFlip_Z=1.0,
                                     similarity_Z=sim_z)
   # s = Cytof5.Model.genInitialState(c, d)
   s = Cytof5.Model.smartInit(c, d)
@@ -83,8 +89,14 @@ function init_state_const_data(simdat; K, L)
 end
 
 # Simulate data
-@time simdat = simulatedata1(Z=Z, seed=0, propmissingscale=.6, sortLambda=true);
+# NOTE: Used before test-sims-5
+# @time simdat = simulatedata1(Z=Z, seed=0, propmissingscale=.6, sortLambda=true);
 
+# NOTE: Used on and after test-sims-5
+@time simdat = simulatedata1(Z=Z,
+                             W=Matrix(hcat([[.7, 0, .1, .1, .1],
+                                            [.4, .1, .3, .1, .1]]...)'),
+                             seed=0, propmissingscale=.6, sortLambda=true);
 
 #= Sanity check
 using PyPlot
@@ -105,7 +117,7 @@ monitor2 = [:theta__y_imputed, :theta__gam]
 # MCMC Specs
 nsamps_to_thin(nsamps::Int, nmcmc::Int) = max(1, div(nmcmc, nsamps))
 MCMC_ITER = 1000  # Number of MCMC iterations
-NBURN = 1000  # burn-in time
+NBURN = 2000  # burn-in time
 
 # Configurations: priors, initial state, data, etc.
 config = init_state_const_data(simdat, K=KMCMC, L=Dict(0 => 2, 1 => 2))
@@ -125,6 +137,7 @@ flush(stdout)
                                  printFreq=10, time_updates=false,
                                  computeDIC=true, computeLPML=true,
                                  use_repulsive=USE_REPULSIVE,
+                                 Z_thin=1,
                                  flushOutput=true)
 
 # Dump output
