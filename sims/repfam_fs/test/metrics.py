@@ -98,10 +98,10 @@ def get_exp_dict(results_dir):
     # Split all the keys
     for key in all_metrics:
         path = key.replace(results_dir + '/', '')
-        kmcmc, z, scale, _ = path.split('/')
+        kmcmc, z, scale, seed, _ = path.split('/')
         kmcmc_int = int(kmcmc.replace('KMCMC', ''))
         scale_float = float(scale.replace('scale', ''))
-        new_key = (z, scale_float)
+        new_key = (z, scale_float, seed)
         if new_key not in exp_dict:
             exp_dict[new_key] = dict()
         exp_dict[new_key][kmcmc_int] = all_metrics[key]
@@ -144,7 +144,7 @@ if __name__ == '__main__':
 
     print('Results dir: {}'.format(results_dir))
 
-    # Get a dictionary indexed by experiment setting (z, scale)
+    # Get a dictionary indexed by experiment setting (z, scale, seed)
     exp_dict = get_exp_dict(results_dir) 
     
     # Metrics to plot
@@ -155,21 +155,27 @@ if __name__ == '__main__':
 
     # Get unique zs
     zs = set([key[0] for key in exp_dict.keys()])
+    print('zs: {}'.format(zs))
+
+    # Get unique seeds
+    seeds = set([key[2] for key in exp_dict.keys()])
+    print('seeds: {}'.format(seeds))
 
     # sorted exp_dict keys
     exp_dict_keys_sorted = sorted(exp_dict.keys())
 
     for z in zs:
-        for metric in metrics:
-            for setting in exp_dict_keys_sorted:
-                zidx, scale = setting
-                if z == zidx:
-                    label = 'scale={}'.format(scale)
-                    graph_for_setting(setting, exp_dict, metric, label)
-            dest_dir = '{}/{}'.format(metrics_dir, z)
-            plt.legend()
-            plt.tight_layout()
-            # Make destination dir if needed
-            os.makedirs(dest_dir, exist_ok=True)
-            plt.savefig('{}/{}.pdf'.format(dest_dir, metric))
-            plt.close()
+        for seed in seeds:
+            for metric in metrics:
+                for setting in exp_dict_keys_sorted:
+                    zidx, scale, sd = setting
+                    if z == zidx and sd == seed:
+                        label = 'scale={}'.format(scale)
+                        graph_for_setting(setting, exp_dict, metric, label)
+                dest_dir = '{}/{}/{}'.format(metrics_dir, z, seed)
+                plt.legend()
+                plt.tight_layout()
+                # Make destination dir if needed
+                os.makedirs(dest_dir, exist_ok=True)
+                plt.savefig('{}/{}.pdf'.format(dest_dir, metric))
+                plt.close()

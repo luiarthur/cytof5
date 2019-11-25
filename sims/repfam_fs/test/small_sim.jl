@@ -96,7 +96,7 @@ end
 @time simdat = simulatedata1(Z=Z,
                              W=Matrix(hcat([[.7, 0, .1, .1, .1],
                                             [.4, .1, .3, .1, .1]]...)'),
-                             seed=0, propmissingscale=.6, sortLambda=true);
+                             seed=SEED, propmissingscale=.6, sortLambda=true);
 
 #= Sanity check
 using PyPlot
