@@ -32,6 +32,42 @@ end
 
 
 """
+log penalty term as related to column k only.
+"""
+function log_penalty_repFAM(k::Integer, Z::Matrix{Bool}, similarity::Function)
+  K = size(Z, 2)
+
+  log_penalty = 0.0
+
+  for q in 1:K
+    if q != k
+      log_penalty += MCMC.log1m(similarity(Z[:, k], Z[:, q]))
+    end
+  end
+
+  return log_penalty
+end
+
+
+"""
+log penalty term in repFAM.
+"""
+function log_penalty_repFAM(Z::Matrix{Bool}, similarity::Function)::Float64
+  K = size(Z, 2)
+
+  log_penalty = 0.0
+
+  for k1 in 1:(K - 1)
+    for k2 in (k1 + 1):K
+      log_penalty += MCMC.log1m(similarity(Z[:, k1], Z[:, k2]))
+    end
+  end
+
+  return log_penalty
+end
+
+
+"""
 log probability of Z ~ repFam_K(v, C), WITHOUT NORMALIZING CONSTANT
 where v ~ Beta(a/K, 1),
 and similarity(z_{k1}, z_{k2}) computes the similarity of binary vectors z_{k1}
@@ -49,13 +85,9 @@ function logprob_Z_repFAM(Z::Matrix{Bool}, v::Vector{Float64},
   lp = sum(Z * log.(v) + (1 .- Z) * MCMC.log1m.( v))
 
   # Repulsive component
-  for k1 in 1:(K-1)
-    for k2 in (k1+1):K
-      lp += MCMC.log1m(similarity(Z[:, k1], Z[:, k2]))
-    end
-  end
+  log_penalty = log_penalty_repFAM(Z, similarity)
 
-  return lp
+  return lp + log_penalty
 end
 
 
