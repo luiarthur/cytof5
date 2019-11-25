@@ -20,7 +20,8 @@ function update_Z_marg_lamgam!(j::Int, k::Int,
                                A::Vector{Vector{Float64}},
                                B0::Vector{Matrix{Float64}},
                                B1::Vector{Matrix{Float64}},
-                               s::State, c::Constants, d::Data, sb_ibp::Bool)
+                               s::State, c::Constants, d::Data, sb_ibp::Bool;
+                               use_repulsive::Bool=false)
   v = sb_ibp ? cumprod(s.v) : s.v
   Z0 = deepcopy(s.Z)
   Z0[j, k] = false 
@@ -29,6 +30,11 @@ function update_Z_marg_lamgam!(j::Int, k::Int,
   Z1 = deepcopy(s.Z)
   Z1[j, k] = true 
   lp1 = log(v[k]) + log_dmix_nolamgam(Z1, A, B0, B1, s, c, d)
+
+  if use_repulsive
+    lp0 += log_penalty_repFAM(k, Z0, c.similarity_Z)
+    lp1 += log_penalty_repFAM(k, Z1, c.similarity_Z)
+  end
 
   p1_post = 1 / (1 + exp(lp0 - lp1))
   new_Zjk_is_one = p1_post > rand()
