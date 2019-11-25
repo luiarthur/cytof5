@@ -1,12 +1,12 @@
 function update_Z_v2!(s::State, c::Constants, d::Data, tuners::Tuners,
-                      sb_ibp::Bool)
+                      sb_ibp::Bool; use_repulsive::Bool=false)
   # if 0.5 > rand()
   # if 0.1 > rand()
   if 0.1 > rand()
     # update Z marginalizing over lam and gam
-    update_Z_marg_lamgam!(s, c, d, sb_ibp)
+    update_Z_marg_lamgam!(s, c, d, sb_ibp, use_repulsive=use_repulsive)
   else
-    update_Z!(s, c, d, sb_ibp)
+    update_Z!(s, c, d, sb_ibp, use_repulsive=use_repulsive)
 
     # Not Implemented:
     # update Z jointly per marker, marginalizing over lam and gam
@@ -25,7 +25,7 @@ function update_Z_marg_lamgam!(j::Int, k::Int,
   v = sb_ibp ? cumprod(s.v) : s.v
   Z0 = deepcopy(s.Z)
   Z0[j, k] = false 
-  lp0 = log(1 - v[k]) + log_dmix_nolamgam(Z0, A, B0, B1, s, c, d)
+  lp0 = MCMC.log1m(v[k]) + log_dmix_nolamgam(Z0, A, B0, B1, s, c, d)
 
   Z1 = deepcopy(s.Z)
   Z1[j, k] = true 
@@ -45,7 +45,8 @@ function update_Z_marg_lamgam!(j::Int, k::Int,
   s.Z[j, k] = new_Zjk_is_one
 end
 
-function update_Z_marg_lamgam!(s::State, c::Constants, d::Data, sb_ibp::Bool)
+function update_Z_marg_lamgam!(s::State, c::Constants, d::Data, sb_ibp::Bool;
+                               use_repulsive::Bool=false)
   # Precompute A, B0, B1
   A = [[logdnoisy(i, n, s, c, d) for n in 1:d.N[i]] for i in 1:d.I]
   B0 = [[logdmixture(0, i, n, j, s, c, d) for n in 1:d.N[i], j in 1:d.J]
@@ -55,7 +56,8 @@ function update_Z_marg_lamgam!(s::State, c::Constants, d::Data, sb_ibp::Bool)
 
   for j in 1:d.J
     for k in 1:c.K
-      update_Z_marg_lamgam!(j, k, A, B0, B1, s, c, d, sb_ibp)
+      update_Z_marg_lamgam!(j, k, A, B0, B1, s, c, d, sb_ibp,
+                            use_repulsive=use_repulsive)
     end
   end
 end

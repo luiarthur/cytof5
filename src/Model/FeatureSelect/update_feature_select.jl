@@ -16,12 +16,12 @@ function update_state_feature_select!(s::StateFS, c::ConstantsFS, d::DataFS,
 
   function update_Z_!()
     for i in 1:Z_thin
-      if use_repulsive
-        update_Z_repFAM!(s.theta, c.constants, d.data, t.tuners, sb_ibp)
-      elseif joint_update_Z
-        update_Z_v2!(s.theta, c.constants, d.data, t.tuners, sb_ibp)
+      if joint_update_Z  # marginalize over lambda and gamma occasionally
+        update_Z_v2!(s.theta, c.constants, d.data, t.tuners, sb_ibp,
+                     use_repulsive=use_repulsive)
       else  # Do regular updates
-        update_Z!(s.theta, c.constants, d.data, sb_ibp)
+        update_Z!(s.theta, c.constants, d.data, sb_ibp,
+                  use_repulsive=use_repulsive)
       end
     end
   end
