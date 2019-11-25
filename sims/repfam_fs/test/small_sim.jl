@@ -117,7 +117,7 @@ monitor2 = [:theta__y_imputed, :theta__gam]
 # MCMC Specs
 nsamps_to_thin(nsamps::Int, nmcmc::Int) = max(1, div(nmcmc, nsamps))
 MCMC_ITER = 1000  # Number of MCMC iterations
-NBURN = 2000  # burn-in time
+NBURN = 3000  # burn-in time
 
 # Configurations: priors, initial state, data, etc.
 config = init_state_const_data(simdat, K=KMCMC, L=Dict(0 => 2, 1 => 2))
