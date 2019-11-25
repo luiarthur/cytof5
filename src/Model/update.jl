@@ -26,11 +26,10 @@ function update_state!(s::State, c::Constants, d::Data, tuners::Tuners,
   # Gibbs.
   if isRandom(:Z)
     if joint_update_Z
-        update_Z_v2!(s, c, d, tuners, sb_ibp, use_repulsive=use_repulsive)
-      else
-        # Do regular updates
-        update_Z!(s, c, d, sb_ibp, use_repulsive=use_repulsive)
-      end
+      update_Z_v2!(s, c, d, tuners, sb_ibp, use_repulsive=use_repulsive)
+    else
+      # Do regular updates
+      update_Z!(s, c, d, sb_ibp, use_repulsive=use_repulsive)
     end
   end
 
