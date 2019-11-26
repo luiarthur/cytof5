@@ -51,8 +51,6 @@ function simulatedata1(; Z, N=[300, 300], L=Dict(0=>1, 1=>1),
   J, K = size(Z)
   I = length(N)
 
-  println(size(W))
-  println((I, K))
   @assert size(W) == (I, K)
   @assert length(sig2) == I
   @assert all(sig2 .> 0)
