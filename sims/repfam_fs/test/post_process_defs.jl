@@ -3,6 +3,9 @@ using Cytof5
 using Random
 using Distributions
 using DelimitedFiles
+import DataFrames
+const DF = DataFrames
+import CSV
 import PyPlot, PyCall, Seaborn
 const plt = PyPlot.plt
 const sns = Seaborn
@@ -226,6 +229,7 @@ function post_process(path_to_output;
   end
 
   # Plot alpha
+  println("alpha ...")
   alphas = extract(:theta__alpha)
   plt.hist(alphas, density=true)
   plt.xlabel("alpha")
@@ -238,6 +242,7 @@ function post_process(path_to_output;
   end
 
   # Plot v
+  println("v ...")
   v_vec = extract(:theta__v)
   v = hcat(v_vec...)
 
@@ -250,6 +255,21 @@ function post_process(path_to_output;
   plt.ylabel("v")
   plt.savefig("$(img_path)/v.pdf", bbox_inches="tight")
   plt.close()
+
+  # Print R
+  println("r ...")
+  rs_vec = extract(:r)
+  rs = cat(rs_vec..., dims=3)  # I x K x NMCMC
+  Rs = dropdims(sum(rs, dims=2), dims=2)  # I x NMCMC
+
+  Rs_df = DF.DataFrame(mean=vec(mean(Rs, dims=2)),
+                       p_02_5=vec(quantiles(Rs, .025, dims=2)),
+                       p_25_0=vec(quantiles(Rs, .250, dims=2)),
+                       p_50_0=vec(quantiles(Rs, .500, dims=2)),
+                       p_75_0=vec(quantiles(Rs, .750, dims=2)),
+                       p_97_5=vec(quantiles(Rs, .975, dims=2)))
+
+  CSV.write("$(img_path)/txt/Rs.csv", Rs_df)
 
   # Plot mus
   println("mus ...")
