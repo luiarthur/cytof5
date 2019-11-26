@@ -164,6 +164,9 @@ if __name__ == '__main__':
     # sorted exp_dict keys
     exp_dict_keys_sorted = sorted(exp_dict.keys())
 
+    # TODO:
+    # graph Rs
+
     for z in zs:
         for seed in seeds:
             for metric in metrics:
