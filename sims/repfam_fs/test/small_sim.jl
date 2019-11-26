@@ -96,6 +96,7 @@ end
 @time simdat = simulatedata1(Z=Z,
                              W=Matrix(hcat([[.7, 0, .1, .1, .1],
                                             [.4, .1, .3, .1, .1]]...)'),
+                             sig2=[.5, .5],
                              seed=SEED, propmissingscale=.6, sortLambda=true);
 
 #= Sanity check

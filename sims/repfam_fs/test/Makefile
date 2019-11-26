@@ -23,11 +23,15 @@ SHELL:=/bin/bash
 # scale = (0, 1, 10)
 # NMCMC = 1000
 # NBURN = 1000
-SIM_EXP_NAME = test-sims-4
+# SIM_EXP_NAME = test-sims-4
+
+# Using Z3, which has several similar columns
+# SIM_EXP_NAME = test-sims-5
 
 # Current experiment 
 # Using Z3, which has several similar columns
-SIM_EXP_NAME = test-sims-5
+# USing sig2_TRUE = 0.5
+SIM_EXP_NAME = test-sims-5-5
 
 ### End of Simulation data experiment name ###
 
