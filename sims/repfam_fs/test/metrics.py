@@ -4,6 +4,7 @@ import sys
 import re
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 # Plot settings
 fontsize = 15
@@ -11,6 +12,11 @@ plt.rcParams['font.size'] = fontsize
 plt.rcParams['xtick.labelsize'] = fontsize
 plt.rcParams['ytick.labelsize'] = fontsize
 plt.rcParams['figure.figsize'] = (6, 5)
+
+
+def parse_Rs(path_to_Rs_csv):
+    Rs = pd.read_csv(path_to_Rs_csv).rename(columns=dict(mean='Mean'))
+    return Rs
 
 def get_ks(results_dir):
     # Get dir names for each K
@@ -74,12 +80,26 @@ def get_metrics_for_each_dir(results_dir, thresh=.01):
         for f in files:
             if f == 'log.txt':
                 path_to_log = '{}/{}'.format(root, f)
+
+                # Parse LPML / DIC
                 metrics = parse_log(path_to_log)
+
+                # Parse W
                 path_to_W = '{}/img/yz/txt/'.format(root)
                 num_small_phenotypes = count_num_small_phenotypes(path_to_W,
                                                                   thresh)
                 metrics['num_selected_features'] = compute_num_selected_features(path_to_W)
                 metrics['num_small_phenotypes'] = num_small_phenotypes
+
+                # Parse R
+                path_to_R = '{}/img/txt/'.format(root)
+                R_df = parse_Rs('{}/Rs.csv'.format(path_to_R))
+                metrics['I'] = R_df.shape[0]
+                metrics['R_mean'] = R_df.Mean.to_numpy()
+                metrics['R_lower'] = R_df.p_02_5.to_numpy()
+                metrics['R_upper'] = R_df.p_97_5.to_numpy()
+
+                # Append to metrics 
                 out[path_to_log] = metrics
 
     return out
@@ -109,7 +129,7 @@ def get_exp_dict(results_dir):
     return exp_dict
 
 
-def graph_for_setting(setting, exp_dict, metric, label):
+def graph_for_setting(setting, exp_dict, metric, label, labels=None):
     d = exp_dict[setting]
     if metric == 'num_small_phenotypes':
         lpml = []
@@ -122,6 +142,36 @@ def graph_for_setting(setting, exp_dict, metric, label):
         plt.plot(num_small, lpml, marker='o', label=label)
         plt.xlabel('number of obscure phenotypes')
         plt.ylabel('LPML')
+    elif metric == 'R':
+        K_min = list(d.keys())[0]
+        I = d[K_min]['I']
+
+        if labels is not None:
+            if len(labels) == 2:
+                c = {labels[0]: 'blue', labels[1]: 'red'}
+            else:
+                print('NotImplemented!')
+            
+
+        for i in range(I):
+            plt.subplot(I, 1, i + 1)
+            ks = []
+            Ri_mean = []
+            Ri_lower = []
+            Ri_upper = []
+            Ks = sorted(d.keys())
+            for kmcmc in Ks:
+                ks.append(kmcmc)
+                Ri_mean.append(d[kmcmc]['R_mean'][i])
+                Ri_lower.append(d[kmcmc]['R_lower'][i])
+                Ri_upper.append(d[kmcmc]['R_upper'][i])
+            plt.plot(ks, Ri_mean, color=c[label], marker='o', label=label)
+            plt.fill_between(ks, Ri_lower, Ri_upper,
+                             color=c[label], alpha=.3)
+            plt.xlabel('KMCMC')
+            plt.ylabel('R_{}'.format(i + 1))
+            plt.yticks(range(min(Ks) - 2, int(max(Ri_upper) + .5), 2),
+                       range(min(Ks) - 2, int(max(Ri_upper) + .5), 2))
     else:
         ks = []
         ms = []
@@ -140,7 +190,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         results_dir = sys.argv[1]
     else:
-        results_dir = 'results/test-sims'
+        results_dir = 'results/test-sims-5-5'
 
     print('Results dir: {}'.format(results_dir))
 
@@ -148,7 +198,7 @@ if __name__ == '__main__':
     exp_dict = get_exp_dict(results_dir) 
     
     # Metrics to plot
-    metrics = ['LPML', 'DIC', 'num_small_phenotypes']
+    metrics = ['LPML', 'DIC', 'num_small_phenotypes', 'R']
 
     # Name of metrics dir
     metrics_dir = '{}/metrics'.format(results_dir) 
@@ -161,11 +211,18 @@ if __name__ == '__main__':
     seeds = set([key[2] for key in exp_dict.keys()])
     print('seeds: {}'.format(seeds))
 
+    # Get unique scales
+    scales = set([key[1] for key in exp_dict.keys()])
+    num_scales = len(scales)
+    print('scales: {}'.format(scales))
+
+
     # sorted exp_dict keys
     exp_dict_keys_sorted = sorted(exp_dict.keys())
 
     # TODO:
     # graph Rs
+    labels = ['scale={}'.format(scale)for scale in scales]
 
     for z in zs:
         for seed in seeds:
@@ -174,9 +231,13 @@ if __name__ == '__main__':
                     zidx, scale, sd = setting
                     if z == zidx and sd == seed:
                         label = 'scale={}'.format(scale)
-                        graph_for_setting(setting, exp_dict, metric, label)
+                        graph_for_setting(setting, exp_dict, metric, label,
+                                          labels=labels)
                 dest_dir = '{}/{}/{}'.format(metrics_dir, z, seed)
-                plt.legend()
+                if metric == 'R':
+                    plt.legend(loc='upper left')
+                else:
+                    plt.legend()
                 plt.tight_layout()
                 # Make destination dir if needed
                 os.makedirs(dest_dir, exist_ok=True)
