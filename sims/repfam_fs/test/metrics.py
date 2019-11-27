@@ -5,13 +5,7 @@ import re
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
-# Plot settings
-fontsize = 15
-plt.rcParams['font.size'] = fontsize
-plt.rcParams['xtick.labelsize'] = fontsize
-plt.rcParams['ytick.labelsize'] = fontsize
-plt.rcParams['figure.figsize'] = (6, 5)
+import rcparams
 
 
 def parse_Rs(path_to_Rs_csv):
@@ -98,6 +92,9 @@ def get_metrics_for_each_dir(results_dir, thresh=.01):
                 metrics['R_mean'] = R_df.Mean.to_numpy()
                 metrics['R_lower'] = R_df.p_02_5.to_numpy()
                 metrics['R_upper'] = R_df.p_97_5.to_numpy()
+                # metrics['R_mean'] = R_df.p_50_0.to_numpy()
+                # metrics['R_lower'] = R_df.p_25_0.to_numpy()
+                # metrics['R_upper'] = R_df.p_75_0.to_numpy()
 
                 # Append to metrics 
                 out[path_to_log] = metrics
@@ -152,19 +149,20 @@ def graph_for_setting(setting, exp_dict, metric, label, labels=None):
             else:
                 print('NotImplemented!')
             
-
         for i in range(I):
             plt.subplot(I, 1, i + 1)
             ks = []
             Ri_mean = []
             Ri_lower = []
             Ri_upper = []
+
             Ks = sorted(d.keys())
             for kmcmc in Ks:
                 ks.append(kmcmc)
                 Ri_mean.append(d[kmcmc]['R_mean'][i])
                 Ri_lower.append(d[kmcmc]['R_lower'][i])
                 Ri_upper.append(d[kmcmc]['R_upper'][i])
+
             plt.plot(ks, Ri_mean, color=c[label], marker='o', label=label)
             plt.fill_between(ks, Ri_lower, Ri_upper,
                              color=c[label], alpha=.3)
@@ -199,6 +197,7 @@ if __name__ == '__main__':
     
     # Metrics to plot
     metrics = ['LPML', 'DIC', 'num_small_phenotypes', 'R']
+    # metrics = ['LPML', 'DIC', 'num_small_phenotypes']
 
     # Name of metrics dir
     metrics_dir = '{}/metrics'.format(results_dir) 
