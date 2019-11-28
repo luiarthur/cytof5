@@ -213,7 +213,7 @@ function post_process(path_to_output;
   plt.figure()
   for i in 1:I
     plt.subplot(I, 1, i)
-    boxplot(Ws[i, :, :]')
+    boxplot(Wstar[i, :, :]')
     plt.xlabel("cell phenotypes")
     plt.ylabel("W*$(i)")
   end
