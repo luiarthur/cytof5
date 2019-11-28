@@ -294,6 +294,28 @@ function post_process(path_to_output;
   plt.savefig("$(img_path)/mus.pdf", bbox_inches="tight")
   plt.close()
 
+  # Plot delta
+  println("delta ...")
+  delta0 = Matrix(hcat([d[0] for d in deltas]...)')  # B x L0
+  delta1 = Matrix(hcat([d[1] for d in deltas]...)')  # B x L1
+
+  open("$(img_path)/txt/delta0_mean.txt", "w") do io
+    writedlm(io, mean(delta0, dims=1))
+  end
+
+  open("$(img_path)/txt/delta1_mean.txt", "w") do io
+    writedlm(io, mean(delta1, dims=1))
+  end
+
+  boxplot(delta0)
+  plt.savefig("$(img_path)/delta0.pdf", bbox_inches="tight")
+  plt.close()
+
+  boxplot(delta1)
+  plt.savefig("$(img_path)/delta1.pdf", bbox_inches="tight")
+  plt.close()
+
+
   # Plot sig2
   println("sig2 ...")
   sig2s = Matrix(hcat(extract(:theta__sig2)...)')
