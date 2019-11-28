@@ -209,7 +209,7 @@ function post_process(path_to_output;
   # Plot W_star
   println("W_star ...")
   Wstar_vec = extract(:W_star)
-  Wstar = cat(Wstar_vec, dims=3)
+  Wstar = cat(Wstar_vec..., dims=3)
   plt.figure()
   for i in 1:I
     plt.subplot(I, 1, i)
@@ -218,7 +218,7 @@ function post_process(path_to_output;
     plt.ylabel("W*$(i)")
   end
   plt.tight_layout()
-  plt.savefig("$(img_path)/Wtar.pdf", bbox_inches="tight")
+  plt.savefig("$(img_path)/Wstar.pdf", bbox_inches="tight")
   plt.close()
 
   open("$(img_path)/txt/Wstar_mean.txt", "w") do io
