@@ -206,6 +206,26 @@ function post_process(path_to_output;
   plt.close()
 
 
+  # Plot W_star
+  println("W_star ...")
+  Wstar_vec = extract(:W_star)
+  Wstar = cat(Wstar_vec, dims=3)
+  plt.figure()
+  for i in 1:I
+    plt.subplot(I, 1, i)
+    boxplot(Ws[i, :, :]')
+    plt.xlabel("cell phenotypes")
+    plt.ylabel("W*$(i)")
+  end
+  plt.tight_layout()
+  plt.savefig("$(img_path)/Wtar.pdf", bbox_inches="tight")
+  plt.close()
+
+  open("$(img_path)/txt/Wstar_mean.txt", "w") do io
+    writedlm(io, mean(Wstar_vec))
+  end
+
+
   # Plot Wi
   println("W ...")
   Ws_vec = extract(:theta__W)
