@@ -196,8 +196,9 @@ if __name__ == '__main__':
     exp_dict = get_exp_dict(results_dir) 
     
     # Metrics to plot
-    metrics = ['LPML', 'DIC', 'num_small_phenotypes', 'R']
+    # metrics = ['LPML', 'DIC', 'num_small_phenotypes', 'R']
     # metrics = ['LPML', 'DIC', 'num_small_phenotypes']
+    metrics = ['LPML', 'DIC', 'R']
 
     # Name of metrics dir
     metrics_dir = '{}/metrics'.format(results_dir) 
