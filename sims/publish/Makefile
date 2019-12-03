@@ -59,6 +59,11 @@ get: getCB getSmallSim getBigSim
 	aws s3 sync $(CB_AWS_BUCKET)   $(CB_DIR)/logs  --exclude "*" --include "*log.txt"
 	aws s3 sync $(SIM_AWS_BUCKET)  $(SIM_DIR)/logs --exclude "*" --include "*log.txt"
 
+get_cb_best_to_scratch:
+	mkdir -p $(SCRATCH_DIR)/results/cb_best/
+	cd $(SCRATCH_DIR) && \
+		aws s3 sync $(CB_BEST_AWS_BUCKET) $(SCRATCH_DIR)/results/cb_best/
+
 get2scratch:
 	mkdir -p $(SCRATCH_DIR)/results
 	cp Makefile $(SCRATCH_DIR)
