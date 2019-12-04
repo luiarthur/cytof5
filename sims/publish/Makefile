@@ -64,6 +64,10 @@ get_cb_best_to_scratch:
 	cd $(SCRATCH_DIR) && \
 		aws s3 sync $(CB_BEST_AWS_BUCKET) $(SCRATCH_DIR)/results/cb_best/
 
+cb_best_scratch_to_aws:
+	cd $(SCRATCH_DIR) && \
+		aws s3 sync $(SCRATCH_DIR)/results/cb_best/ $(CB_BEST_AWS_BUCKET) 
+
 get2scratch:
 	mkdir -p $(SCRATCH_DIR)/results
 	cp Makefile $(SCRATCH_DIR)
