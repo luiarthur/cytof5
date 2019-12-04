@@ -288,8 +288,14 @@ function post_process(path_to_output;
                        p_50_0=vec(quantiles(Rs, .500, dims=2)),
                        p_75_0=vec(quantiles(Rs, .750, dims=2)),
                        p_97_5=vec(quantiles(Rs, .975, dims=2)))
-
   CSV.write("$(img_path)/txt/Rs.csv", Rs_df)
+
+  # Probability Ri equals each K
+  prob_R_equals_K = [mean(Rs .== K, dims=2) for K in 1:maximum(Rs)]
+  println(prob_R_equals_K)
+  open("$(img_path)/txt/prob_R_equals_K.txt", "w") do io
+    writedlm(io, prob_R_equals_K)
+  end
 
   # Plot mus
   println("mus ...")
