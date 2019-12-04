@@ -232,7 +232,7 @@ if __name__ == '__main__':
     # Metrics to plot
     # metrics = ['LPML', 'DIC', 'num_small_phenotypes', 'R']
     # metrics = ['LPML', 'DIC', 'num_small_phenotypes']
-    metrics = ['LPML', 'DIC', 'R', 'Rprob']
+    metrics = ['LPML', 'DIC', 'R']
 
     # Name of metrics dir
     metrics_dir = '{}/metrics'.format(results_dir) 

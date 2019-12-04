@@ -64,6 +64,7 @@ sendsim:
 
 metrics:
 	python3 metrics.py $(SIM_RESULTS_DIR)
+	python3 rprob.py $(SIM_RESULTS_DIR)
 
 notebook:
 	jupyter notebook
