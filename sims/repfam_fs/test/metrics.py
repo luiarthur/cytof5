@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import rcparams
 
+KTRUE = [4, 5]
 
 def parse_Rs(path_to_Rs_csv):
     Rs = pd.read_csv(path_to_Rs_csv).rename(columns=dict(mean='Mean'))
@@ -96,6 +97,11 @@ def get_metrics_for_each_dir(results_dir, thresh=.01):
                 # metrics['R_lower'] = R_df.p_25_0.to_numpy()
                 # metrics['R_upper'] = R_df.p_75_0.to_numpy()
 
+                # Parse Rprob
+                path_to_Rprob = path_to_R
+                R_prob = np.loadtxt('{}/prob_R_equals_K.txt'.format(path_to_R))
+                metrics['Rprob'] = R_prob.T
+
                 # Append to metrics 
                 out[path_to_log] = metrics
 
@@ -139,6 +145,34 @@ def graph_for_setting(setting, exp_dict, metric, label, labels=None):
         plt.plot(num_small, lpml, marker='o', label=label)
         plt.xlabel('number of obscure phenotypes')
         plt.ylabel('LPML')
+    elif metric == 'Rprob':
+        K_min = list(d.keys())[0]
+        I = d[K_min]['I']
+
+        if labels is not None:
+            if len(labels) == 2:
+                c = {labels[0]: 'blue', labels[1]: 'red'}
+            else:
+                print('NotImplemented!')
+            
+        for i in range(I):
+            plt.subplot(I, 1, i + 1)
+            ks = []
+            Ri_prob_equals_K_TRUE = []
+
+            Ks = sorted(d.keys())
+            for kmcmc in Ks:
+                ks.append(kmcmc)
+                if kmcmc < KTRUE[i]:
+                    Ri_prob_equals_K_TRUE.append(0)
+                else:
+                    Ri_prob_equals_K_TRUE.append(d[kmcmc]['Rprob'][i, KTRUE[i] - 1])
+
+            plt.plot(ks, Ri_prob_equals_K_TRUE,
+                     color=c[label], marker='o', label=label)
+            plt.xlabel('KMCMC')
+            plt.ylabel('Prob(Ri = K_TRUE)')
+            plt.ylim([-0.1, 1.1])
     elif metric == 'R':
         K_min = list(d.keys())[0]
         I = d[K_min]['I']
@@ -198,7 +232,7 @@ if __name__ == '__main__':
     # Metrics to plot
     # metrics = ['LPML', 'DIC', 'num_small_phenotypes', 'R']
     # metrics = ['LPML', 'DIC', 'num_small_phenotypes']
-    metrics = ['LPML', 'DIC', 'R']
+    metrics = ['LPML', 'DIC', 'R', 'Rprob']
 
     # Name of metrics dir
     metrics_dir = '{}/metrics'.format(results_dir) 
@@ -236,6 +270,8 @@ if __name__ == '__main__':
                 dest_dir = '{}/{}/{}'.format(metrics_dir, z, seed)
                 if metric == 'R':
                     plt.legend(loc='upper left')
+                elif metric == 'Rprob':
+                    plt.legend(loc='lower center')
                 else:
                     plt.legend()
                 plt.tight_layout()
