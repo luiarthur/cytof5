@@ -28,7 +28,7 @@ if __name__ == '__main__':
         tsne_aws_destination = sys.argv[4]
     else:
         path_to_best_cb_results = '/scratchdata/alui2/cytof/results/cb_best/img/'
-        SEED = 0
+        SEED = 1
         tsne_aws_bucket = 'cytof-fam-paper'
         tsne_aws_destination = '/img/post/cb/best/img'
 
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     data = pd.read_csv(path_to_cb_data)
     I = data.sample_id.drop_duplicates().count()
 
-    # Replace NaN's with -6 (like in FlowSOM analysis).
+    # Replace NaN's with -3 (like init in FAM).
     Y = data.fillna(-6)
 
     # Only keep rows where all expressions are at least -6. 
@@ -70,52 +70,75 @@ if __name__ == '__main__':
     is_good_marker = np.where(good_markers)[0]
     good_markers_names = list(Y.columns[is_good_marker])
 
-    # Center and scale data for markers used in analysis.
-    # NOTE: Is scaling necessary?
-    Y_scaled = scale(Y[good_markers_names])
-
-    # Create TSNE fitter. Then time and fit the tsne.
-    tsne = TSNE(verbose=1, n_iter=3000, random_state=SEED)
-    with Timer.Timer(ndigits=2):
-        tsne.fit(Y_scaled)
-
-    print('KL Divergence: {}'.format(tsne.kl_divergence_))
-    print('num iters: {}/{}'.format(tsne.n_iter_ + 1, tsne.n_iter))
-
     # Add embeddings to Y
     for t in range(2):
-        Y['tsne_embeddings_{}'.format(t)] = tsne.embedding_[:, t]
+        Y['tsne_embedding_{}'.format(t)] = np.nan
+
+    # Center and scale data for markers used in analysis.
+    # NOTE: Is scaling necessary?
+    # Y_scaled = scale(Y[good_markers_names])
+
+    for i in range(I):
+        # Create TSNE fitter. Then time and fit the tsne.
+        tsne = TSNE(verbose=2, random_state=SEED)
+        with Timer.Timer(ndigits=2):
+            Yi = Y[Y.sample_id == i][good_markers_names].to_numpy()
+            # Yi = Y[Y.sample_id == i][good_markers_names].to_numpy() * 10
+            # Yi = (Y[Y.sample_id == i][good_markers_names].to_numpy() > 0) * 1
+            tsne.fit(Yi)
+            for z in range(2):
+                Y.loc[Y.sample_id == i,
+                      'tsne_embedding_{}'.format(z)] = tsne.embedding_[:, z]
+        print('Sample {}:'.format(i))
+        print('KL Divergence: {}'.format(tsne.kl_divergence_))
+        print('num iters: {}/{}'.format(tsne.n_iter_ + 1, tsne.n_iter))
 
     # Write this new df to csv
     Y.to_csv('{}/cb_paper_Y_with_tsne.csv'.format(img_dir), index=False)
 
-    markers = '.,ov^<>12348spP*hH+xXDd|_'
+    # Markers for plotting
+    markers_orig = list('ov^<>spP*hHXDd1234')
 
+    # TODO: Black and white
+    for i in range(I):
+        markers = cycle(markers_orig)
+        groups = Y[Y.sample_id == i].groupby('lam_est')
+        fig, ax = plt.subplots()
+        num_clus = len(groups)
+        Ni = (Y.sample_id == i).sum()
+        for name, group in groups:
+            wi = len(group) / Ni
+            lami = group.lam_est.head(1).item()
+            marker = next(markers)
+            if wi > .05:
+                ms = 4
+                label = '{}: {:.2f}%'.format(lami, wi * 100)
+            else:
+                ms = 1
+                label = None
+            ax.plot(group.tsne_embedding_0, group.tsne_embedding_1,
+                    # marker='o', linestyle='', ms=10 * wi)
+                    # marker=marker, linestyle='', ms=10 * wi, color='black')
+                    marker=marker, linestyle='', ms=ms,
+                    label=label, alpha=.7)
+        plt.legend(bbox_to_anchor=(1, 1))
+        plt.savefig('{}/tsne_sample_{}.pdf'.format(img_dir, i + 1),
+                    bbox_inches='tight')
+        plt.close()
 
-# TODO: Black and white
-for i in range(I):
-    groups = Y[Y.sample_id == i].groupby('lam_est')
-    fig, ax = plt.subplots()
-    num_clus = len(groups)
-    for (name, group), marker in zip(groups, list(markers[:num_clus])):
-          ax.plot(group.tsne_embeddings_0, group.tsne_embeddings_1,
-                  marker='o', linestyle='', ms=2)
-                  # marker=marker, linestyle='', ms=6, color='black')
-    plt.savefig('{}/tsne_sample_{}.pdf'.format(img_dir, i + 1), bbox_inches='tight')
-    plt.close()
-
-# TSNE for all
-groups = Y.groupby('lam_est')
-fig, ax = plt.subplots()
-num_clus = len(groups)
-for (name, group), marker in zip(groups, list(markers[:num_clus])):
-      ax.plot(group.tsne_embeddings_0, group.tsne_embeddings_1,
-              marker='o', linestyle='', ms=1)
-              # marker=marker, linestyle='', ms=6, color='black')
-
-plt.savefig('{}/tsne_sample_all.pdf'.format(img_dir), bbox_inches='tight')
-plt.close()
-
-# TODO: Try tsne for just single samples.
-
-# TODO: Send results
+# 
+# # TSNE for all
+# groups = Y.groupby('lam_est')
+# fig, ax = plt.subplots()
+# num_clus = len(groups)
+# for (name, group), marker in zip(groups, list(markers[:num_clus])):
+#       ax.plot(group.tsne_embedding_0, group.tsne_embedding_1,
+#               marker='o', linestyle='', ms=1)
+#               # marker=marker, linestyle='', ms=6, color='black')
+# 
+# plt.savefig('{}/tsne_sample_all.pdf'.format(img_dir), bbox_inches='tight')
+# plt.close()
+# 
+# # TODO: Try tsne for just single samples.
+# 
+# # TODO: Send results
