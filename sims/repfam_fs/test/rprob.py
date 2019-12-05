@@ -79,6 +79,6 @@ if __name__ == '__main__':
         dest_dir = '{}/metrics/z3/seed{}'.format(results_dir, seed)
         os.makedirs(dest_dir, exist_ok=True)
         plt.tight_layout()
-        plt.savefig('{}/prob_R{}_equals_KTRUE.pdf'.format(dest_dir, i + 1))
+        plt.savefig('{}/prob_R_equals_KTRUE.pdf'.format(dest_dir))
         plt.close()
 
