@@ -280,6 +280,11 @@ function post_process(path_to_output;
   println("r ...")
   rs_vec = extract(:r)
   rs = cat(rs_vec..., dims=3)  # I x K x NMCMC
+  open("$(img_path)/txt/r_mean.txt", "w") do io
+    writedlm(io, mean(rs_vec))
+  end
+
+  # Rᵢ= ∑ₖ(rᵢₖ)
   Rs = dropdims(sum(rs, dims=2), dims=2)  # I x NMCMC
 
   Rs_df = DF.DataFrame(mean=vec(mean(Rs, dims=2)),
@@ -292,7 +297,6 @@ function post_process(path_to_output;
 
   # Probability Ri equals each K
   prob_R_equals_K = [mean(Rs .== K, dims=2) for K in 1:maximum(Rs)]
-  println(prob_R_equals_K)
   open("$(img_path)/txt/prob_R_equals_K.txt", "w") do io
     writedlm(io, prob_R_equals_K)
   end
@@ -508,7 +512,7 @@ function post_process(path_to_output;
 end
 
 #= Quick test
-path_to_results = "results/test-sims-3/KMCMC5/z2/scale10"
+path_to_results = "results/test-sims-5-5/KMCMC15/z3/scale10/seed0"
 path_to_output = "$(path_to_results)/output.bson"
 path_to_simdat = "$(path_to_results)/simdat.bson"
 post_process(path_to_output, path_to_simdat=path_to_simdat)
