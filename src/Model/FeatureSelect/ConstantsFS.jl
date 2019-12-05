@@ -12,7 +12,8 @@ mutable struct ConstantsFS{T <: ContinuousDistribution}
 end
 
 function ConstantsFS(c::Constants)
-  ws_prior = Gamma(1. / c.K, 1.)
+  # ws_prior = Gamma(1. / c.K, 1.)  # Old version.
+  ws_prior = Gamma(10., 1.)
   p_prior = Beta(.1, .1)
   omega_prior = Normal(-5, 1.)
 
