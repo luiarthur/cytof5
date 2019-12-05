@@ -45,7 +45,7 @@ lam_are_prominent = (W > w_thresh).any(0)
 prominent_lam = lam_are_prominent[lam_are_prominent].index
 
 # Markers to be used.
-colors_orig = ['C{}'.format(i) for i in range(10)] + ['darkgrey']
+colors_orig = ['C{}'.format(i) for i in range(10)] + ['red']
 colors_orig = cycle(colors_orig)
 colors = dict((lam, c) for lam, c in zip(prominent_lam, colors_orig))
 markers = dict((lam, m) for lam, m in zip(prominent_lam, markers_orig))
