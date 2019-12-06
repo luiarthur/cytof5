@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: all build clean getimg
+.PHONY: all build clean getimg bundle
 
 FNAME = tsne
 CB_AWS_BUCKET = s3://cytof-cb-results/cb-paper
@@ -19,4 +19,6 @@ build:
 clean:
 	rm -f *.{log,aux,nav,out,snm,toc,blg,bbl,fdb_latexmk,fls,synctex.gz,zip,pdfsync}
 
+bundle:
+	zip -r tsne_writeup.zip . -x \*.\*/\* .\* Makefile \*/.\*
 

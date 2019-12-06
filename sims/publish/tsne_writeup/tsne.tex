@@ -29,6 +29,10 @@
 \newcommand{\iid}{\overset{iid}{\sim}}
 \newcommand{\ind}{\overset{ind}{\sim}}
 
+% Graphics
+\usepackage{graphicx}  % for figures
+\usepackage{float} % Put figure exactly where I want [H]
+
 % Uncomment if using bibliography
 % Bibliography
 % \usepackage{natbib}
@@ -41,32 +45,60 @@
 }
 
 % Title Settings
-\title{Template Doc}
+\title{TSNE on CB Data}
 \author{Arthur Lui}
-\date{18 October, 2018} % \date{} to set date to empty
+\date{\today} % \date{} to set date to empty
 
 % MAIN %
 \begin{document}
 
 \maketitle
 
-% \tableofcontents \newpage % Comment to remove table of contents
+Two-dimensional t-SNE's were learned separately on each sample of the CB data.
+Due to the size of the data (38636, 9555, and 4827 cells respectively 
+in samples 1, 2, and 3), the Barnes--Hut algorithm was used to approximate
+the exact t-SNE. Moreover, since our analyses revealed that 21 subpopulations
+were required to adequately explain the data, and plotting 21 clusters 
+was visually overwhelming, only clusters comprising more than 
+5\% of cells in each sample are included in the graphs, though
+the t-SNE's were fit on every cell of each sample.
 
-\section{A section}\label{sec:a-section} % add labels to refer to other sections easily
-This is just a test.
 
-\section{Another section}\label{sec:another-section}
-The previous section is section \ref{sec:a-section}. \\
+\begin{figure}[t]
+  \begin{center}
+    \includegraphics[scale=1]{img/tsne_sample_1.pdf}
+  \end{center}
+  \caption{TSNE on sample 1 of CB marker expression data. 
+  Each point represents a cell. Only cell subpopulations comprising more
+  than 5\% of cells in the sample are included. Each subpopulation
+  corresponds to a cluster obtained from the FAM and is marked by a
+  unique marker and color.}
+\end{figure}
 
-A new paragraph. \\
 
-Another paragraph. \\
+\begin{figure}[t]
+  \begin{center}
+    \includegraphics[scale=1]{img/tsne_sample_2.pdf} \\
+  \end{center}
+  \caption{TSNE on sample 2 of CB marker expression data. 
+  Each point represents a cell. Only cell subpopulations comprising more
+  than 5\% of cells in the sample are included. Each subpopulation
+  corresponds to a cluster obtained from the FAM and is marked by a
+  unique marker and color.}
+\end{figure}
 
-$$
-\bigcap_{i=1}^n A_i \ne \emptyset
-$$
 
-And another paragraph.
+\begin{figure}[t]
+  \begin{center}
+    \includegraphics[scale=1]{img/tsne_sample_3.pdf} \\
+  \end{center}
+  \caption{TSNE on sample 3 of CB marker expression data. 
+  Each point represents a cell. Only cell subpopulations comprising more
+  than 5\% of cells in the sample are included. Each subpopulation
+  corresponds to a cluster obtained from the FAM and is marked by a
+  unique marker and color.}
+\end{figure}
+
 
 % Uncomment if using bibliography:
 % \bibliography{bib}
