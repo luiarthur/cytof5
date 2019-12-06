@@ -1,1 +1,73 @@
-ARTHUR IS COOL
+\documentclass[12pt]{article} % 12-point font
+
+\usepackage[margin=1in]{geometry} % set page to 1-inch margins
+\usepackage{amsmath} % for math
+\usepackage{amssymb} % like \Rightarrow
+\setlength\parindent{0pt} % Suppresses the indentation of new paragraphs.
+
+% Big display
+\newcommand{\ds}{ \displaystyle }
+% Parenthesis
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\p}[1]{\left(#1\right)}
+\newcommand{\bk}[1]{\left[#1\right]}
+\newcommand{\bc}[1]{ \left\{#1\right\} }
+\newcommand{\abs}[1]{ \left|#1\right| }
+% Derivatives
+\newcommand{\df}[2]{ \frac{d#1}{d#2} }
+\newcommand{\ddf}[2]{ \frac{d^2#1}{d{#2}^2} }
+\newcommand{\pd}[2]{ \frac{\partial#1}{\partial#2} }
+\newcommand{\pdd}[2]{\frac{\partial^2#1}{\partial{#2}^2} }
+% Distributions
+\newcommand{\Normal}{ \text{Normal} }
+\newcommand{\Beta}{ \text{Beta} }
+\newcommand{\G}{ \text{Gamma} }
+\newcommand{\InvGamma}{ \text{Inv-Gamma} }
+\newcommand{\Uniform}{ \text{Uniform} }
+% Statistics
+\newcommand{\E}{ \text{E} }
+\newcommand{\iid}{\overset{iid}{\sim}}
+\newcommand{\ind}{\overset{ind}{\sim}}
+
+% Uncomment if using bibliography
+% Bibliography
+% \usepackage{natbib}
+% \bibliographystyle{plainnat}
+
+% Adds settings for hyperlinks. (Mainly for table of contents.)
+\usepackage{hyperref}
+\hypersetup{
+  pdfborder={0 0 0} % removes red box from links
+}
+
+% Title Settings
+\title{Template Doc}
+\author{Arthur Lui}
+\date{18 October, 2018} % \date{} to set date to empty
+
+% MAIN %
+\begin{document}
+
+\maketitle
+
+% \tableofcontents \newpage % Comment to remove table of contents
+
+\section{A section}\label{sec:a-section} % add labels to refer to other sections easily
+This is just a test.
+
+\section{Another section}\label{sec:another-section}
+The previous section is section \ref{sec:a-section}. \\
+
+A new paragraph. \\
+
+Another paragraph. \\
+
+$$
+\bigcap_{i=1}^n A_i \ne \emptyset
+$$
+
+And another paragraph.
+
+% Uncomment if using bibliography:
+% \bibliography{bib}
+\end{document}
