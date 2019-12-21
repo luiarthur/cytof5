@@ -5,11 +5,13 @@ function isBadRow(x::Vector{T}; thresh::Float64=-6.0) where {T <: Number}
   return any(x .< thresh)
 end
 
-function removeBadRows!(y::Vector{Matrix{T}}; thresh::Float64=-6.0) where {T <: Number}
+function removeBadRows!(y::Vector{Matrix{T}};
+                        thresh::Float64=-6.0) where {T <: Number}
   I = length(y)
   N = size.(y, 1)
 
-  goodRows = [[!isBadRow(y[i][n, :], thresh=thresh) for n in 1:N[i]] for i in 1:I]
+  goodRows = [[!isBadRow(y[i][n, :], thresh=thresh)
+               for n in 1:N[i]] for i in 1:I]
 
   for i in 1:I
     y[i] = y[i][goodRows[i], :]
@@ -36,20 +38,25 @@ function isBadColumnForAllSamples(j::Int, y::Vector{Matrix{T}};
                                   maxNanOrNegProp::Float64=.9,
                                   maxPosProp::Float64=.9) where {T}
   I = length(y)
-  results = [isBadColumn(y[i][:, j], maxNanOrNegProp=maxNanOrNegProp, maxPosProp=maxPosProp) for i in 1:I]
+  results = [isBadColumn(y[i][:, j],
+                         maxNanOrNegProp=maxNanOrNegProp,
+                         maxPosProp=maxPosProp) for i in 1:I]
   result = all(results)
   return result
 end
 
-function markerIsNearZero(j::Int, yi::Matrix{T}; thresh=0.5, prop=.25) where {T}
+function markerIsNearZero(j::Int, yi::Matrix{T};
+                          thresh=0.5, prop=.25) where {T}
   out = (isnan.(yi[:, j]) .== false) .& (abs.(yi[:, j]) .< thresh)
   return mean(out) > prop
 end
 
-function markerIsNearZeroInAnySample(j::Int, y::Vector{Matrix{T}}; thresh=0.5, prop=.25) where T
+function markerIsNearZeroInAnySample(j::Int, y::Vector{Matrix{T}};
+                                     thresh=0.5, prop=.25) where T
   I = length(y)
 
-  badMarker = [markerIsNearZero(j, y[i], thresh=thresh, prop=prop) for i in 1:I]
+  badMarker = [markerIsNearZero(j, y[i], thresh=thresh, prop=prop)
+               for i in 1:I]
   return any(badMarker)
 end
 
@@ -60,7 +67,8 @@ returns goodColumns, new_J
 function preprocess!(y::Vector{Matrix{T}}; maxNanOrNegProp::Float64=.9,
                      maxPosProp::Float64=.9, subsample::Float64=0.0,
                      rowThresh::Float64=-Inf, 
-                     noisyThresh=0.5, noisyProp=0.25) where {T}
+                     noisyThresh=0.5, noisyProp=0.25,
+                     rmMarkersNearZeroInAnySample::Bool=true) where {T}
   Js = size.(y, 2)
   J = Js[1]
   I = length(y)
@@ -73,13 +81,17 @@ function preprocess!(y::Vector{Matrix{T}}; maxNanOrNegProp::Float64=.9,
     removeBadRows!(y, thresh=rowThresh) 
   end
 
-  goodColumns = [!isBadColumnForAllSamples(j, y, maxNanOrNegProp=maxNanOrNegProp,
+  goodColumns = [!isBadColumnForAllSamples(j, y,
+                                           maxNanOrNegProp=maxNanOrNegProp,
                                            maxPosProp=maxPosProp) for j in 1:J]
 
-  goodColumns2=  [!markerIsNearZeroInAnySample(j, y, thresh=noisyThresh, prop=noisyProp)
-                  for j in 1:J]
-
-  goodColumns = goodColumns .& goodColumns2
+  if rmMarkersNearZeroInAnySample
+    goodColumns2 = [!markerIsNearZeroInAnySample(j, y,
+                                                 thresh=noisyThresh,
+                                                 prop=noisyProp)
+                    for j in 1:J]
+    goodColumns = goodColumns .& goodColumns2
+  end
 
   if 0 < subsample < 1
     for i in 1:I
