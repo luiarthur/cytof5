@@ -269,7 +269,7 @@ if __name__ == '__main__':
                                           labels=labels)
                 dest_dir = '{}/{}/{}'.format(metrics_dir, z, seed)
                 if metric == 'R':
-                    plt.legend(loc='upper left')
+                    plt.legend(loc='lower right')
                 elif metric == 'Rprob':
                     plt.legend(loc='lower center')
                 else:
