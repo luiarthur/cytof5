@@ -117,7 +117,9 @@ monitor2 = [:theta__y_imputed, :theta__gam]
 
 # MCMC Specs
 nsamps_to_thin(nsamps::Int, nmcmc::Int) = max(1, div(nmcmc, nsamps))
-MCMC_ITER = 1000  # Number of MCMC iterations
+NSAMPS = 1000  # Number of samples
+THIN_SAMPS = 2  # Factor to thin the primary parameters
+MCMC_ITER = NSAMPS * THIN_SAMPS  # Number of MCMC iterations
 NBURN = 3000  # burn-in time
 
 # Configurations: priors, initial state, data, etc.
@@ -130,8 +132,9 @@ flush(stdout)
 # Fit model
 @time out = Cytof5.Model.fit_fs!(config[:sfs], config[:cfs], config[:dfs],
                                  tuners=config[:tfs], 
-                                 nmcmc=MCMC_ITER, nburn=NBURN,
-                                 thins=[2, nsamps_to_thin(10, MCMC_ITER)],
+                                 nmcmc=MCMC_ITER,
+                                 nburn=NBURN,
+                                 thins=[THIN_SAMPS, nsamps_to_thin(10, MCMC_ITER)],
                                  monitors=[monitor1, monitor2],
                                  computedden=true,
                                  thin_dden=nsamps_to_thin(200, MCMC_ITER),

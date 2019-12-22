@@ -32,12 +32,17 @@ SHELL:=/bin/bash
 # USing sig2_TRUE = 0.5
 # SIM_EXP_NAME = test-sims-5-5
 
+# Using Z3, which has several similar columns
+# USing sig2_TRUE = 0.5
+# Using prior: W*_{ik} ~ Gamma(10, 1)
+# SIM_EXP_NAME = test-sims-5-6
+
 # Current experiment 
 # Using Z3, which has several similar columns
 # USing sig2_TRUE = 0.5
 # Using prior: W*_{ik} ~ Gamma(10, 1)
-SIM_EXP_NAME = test-sims-5-6
-
+# Keep 1000 samples for better LPML
+SIM_EXP_NAME = test-sims-5-7
 
 ### End of Simulation data experiment name ###
 
