@@ -324,6 +324,13 @@ function post_process(path_to_output;
   plt.savefig("$(img_path)/mus.pdf", bbox_inches="tight")
   plt.close()
 
+  # Traceplot of mus
+  plt.plot(mus0)
+  plt.plot(mus1)
+  plt.savefig("$(img_path)/mus_trace.pdf", bbox_inches="tight")
+  plt.close()
+
+
   # Plot delta
   println("delta ...")
   delta0 = Matrix(hcat([d[0] for d in deltas]...)')  # B x L0
@@ -359,6 +366,11 @@ function post_process(path_to_output;
     axhlines(simdat[:sig2])
   end
   plt.savefig("$(img_path)/sig2.pdf", bbox_inches="tight")
+  plt.close()
+
+  # Traceplot of sig2
+  plt.plot(sig2s)
+  plt.savefig("$(img_path)/sig2_trace.pdf", bbox_inches="tight")
   plt.close()
 
   # Plot Z
@@ -512,7 +524,7 @@ function post_process(path_to_output;
 end
 
 #= Quick test
-path_to_results = "results/test-sims-5-5/KMCMC15/z3/scale10/seed0"
+path_to_results = "results/test-sims-5-6/KMCMC15/z3/scale10/seed0"
 path_to_output = "$(path_to_results)/output.bson"
 path_to_simdat = "$(path_to_results)/simdat.bson"
 post_process(path_to_output, path_to_simdat=path_to_simdat)
