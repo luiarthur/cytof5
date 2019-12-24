@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import re
+import rcparams
 
 def parse_log(path_to_log, metric='lpml'):
     with open(path_to_log, 'r') as f:
@@ -40,11 +41,15 @@ if __name__ == '__main__':
 
     # Plot LPML
     # for seed in seeds:
-    for seed in [seeds[1]]:
+    for seed in [seeds[4]]:
         for scale in [scales[1]]:
             for kmcmc in kmcmcs:
                 plt.plot(results_dict[seed, kmcmc, scale], lw=2, label=kmcmc)
             plt.legend(title='KMCMC')
+            plt.ylabel('LPML')
+            plt.xlabel('Every 10th iteration in MCMC after burn-in')
+            plt.title('seed: {}'.format(seed))
+            plt.tight_layout()
             plt.show()
 
     # plt.plot(kmcmcs, [results_dict[seeds[2], kmcmc, scales[0]][-1]
