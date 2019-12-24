@@ -129,6 +129,8 @@ NBURN = 10000  # burn-in time
 config = init_state_const_data(simdat, K=KMCMC, L=Dict(0 => 2, 1 => 2))
 
 # Print constants
+println("N: $(config[:dfs].data.N)")
+println("J: $(config[:dfs].data.J)")
 Cytof5.Model.printConstants(config[:cfs])
 flush(stdout)
 

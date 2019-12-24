@@ -1,6 +1,7 @@
 SHELL:=/bin/bash
 
 .PHONY: cleansim sim retrieveallsim retrievesim postprocsim metrics killsim
+.PHONY: simandpostproc
 
 ### Simulation data experiment name ###
 # Initial test
@@ -41,7 +42,7 @@ SHELL:=/bin/bash
 # USing sig2_TRUE = 0.5
 # Using prior: W*_{ik} ~ Gamma(10, 1)
 # Keep 3000 samples and burn 10000 for better LPML
-SIM_EXP_NAME = test-sims-5-7
+# SIM_EXP_NAME = test-sims-5-7
 
 # Current experiment 
 # Using Z3, which has several similar columns
@@ -91,3 +92,7 @@ killsim:
 	pids=`grep -r pid $(SIM_RESULTS_DIR) | grep -oP '(?<=pid).*' | grep -oP '\d+'`; \
 			 for p in $$pids; do kill $$p; done
 
+simandpostproc:
+	make sim && sleep 30 && \
+		make retrieveallsim && sleep 30 && \
+		make postprocsim
