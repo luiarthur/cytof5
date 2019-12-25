@@ -56,7 +56,10 @@ function datadensity(i::Integer, j::Integer,
 end
 
 
-# For updating Z marginalizing over lambda and gamma ############
+### For updating Z marginalizing over lambda and gamma ############
+
+
+# TODO: DEPRECATE ###########################################################
 function dmix_nolamgam(Z::Matrix{Bool}, i::Integer, n::Integer,
                        s::State, c::Constants, d::Data)::Float64
 
@@ -69,15 +72,20 @@ function dmix_nolamgam(Z::Matrix{Bool}, i::Integer, n::Integer,
 
   return s.eps[i] * dnoisy(i, n, s, c, d) + (1 - s.eps[i]) * dyin_not_noisy
 end
+#############################################################################
 
-#####################################################################
+
 function log_dmix_nolamgam(Z::Matrix{Bool}, i::Integer, n::Integer,
                            s::State, c::Constants, d::Data)::Float64
+
+  # Indices for k such that W[i, k] > 0 (selected)
+  selected_k = findall(identity, s.W[i, :] .> 0)
 
   # Get the density over all markers
   log_dyin_not_noisy = log.(s.W[i, :])
 
-  for k in 1:c.K
+  # NOTE: For the not-selected ones, log(W[i,k]) = -Inf anyway.
+  for k in selected_k
     logdvec = sum(logdmixture(Z[j, k], i, n, j, s, c, d) for j in 1:d.J)
     log_dyin_not_noisy[k] += logdvec
   end
@@ -108,10 +116,14 @@ function log_dmix_nolamgam(Z::Matrix{Bool}, i::Integer, n::Integer,
                            B1::Vector{Matrix{Float64}},
                            s::State, c::Constants, d::Data)::Float64
 
+  # Indices for k such that W[i, k] > 0 (selected)
+  selected_k = findall(identity, s.W[i, :] .> 0)
+
   # Get the density over all markers
   log_dyin_not_noisy = log.(s.W[i, :])
 
-  for k in 1:c.K
+  # NOTE: For the not-selected ones, log(W[i,k]) = -Inf anyway.
+  for k in 1:selected_k
     logdvec = sum(Z[j, k] == 0 ? B0[i][n, j] : B1[i][n, j] for j in 1:d.J)
     log_dyin_not_noisy[k] += logdvec
   end
