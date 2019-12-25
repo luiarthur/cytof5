@@ -94,8 +94,8 @@ end
 
 # NOTE: Used on and after test-sims-5
 @time simdat = simulatedata1(Z=Z,
-                             # N=[300, 300],  # for test-sims-5-7 and below
-                             N=[500, 500],  # for test-sims-5-8 and above
+                             N=[300, 300],  # for all but test-sims-5-8
+                             # N =[500, 500],  # for test-sims-5-8
                              W=Matrix(hcat([[.7, 0, .1, .1, .1],
                                             [.4, .1, .3, .1, .1]]...)'),
                              sig2=[.5, .5],
@@ -119,11 +119,11 @@ monitor2 = [:theta__y_imputed, :theta__gam]
 
 # MCMC Specs
 nsamps_to_thin(nsamps::Int, nmcmc::Int) = max(1, div(nmcmc, nsamps))
-NSAMPS = 3000  # Number of samples
+NSAMPS = 1000  # Number of samples
 THIN_SAMPS = 2  # Factor to thin the primary parameters
 MCMC_ITER = NSAMPS * THIN_SAMPS  # Number of MCMC iterations
 # LPML / DIC are computed based on `MCMC_ITER` samples
-NBURN = 10000  # burn-in time
+NBURN = 6000  # burn-in time
 
 # Configurations: priors, initial state, data, etc.
 config = init_state_const_data(simdat, K=KMCMC, L=Dict(0 => 2, 1 => 2))

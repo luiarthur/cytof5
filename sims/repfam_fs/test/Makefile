@@ -43,13 +43,21 @@ SHELL:=/bin/bash
 # Keep 3000 samples and burn 10000 for better LPML
 # SIM_EXP_NAME = test-sims-5-7
 
-# Current experiment 
 # Using Z3, which has several similar columns
 # USing sig2_TRUE = 0.5
 # Using prior: W*_{ik} ~ Gamma(10, 1)
 # Keep 3000 samples and burn 10000 for better LPML
 # Use sample size of 500
-SIM_EXP_NAME = test-sims-5-8
+# SIM_EXP_NAME = test-sims-5-8
+
+# Current experiment 
+# Using Z4, which has several similar columns and J=20.
+# USing sig2_TRUE = 0.5
+# Using prior: W*_{ik} ~ Gamma(10, 1)
+# 1000 sampels (thinned by 2), burn 6000.
+# Use sample size of 300
+SIM_EXP_NAME = test-sims-5-9
+
 
 ### End of Simulation data experiment name ###
 
