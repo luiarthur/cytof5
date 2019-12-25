@@ -56,6 +56,11 @@ SHELL:=/bin/bash
 # Using prior: W*_{ik} ~ Gamma(10, 1)
 # 1000 sampels (thinned by 2), burn 6000.
 # Use sample size of 300
+# NOTE: To return to sims-5-6, 
+# sim.sh:
+#   - Z_idx=3
+# Makefile:
+#   = SIM_EXP_NAME = test-sims-5-6
 SIM_EXP_NAME = test-sims-5-9
 
 
