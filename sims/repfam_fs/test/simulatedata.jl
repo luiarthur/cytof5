@@ -1,7 +1,7 @@
 """
 Z1 is a binary matrix with very different phenotypes
 """
-Z1 = begin
+Z1 = let
   Z = zeros(Bool, 7, 3)
   Z[1:3, 1] .= 1
   Z[4:6, 2] .= 1
@@ -13,7 +13,7 @@ end
 """
 Z2 is a binary matrix with two similar phenotypes
 """
-Z2 = begin
+Z2 = let
   Z = ones(Bool, 7, 3)
   Z[[4, 7], 1] .= 0
   Z[[1, 4, 7], 2] .= 0
@@ -25,7 +25,7 @@ end
 """
 Z3 is a binary matrix with several similar phenotypes
 """
-Z3 = begin
+Z3 = let
   Z = [Z2 ones(Bool, 7, 2)]
   Z[end, 4] = false
   Z[[2, 4, 7], 5] .= false
@@ -33,8 +33,14 @@ Z3 = begin
 end
 
 
+Z4 = let
+  J, K = size(Z3)
+  new_row = Z3[end, :]'
+  [Z3; vcat([new_row for _ in 1:(20 - J)]...)]
+end
+
 # All Zs.
-Zs = [Z1, Z2, Z3]
+Zs = [Z1, Z2, Z3, Z4]
 
 
 
