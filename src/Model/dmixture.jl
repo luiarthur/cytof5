@@ -123,7 +123,7 @@ function log_dmix_nolamgam(Z::Matrix{Bool}, i::Integer, n::Integer,
   log_dyin_not_noisy = log.(s.W[i, :])
 
   # NOTE: For the not-selected ones, log(W[i,k]) = -Inf anyway.
-  for k in 1:selected_k
+  for k in selected_k
     logdvec = sum(Z[j, k] == 0 ? B0[i][n, j] : B1[i][n, j] for j in 1:d.J)
     log_dyin_not_noisy[k] += logdvec
   end
