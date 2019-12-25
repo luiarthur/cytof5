@@ -1,7 +1,6 @@
 SHELL:=/bin/bash
 
 .PHONY: cleansim sim retrieveallsim retrievesim postprocsim metrics killsim
-.PHONY: simandpostproc
 
 ### Simulation data experiment name ###
 # Initial test
@@ -92,7 +91,3 @@ killsim:
 	pids=`grep -r pid $(SIM_RESULTS_DIR) | grep -oP '(?<=pid).*' | grep -oP '\d+'`; \
 			 for p in $$pids; do kill $$p; done
 
-simandpostproc:
-	make sim && sleep 30 && \
-		make retrieveallsim && sleep 30 && \
-		make postprocsim
