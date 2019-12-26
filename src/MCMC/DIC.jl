@@ -46,7 +46,8 @@ function updateDIC(x::DICstream{T}, state::S, updateParams::Function,
   # update paramSum
   if x.counter == 0
     x.paramSum = deepcopy(param)
-  else x.counter
+  else
+    @assert x.counter > 0
     updateParams(x, param)
   end
 
