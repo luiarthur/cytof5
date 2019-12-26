@@ -50,7 +50,6 @@ SHELL:=/bin/bash
 # Use sample size of 500
 # SIM_EXP_NAME = test-sims-5-8
 
-# Current experiment 
 # Using Z4, which has several similar columns and J=20.
 # USing sig2_TRUE = 0.5
 # Using prior: W*_{ik} ~ Gamma(10, 1)
@@ -61,7 +60,15 @@ SHELL:=/bin/bash
 #   - Z_idx=3
 # Makefile:
 #   = SIM_EXP_NAME = test-sims-5-6
-SIM_EXP_NAME = test-sims-5-9
+# SIM_EXP_NAME = test-sims-5-9
+
+# Current experiment 
+# Using Z3, which has several similar columns
+# USing sig2_TRUE = 0.5
+# Using prior: W*_{ik} ~ Gamma(10, 1)
+# Keep 2000 samples, thinned by 2, and burn 10000 for better LPML
+# Use sample size of 1000
+SIM_EXP_NAME = test-sims-5-10
 
 
 ### End of Simulation data experiment name ###
