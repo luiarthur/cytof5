@@ -44,11 +44,10 @@ function updateDIC(x::DICstream{T}, state::S, updateParams::Function,
   x.Dsum += deviance(param, loglike)
 
   # update paramSum
-  if x.counter > 0
-    updateParams(x, param)
-  else
-    @assert x.counter == 0
+  if x.counter == 0
     x.paramSum = deepcopy(param)
+  else x.counter
+    updateParams(x, param)
   end
 
   # update counter

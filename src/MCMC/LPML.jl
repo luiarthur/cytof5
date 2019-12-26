@@ -41,6 +41,7 @@ function updateCPO(x::CPOstream, invLike::T) where T
   if x.counter == 0
     x.invLikelihoodSum = deepcopy(invLike)
   else
+    @assert x.counter > 0
     updateInvLikelihood(x, invLike)
   end
 
