@@ -10,7 +10,7 @@ RESULTS_DIR=$1
 AWS_BUCKET=$2
 
 # Maximum number of cores to use
-MAX_CORES=20
+MAX_CORES=24
 
 # STAGGER_TIME in seconds. To avoid mass dumping to disk simultaneously. 
 STAGGER_TIME=0
