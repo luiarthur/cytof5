@@ -54,7 +54,7 @@ SHELL:=/bin/bash
 # Using Z4, which has several similar columns and J=20.
 # USing sig2_TRUE = 0.5
 # Using prior: W*_{ik} ~ Gamma(10, 1)
-# 1000 sampels (thinned by 2), burn 6000.
+# 2000 sampels (thinned by 2), burn 10000.
 # Use sample size of 300
 # NOTE: To return to sims-5-6, 
 # sim.sh:

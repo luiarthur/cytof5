@@ -119,11 +119,11 @@ monitor2 = [:theta__y_imputed, :theta__gam]
 
 # MCMC Specs
 nsamps_to_thin(nsamps::Int, nmcmc::Int) = max(1, div(nmcmc, nsamps))
-NSAMPS = 1000  # Number of samples
+NSAMPS = 2000  # Number of samples
 THIN_SAMPS = 2  # Factor to thin the primary parameters
 MCMC_ITER = NSAMPS * THIN_SAMPS  # Number of MCMC iterations
 # LPML / DIC are computed based on `MCMC_ITER` samples
-NBURN = 6000  # burn-in time
+NBURN = 10000  # burn-in time
 
 # Configurations: priors, initial state, data, etc.
 config = init_state_const_data(simdat, K=KMCMC, L=Dict(0 => 2, 1 => 2))
