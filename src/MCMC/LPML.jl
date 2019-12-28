@@ -38,7 +38,7 @@ function updateCPO(cs::CPOstream{T}, like::Vector{T}) where {T <: AbstractFloat}
 end
 
 """
-Computes (elementwise) CPO for each observation.
+Computes (elementwise) log CPO for each observation.
 """
 function computeLogCPO(cs::CPOstream{T}) where {T <: AbstractFloat}
   # NOTE: Equivalent to `log(cs.counter ./ cs.invLikelihoodSum)`
