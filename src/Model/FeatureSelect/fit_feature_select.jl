@@ -75,12 +75,9 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
   # Loglike
   loglike = Float64[]
 
-  # CPO
+  # Instantiate (but not initialize) CPO stream
   if computeLPML
-    invLike = [[1.0 / compute_like(i, n, init.theta, c.constants, d.data)
-                for n in 1:d.data.N[i]] for i in 1:d.data.I ]
-    invLikeType = typeof(invLike)
-    cpoStream = MCMC.CPOstream{invLikeType}(invLike)
+    cpoStream = MCMC.CPOstream{Float64}()
   end
 
   # DIC
@@ -159,11 +156,11 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
 
     if computeLPML && iter > nburn
       # Inverse likelihood for each data point
-      invLike = [[1.0 / compute_like(i, n, s.theta, c.constants, d.data)
-                  for n in 1:d.data.N[i]] for i in 1:d.data.I ]
+      like = [[compute_like(i, n, s.theta, c.constants, d.data)
+               for n in 1:d.data.N[i]] for i in 1:d.data.I ]
 
-      # Update COP
-      MCMC.updateCPO(cpoStream, invLike)
+      # Update (or initialize) CPO
+      MCMC.updateCPO(cpoStream, vcat(like...))
 
       # Add to printMsg
       printMsg(iter, " -- LPML: $(MCMC.computeLPML(cpoStream))")
