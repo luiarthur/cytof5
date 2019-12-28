@@ -42,7 +42,7 @@ Computes (elementwise) CPO for each observation.
 """
 function computeLogCPO(cs::CPOstream{T}) where {T <: AbstractFloat}
   # NOTE: Equivalent to `log(cs.counter ./ cs.invLikelihoodSum)`
-  return log(cs.counter) .- log(cs.invLikelihoodSum)
+  return log(cs.counter) .- log.(cs.invLikelihoodSum)
 end
 
 ### LPML ###
