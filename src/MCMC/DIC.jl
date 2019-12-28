@@ -38,6 +38,8 @@ convert: converts state to param
 """
 function updateDIC(x::DICstream{T}, state::S, updateParams::Function,
                    loglike::Function, convert::Function) where {T, S}
+  @assert x.counter >= 0
+
   param = convert(state)
 
   # update Dsum
@@ -47,7 +49,6 @@ function updateDIC(x::DICstream{T}, state::S, updateParams::Function,
   if x.counter == 0
     x.paramSum = deepcopy(param)
   else
-    @assert x.counter > 0
     updateParams(x, param)
   end
 
