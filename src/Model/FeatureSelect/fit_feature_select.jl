@@ -156,8 +156,8 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
 
     if computeLPML && iter > nburn
       # Inverse likelihood for each data point
-      like = [[compute_like(i, n, s.theta, c.constants, d.data, normalize=false)
-               for n in 1:d.data.N[i]] for i in 1:d.data.I ]
+      like = [[compute_like(i, n, s.theta, c.constants, d.data)
+               for n in 1:d.data.N[i]] for i in 1:d.data.I]
 
       # Update (or initialize) CPO
       MCMC.updateCPO(cpoStream, vcat(like...))

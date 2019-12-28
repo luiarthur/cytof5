@@ -48,6 +48,11 @@ end
 ### LPML ###
 function computeLPML(cs::CPOstream{T}; verbose::Int=1) where {T <: AbstractFloat}
   mean_log_cpo = mean(computeLogCPO(cs))
-  @assert isfinite(mean_log_cpo)
+
+  if isinf(mean_log_cpo) || isnan(mean_log_cpo)
+    # Reset LPML
+    cs.counter = 0
+  end
+
   return mean_log_cpo
 end

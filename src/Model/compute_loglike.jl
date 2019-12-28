@@ -14,7 +14,8 @@ function compute_loglike(i::Int, n::Int, j::Int,
 
   # Compute p(y_inj | theta) term.
   k = s.lam[i][n]
-  y_inj = d.y[i][n, j]
+  # y_inj = d.y[i][n, j]
+  y_inj = s.y_imputed[i][n, j]
   if k > 0  # cell is not noisy 
     z = s.Z[j, k]
     l = s.gam[i][n, j]
@@ -23,7 +24,7 @@ function compute_loglike(i::Int, n::Int, j::Int,
     ll += logpdf(c.noisyDist, y_inj)
   end
 
-  if isinf(ll)
+  if isinf(ll) || isnan(ll)
     println("WARNING: loglike = -Inf for (i: $i, n: $n, j: $j).")
   end
 
