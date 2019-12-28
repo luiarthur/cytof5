@@ -69,20 +69,23 @@ function cytof5_fit(init::State, c::Constants, d::Data;
   if computeDIC
     local tmp = DICparam(p=deepcopy(d.y),
                          mu=deepcopy(d.y),
-                         sig=[zeros(Float64, d.N[i]) for i in 1:d.I])
+                         sig=[zeros(Float64, d.N[i]) for i in 1:d.I],
+                         y=deepcopy(d.y))
     dicStream = MCMC.DICstream{DICparam}(tmp)
 
     function updateParams(d::MCMC.DICstream{DICparam}, param::DICparam)
       d.paramSum.p += param.p
       d.paramSum.mu += param.mu
       d.paramSum.sig += param.sig
+      d.paramSum.y += param.y
       return
     end
 
     function paramMeanCompute(d::MCMC.DICstream{DICparam})::DICparam
       return DICparam(d.paramSum.p ./ d.counter,
                       d.paramSum.mu ./ d.counter,
-                      d.paramSum.sig ./ d.counter)
+                      d.paramSum.sig ./ d.counter,
+                      d.paramSum.y ./ d.counter)
     end
 
     function loglikeDIC(param::DICparam)::Float64
@@ -93,13 +96,16 @@ function cytof5_fit(init::State, c::Constants, d::Data;
           for n in 1:d.N[i]
             y_inj_is_missing = (d.m[i][n, j] == 1)
 
+            # NOTE: Refer to `../compute_loglike.jl` for reasoning.
             if y_inj_is_missing
-              # ll += logpdf(Bernoulli(param.p[i][n, j]), d.m[i][n, j])
+
+              # Compute p(m_inj | y_inj, theta) term.
               ll += log(param.p[i][n, j])
-            else
-              ll += logpdf(Normal(param.mu[i][n, j], param.sig[i][n]),
-                           d.y[i][n, j])
             end
+
+            # Compute p(y_inj | theta) term.
+            ll += logpdf(Normal(param.mu[i][n, j], param.sig[i][n]),
+                         param.y[i][n, j])
           end
         end
       end
@@ -118,7 +124,9 @@ function cytof5_fit(init::State, c::Constants, d::Data;
       sig = [[s.lam[i][n] > 0 ? sqrt(s.sig2[i]) : std(c.noisyDist)
               for n in 1:d.N[i]] for i in 1:d.I]
 
-      return DICparam(p, mu, sig)
+      y = deepcopy(s.y_imputed)
+
+      return DICparam(p, mu, sig, y)
     end
   end
 

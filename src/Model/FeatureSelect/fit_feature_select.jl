@@ -84,20 +84,24 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
   if computeDIC
     local tmp = DICparam(p=deepcopy(d.data.y),
                          mu=deepcopy(d.data.y),
-                         sig=[zeros(Float64, d.data.N[i]) for i in 1:d.data.I])
+                         sig=[zeros(Float64, d.data.N[i]) for i in 1:d.data.I],
+                         y=deepcopy(d.data.y))
     dicStream = MCMC.DICstream{DICparam}(tmp)
 
     function updateParams(d::MCMC.DICstream{DICparam}, param::DICparam)
       d.paramSum.p += param.p
       d.paramSum.mu += param.mu
       d.paramSum.sig += param.sig
+      d.paramSum.y += param.y
+
       return
     end
 
     function paramMeanCompute(d::MCMC.DICstream{DICparam})::DICparam
       return DICparam(d.paramSum.p ./ d.counter,
                       d.paramSum.mu ./ d.counter,
-                      d.paramSum.sig ./ d.counter)
+                      d.paramSum.sig ./ d.counter,
+                      d.paramSum.y ./ d.paramSum.y)
     end
 
     function loglikeDIC(param::DICparam)::Float64
@@ -108,14 +112,16 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
           for n in 1:d.data.N[i]
             y_inj_is_missing = (d.data.m[i][n, j] == 1)
 
-            # TODO: Is it ok to do it this way, and not like the LPML way
-            # as implemented in `compute_loglike`?
+            # NOTE: Refer to `../compute_loglike.jl` for reasoning.
             if y_inj_is_missing
+
+              # Compute p(m_inj | y_inj, theta) term.
               ll += log(param.p[i][n, j])
-            else
-              ll += logpdf(Normal(param.mu[i][n, j], param.sig[i][n]),
-                           d.data.y[i][n, j])
             end
+
+            # Compute p(y_inj | theta) term.
+            ll += logpdf(Normal(param.mu[i][n, j], param.sig[i][n]),
+                         param.y[i][n, j])
           end
         end
       end
@@ -134,7 +140,9 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
 
       sig = [fill(sqrt(s.sig2[i]), d.data.N[i]) for i in 1:d.data.I]
 
-      return DICparam(p, mu, sig)
+      y = deepcopy(s.y_imputed)
+
+      return DICparam(p, mu, sig, y)
     end
   end
 
