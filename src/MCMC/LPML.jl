@@ -40,13 +40,14 @@ end
 """
 Computes (elementwise) CPO for each observation.
 """
-function computeCPO(cs::CPOstream{T}) where {T <: AbstractFloat}
-  return cs.counter ./ cs.invLikelihoodSum
+function computeLogCPO(cs::CPOstream{T}) where {T <: AbstractFloat}
+  # NOTE: Equivalent to `log(cs.counter ./ cs.invLikelihoodSum)`
+  return log(cs.counter) .- log(cs.invLikelihoodSum)
 end
 
 ### LPML ###
 function computeLPML(cs::CPOstream{T}; verbose::Int=1) where {T <: AbstractFloat}
-  mean_log_cpo = mean(log.(computeCPO(cs)))
+  mean_log_cpo = mean(computeLogCPO(cs))
   @assert isfinite(mean_log_cpo)
   return mean_log_cpo
 end
