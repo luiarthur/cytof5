@@ -108,6 +108,8 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
           for n in 1:d.data.N[i]
             y_inj_is_missing = (d.data.m[i][n, j] == 1)
 
+            # TODO: Is it ok to do it this way, and not like the LPML way
+            # as implemented in `compute_loglike`?
             if y_inj_is_missing
               ll += log(param.p[i][n, j])
             else
