@@ -94,9 +94,9 @@ end
 
 # NOTE: Used on and after test-sims-5
 @time simdat = simulatedata1(Z=Z,
-                             # N=[300, 300],  # for all but test-sims-5-8
+                             N=[300, 300],  # for all but test-sims-5-8
                              # N =[500, 500],  # for test-sims-5-8
-                             N=[1000, 1000],  # for all but test-sims-5-10
+                             # N=[1000, 1000],  # for all but test-sims-5-10
                              W=Matrix(hcat([[.7, 0, .1, .1, .1],
                                             [.4, .1, .3, .1, .1]]...)'),
                              sig2=[.5, .5],

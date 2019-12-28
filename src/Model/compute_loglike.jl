@@ -1,22 +1,26 @@
-function compute_loglike(i::Int, n::Int, j::Int, s::State, c::Constants, d::Data)::Float64
+function compute_loglike(i::Int, n::Int, j::Int,
+                         s::State, c::Constants, d::Data)::Float64
   ll = 0.0
   y_inj_is_missing = (d.m[i][n, j] == 1)
 
   if y_inj_is_missing
+    # NOTE: Don't compute p(m_inj | y_inj, theta) if y_inj is observed,
+    # because missing mechanism is fixed, and will results in a constant.
+    
+    # Compute p(m_inj | y_inj, theta) term.
     p = prob_miss(s.y_imputed[i][n, j], c.beta[:, i])
-    # Don't compute this if it's observed because missing mechanism is fixed
-    # because this will be a constant 
-    ll = log(p)
-  else # y_inj is observed
-    k = s.lam[i][n]
-    y_inj = d.y[i][n, j]
-    if k > 0 # cell is not noisy 
-      z = s.Z[j, k]
-      l = s.gam[i][n, j]
-      ll = logpdf(Normal(mus(z, l, s, c, d), sqrt(s.sig2[i])), y_inj)
-    else # cell is noisy and observed
-      ll = logpdf(c.noisyDist, y_inj)
-    end
+    ll += log(p)
+  end
+
+  # Compute p(y_inj | theta) term.
+  k = s.lam[i][n]
+  y_inj = d.y[i][n, j]
+  if k > 0  # cell is not noisy 
+    z = s.Z[j, k]
+    l = s.gam[i][n, j]
+    ll += logpdf(Normal(mus(z, l, s, c, d), sqrt(s.sig2[i])), y_inj)
+  else  # cell is noisy and observed
+    ll += logpdf(c.noisyDist, y_inj)
   end
 
   if isinf(ll)
@@ -41,7 +45,8 @@ function compute_like(i::Int, n::Int, s::State, c::Constants, d::Data)::Float64
 end
 
 
-function compute_loglike(s::State, c::Constants, d::Data; normalize::Bool=true)::Float64
+function compute_loglike(s::State, c::Constants, d::Data;
+                         normalize::Bool=true)::Float64
   ll = 0.0
 
   sumN = sum(d.N)
@@ -60,4 +65,3 @@ function compute_loglike(s::State, c::Constants, d::Data; normalize::Bool=true):
 
   return ll
 end
-
