@@ -70,14 +70,23 @@ SHELL:=/bin/bash
 # Use sample size of 1000
 # SIM_EXP_NAME = test-sims-5-10
 
-# Current experiment 
 # Using Z3, which has several similar columns
 # USing sig2_TRUE = 0.5
 # Using prior: W*_{ik} ~ Gamma(10, 1)
 # Keep 3000 samples and burn 10000 for better LPML
 # Using loglike = p(y, m | theta) which doesn't drop p(y|theta) for missing data.
 # Except for the last point, this is the same as 5-7. 
-SIM_EXP_NAME = test-sims-5-11
+# SIM_EXP_NAME = test-sims-5-11
+
+# Current experiment 
+# Using Z3, which has several similar columns
+# USing sig2_TRUE = 0.5
+# Using prior: W*_{ik} ~ Gamma(10, 1)
+# Keep 3000 samples and burn 10000 for better LPML
+# Using loglike = p(y, m | theta) which doesn't drop p(y|theta) for missing data.
+# Does for one seed (0), but 5 random MCMC seeds.
+# Except for the last point, this is the same as 5-11. 
+SIM_EXP_NAME = test-sims-5-12
 
 
 ### End of Simulation data experiment name ###
