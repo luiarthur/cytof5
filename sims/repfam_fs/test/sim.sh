@@ -23,24 +23,31 @@ STAGGER_TIME=0
 KMCMC="03 04 05 06 07 15"
 Z_idx="3"
 repfamdistscale="0 10"
-SEED=`seq 0 4`
+# SEED=`seq 0 4`  # For before 5-12
+
+# For sim 5-12
+SEED="0"  # For 5-12
+SEED_MCMC=`seq 0 4`  # For 5-12
+
 
 for seed in $SEED; do
-  for kmcmc in $KMCMC; do
-    for zidx in $Z_idx; do
-      for scale in $repfamdistscale; do
-        # Experiment name
-        EXP_NAME=KMCMC${kmcmc}/z${zidx}/scale${scale}/seed${seed}
+  for seed_mcmc in $SEED_MCMC; do
+    for kmcmc in $KMCMC; do
+      for zidx in $Z_idx; do
+        for scale in $repfamdistscale; do
+          # Experiment name
+          EXP_NAME=KMCMC${kmcmc}/z${zidx}/scale${scale}/seed${seed}/seed_mcmc${seed_mcmc}
 
-        # Dir for experiment results
-        EXP_DIR=$RESULTS_DIR/$EXP_NAME/
-        mkdir -p $EXP_DIR
-        echo $EXP_DIR
+          # Dir for experiment results
+          EXP_DIR=$RESULTS_DIR/$EXP_NAME/
+          mkdir -p $EXP_DIR
+          echo $EXP_DIR
 
-        # julia command to run
-        jlCmd="julia small_sim.jl $EXP_DIR $scale $kmcmc $zidx $seed"
+          # julia command to run
+          jlCmd="julia small_sim.jl $EXP_DIR $scale $kmcmc $zidx $seed $seed_mcmc"
 
-        engine $RESULTS_DIR $AWS_BUCKET $EXP_NAME "$jlCmd" $MAX_CORES $STAGGER_TIME
+          engine $RESULTS_DIR $AWS_BUCKET $EXP_NAME "$jlCmd" $MAX_CORES $STAGGER_TIME
+        done
       done
     done
   done

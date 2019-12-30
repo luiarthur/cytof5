@@ -17,12 +17,14 @@ if length(ARGS) == 0
   KMCMC = 5
   Z_idx = 3
   SEED = 0
+  SEED_MCMC = -1
 else
   RESULTS_DIR = ARGS[1]
   REPFAMDISTSCALE = parse(Float64, ARGS[2])
   KMCMC = parse(Int, ARGS[3])
   Z_idx = parse(Int, ARGS[4])
   SEED = parse(Int, ARGS[5])
+  SEED_MCMC = parse(Int, ARGS[6])  # -1 (no seed) for everything before sim 5-12
 end
 mkpath(RESULTS_DIR)
 USE_REPULSIVE = REPFAMDISTSCALE > 0
@@ -39,6 +41,7 @@ println("    - KMCMC: $(KMCMC)")
 println("    - Z_idx: $(Z_idx)")
 println("    - USE_REPULSIVE: $(USE_REPULSIVE)")
 println("    - SEED: $(SEED)")
+println("    - SEED_MCMC: $(SEED_MCMC)")
 flush(stdout)
 
 function sim_z_generator(phi)::Function
@@ -140,7 +143,8 @@ flush(stdout)
                                  tuners=config[:tfs], 
                                  nmcmc=MCMC_ITER,
                                  nburn=NBURN,
-                                 thins=[THIN_SAMPS, nsamps_to_thin(10, MCMC_ITER)],
+                                 thins=[THIN_SAMPS,
+                                        nsamps_to_thin(10, MCMC_ITER)],
                                  monitors=[monitor1, monitor2],
                                  computedden=true,
                                  thin_dden=nsamps_to_thin(200, MCMC_ITER),
@@ -148,7 +152,8 @@ flush(stdout)
                                  computeDIC=true, computeLPML=true,
                                  use_repulsive=USE_REPULSIVE,
                                  Z_thin=1,
-                                 flushOutput=true)
+                                 flushOutput=true, 
+                                 seed_mcmc=SEED_MCMC)
 
 # Dump output
 BSON.bson("$(RESULTS_DIR)/output.bson", out)

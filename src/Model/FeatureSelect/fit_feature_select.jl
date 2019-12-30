@@ -22,10 +22,10 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
                  joint_update_r::Bool=false,
                  _r_marg_lam_freq::Float64=1.0,
                  verbose::Int=1, time_updates::Bool=false, Z_thin::Int=0,
-                 seed=nothing)
+                 seed::Int=-1)
 
   # Set random seed if needed
-  if seed != nothing
+  if seed >= 0
     Random.seed!(seed)
   end
 
