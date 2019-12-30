@@ -153,7 +153,7 @@ flush(stdout)
                                  use_repulsive=USE_REPULSIVE,
                                  Z_thin=1,
                                  flushOutput=true, 
-                                 seed_mcmc=SEED_MCMC)
+                                 seed=SEED_MCMC)
 
 # Dump output
 BSON.bson("$(RESULTS_DIR)/output.bson", out)
