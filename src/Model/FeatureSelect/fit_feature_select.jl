@@ -21,7 +21,13 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
                  use_repulsive::Bool=true, joint_update_Z::Bool=true,
                  joint_update_r::Bool=false,
                  _r_marg_lam_freq::Float64=1.0,
-                 verbose::Int=1, time_updates::Bool=false, Z_thin::Int=0)
+                 verbose::Int=1, time_updates::Bool=false, Z_thin::Int=0,
+                 seed=nothing)
+
+  # Set random seed if needed
+  if seed != nothing
+    Random.seed!(seed)
+  end
 
   # We don't want to use noisy distribution.
   # Assert that all eps == 0
