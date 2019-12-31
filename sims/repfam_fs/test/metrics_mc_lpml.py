@@ -81,4 +81,6 @@ for i in range(num_scales):
 
 plt.legend(loc='lower right')
 plt.tight_layout()
-plt.show()
+# plt.show()
+plt.savefig('seed0_lpml_mc_error.pdf')
+plt.close()
