@@ -86,7 +86,7 @@ SHELL:=/bin/bash
 # Does for one seed (0), but 5 random MCMC seeds.
 # N=[1000, 1000]
 # Except for the last point, this is the same as 5-11. 
-SIM_EXP_NAME = test-sims-5-12
+# SIM_EXP_NAME = test-sims-5-12
 
 # Current experiment 
 # Using Z3, which has several similar columns

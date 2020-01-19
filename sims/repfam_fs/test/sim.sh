@@ -24,6 +24,7 @@ KMCMC="03 04 05 06 07 15"
 Z_idx="3"
 repfamdistscale="0 10"
 SEED=`seq 0 4`  # For before 5-12
+SEED_MCMC="0"
 
 # For sim 5-12
 # SEED="0"  # For 5-12
