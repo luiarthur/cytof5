@@ -22,4 +22,5 @@ settings = 1:8
 # TODO: change the arguments to 
 # - f::Function: A function which takes one argument of type Dict{Any}
 # - settings::Vector{Dict}): A vector of settings
-_ = pmap(Simulation.f, settings);
+
+result = pmap(Simulation.f, settings, on_error=identity);

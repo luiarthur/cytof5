@@ -121,7 +121,8 @@ def get_exp_dict(results_dir):
     # Split all the keys
     for key in all_metrics:
         path = key.replace(results_dir + '/', '')
-        kmcmc, z, scale, seed, _ = path.split('/')
+        # kmcmc, z, scale, seed, _ = path.split('/')
+        kmcmc, z, scale, seed, _, _ = path.split('/')
         kmcmc_int = int(kmcmc.replace('KMCMC', ''))
         scale_float = float(scale.replace('scale', ''))
         new_key = (z, scale_float, seed)
