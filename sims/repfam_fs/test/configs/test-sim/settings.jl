@@ -1,7 +1,19 @@
-settings = Dict(
-  :simname => "test-test"
-  :repfamdistscale => [0, 10]
-  :kmcmc => [2, 3, 4, 5, 6, 7, 15]
-  :Z_idx => 3
-  :seed_data => 1:5
-  :seed_mcmc => 0)
+simname = "test-test"
+results_dir_prefix = "results/$(simname)"
+aws_bucket_prefix = "s3://cytof-repfam/$(simname)"
+
+function results_dir(scale, kmcmc, seed_data)
+  "$(results_dir_prefix)/seed_$(seed_data)/scale_$(scale)/Kmcmc_$(kmcmc)"
+end
+
+settings = [Dict(:simname => simname,
+                 :repfamdistscale => scale,
+                 :Kmcmc => kmcmc,
+                 :seed_data => seed_data,
+                 :seed_mcmc => 0,
+                 :results_dir => results_dir(scale, kmcmc, seed_data))
+            for scale in [0, 10],
+            kmcmc in [2, 3, 4, 5, 6, 7, 15],
+            seed_data in [1:5]]
+
+settings = vec(settings)
