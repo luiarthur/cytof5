@@ -23,7 +23,7 @@ is in Constants.jl.
 function compress(state::State)
   warn_msg = "WARNING: The `compress` function has not been fully tested "
   warn_msg *= "and may result in errors!"
-  @warn warn_msg
+  println(warn_msg)
 
   if typeof(state) == State{Float32}
     return state

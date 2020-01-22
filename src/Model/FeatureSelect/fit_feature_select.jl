@@ -32,9 +32,9 @@ function fit_fs!(init::StateFS, c::ConstantsFS, d::DataFS;
   # We don't want to use noisy distribution.
   # Assert that all eps == 0
   if any(init.theta.eps .!= 0)
-    msg = "`init.theta.eps`: $(init.theta.eps) contains non-zeros values! "
+    msg = "WARNING: `init.theta.eps`: $(init.theta.eps) contains non-zeros values! "
     msg *= "Setting all eps to 0!"
-    @warn msg
+    println(msg)
 
     # Set eps == 0
     init.theta.eps .= 0
