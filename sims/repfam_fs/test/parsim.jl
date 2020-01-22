@@ -6,7 +6,11 @@
 using Distributed
 
 # NOTE: Change this.
-SIMDIR = "configs/test-sim"
+if length(ARGS) == 0
+  SIMDIR = "configs/test-sim"
+else
+  SIMDIR = ARGS[1]
+end
 
 function setnumcores(n::Int)
   children_procs = filter(w -> w > 1, workers())

@@ -88,16 +88,28 @@ SHELL:=/bin/bash
 # Except for the last point, this is the same as 5-11. 
 # SIM_EXP_NAME = test-sims-5-12
 
-# Current experiment 
 # Using Z3, which has several similar columns
 # USing sig2_TRUE = 0.5
 # Using prior: W*_{ik} ~ Gamma(10, 1)
 # Keep 3000 samples and burn 10000 for better LPML
 # Using loglike = p(y, m | theta) which doesn't drop p(y|theta) for missing data.
-SIM_EXP_NAME = test-sims-6-1
+# SIM_EXP_NAME = test-sims-6-1
+
+# Current experiment 
+# with Z4 (J=20)
+# N=[300, 300]
+SIM_EXP_NAME = test-sims-6-2
+
+# Next experiment 
+# with Z4 (J=20)
+# N=[1000, 1000]
+# SIM_EXP_NAME = test-sims-6-3
 
 
 ### End of Simulation data experiment name ###
+
+# Simulation settings dir
+SIM_CONFIG_DIR = configs/$(SIM_EXP_NAME)
 
 # Simulation results dir
 SIM_RESULTS_DIR = results/$(SIM_EXP_NAME)
@@ -108,7 +120,8 @@ SIM_AWS_BUCKET = s3://cytof-repfam/$(SIM_EXP_NAME)
 
 ### Sim Make cmds ###
 sim:
-	bash sim.sh $(SIM_RESULTS_DIR)/ $(SIM_AWS_BUCKET)
+	# bash sim.sh $(SIM_RESULTS_DIR)/ $(SIM_AWS_BUCKET)
+	julia parsim.jl $(SIM_CONFIG_DIR)
 
 cleansim:
 	rm -rf $(SIM_RESULTS_DIR)/*
