@@ -5,7 +5,10 @@
 
 using Distributed
 
-include("../Util/Util.jl")
+# NOTE: Change these
+SIMDIR = "configs/test-sim"
+
+@everywhere include("../Util/Util.jl")
 
 function setnumcores(n::Int)
   children_procs = filter(w -> w > 1, workers())
@@ -14,22 +17,27 @@ function setnumcores(n::Int)
 end
 
 # NOTE: read this from configs/test-sim-x-y.jl
-include("configs/test-sim/settings.jl")
+include("$(SIMDIR)/settings.jl")
 settings = Settings.settings
 ncores = min(20, length(settings))  # use at most 20 cores on server
 setnumcores(ncores)
 
 # NOTE: change this
-# @everywhere include("configs/test_thing.jl")
-@everywhere include("configs/test-sim/simfunc.jl")
+path_to_simfn = "$(SIMDIR)/simfn.jl"
+@everywhere include(path_to_simfn)
 
-function simfunc(setting)
-  Util.redirect_all(Simulation.f, "settings[:results]/log")
+@everywhere function simfn(setting)
+  results_dir = setting[:results_dir]
+  mkpath(results_dir)
+  println("Running $(results_dir)")
+  flush(stdout)
+  Util.redirect_all("$(results_dir)/log") do
+    Sim.simfn(setting)
+  end
 end
 
-# TODO: change the arguments to 
+# NOTE:
 # - f::Function: A function which takes one argument of type Dict{Any}
 # - settings::Vector{Dict}): A vector of settings
-
-result = pmap(, settings, on_error=identity);
+result = pmap(simfn, settings, on_error=identity);
 println(result)

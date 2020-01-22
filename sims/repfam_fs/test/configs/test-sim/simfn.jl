@@ -9,9 +9,10 @@ using BSON
 include("../../simulatedata.jl")
 include("../../../Util/Util.jl")
 
-function simfunc(settings::Dict{Symbol, Any})
+function simfn(settings::Dict{Symbol, Any})
   println("pid: $(getpid())")
   println("Threads: $(Threads.nthreads())")
+  println("pwd: $(pwd())")
   flush(stdout)
 
   println("settings:")
@@ -20,6 +21,7 @@ function simfunc(settings::Dict{Symbol, Any})
   # Results dir / aws bucket
   results_dir = settings[:results_dir]
   aws_bucket = settings[:aws_bucket]
+  mkpath(results_dir)
 
   function sim_z_generator(phi)::Function
     # larger phi -> higher similarity -> higher penalty
@@ -116,9 +118,12 @@ function simfunc(settings::Dict{Symbol, Any})
   BSON.bson("$(results_dir)/output.bson", out)
   BSON.bson("$(results_dir)/simdat.bson", Dict(:simdat => config[:simdat]))
 
-  # TODO: send to s3?
+  # TODO: send to S3
   Util.s3sync(results_dir, aws_bucket, "--exclude '*.nfs'")
-  run(`rm -rf $(results_dir)/*`)
+
+  # Remove results to save space
+  rm(results_dir, recursive=true)
+
   println("Completed!")
-end  # simfunc
+end  # simfn
 end  # module Sim
