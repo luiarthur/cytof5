@@ -26,7 +26,7 @@ end
 ```
 """
 function redirect_all(f::Function, path::String)
-  redirect_all("$(path).out", "$(path).err") do
+  redirect_all("$(path)-out.txt", "$(path)-err.txt") do
     f()
   end
 end

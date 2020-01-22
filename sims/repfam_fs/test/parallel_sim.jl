@@ -5,10 +5,8 @@
 
 using Distributed
 
-# NOTE: Change these
+# NOTE: Change this.
 SIMDIR = "configs/test-sim"
-
-@everywhere include("../Util/Util.jl")
 
 function setnumcores(n::Int)
   children_procs = filter(w -> w > 1, workers())
@@ -16,24 +14,35 @@ function setnumcores(n::Int)
   addprocs(n)
 end
 
-# NOTE: read this from configs/test-sim-x-y.jl
+# NOTE: read configs
 include("$(SIMDIR)/settings.jl")
 settings = Settings.settings
 ncores = min(20, length(settings))  # use at most 20 cores on server
 setnumcores(ncores)
 
-# NOTE: change this
-path_to_simfn = "$(SIMDIR)/simfn.jl"
-@everywhere include(path_to_simfn)
+@everywhere SIMDIR = $SIMDIR
+@everywhere include("../Util/Util.jl")
+@everywhere include("$(SIMDIR)/simfn.jl")
 
 @everywhere function simfn(setting)
   results_dir = setting[:results_dir]
+  aws_bucket = setting[:aws_bucket]
   mkpath(results_dir)
+
   println("Running $(results_dir)")
   flush(stdout)
+
   Util.redirect_all("$(results_dir)/log") do
     Sim.simfn(setting)
   end
+
+  # Send to S3.
+  Util.s3sync(results_dir, aws_bucket, `--exclude '*.nfs'`)
+
+  # Remove results to save space.
+  rm(results_dir, recursive=true)
+
+  return
 end
 
 # NOTE:

@@ -18,9 +18,8 @@ function simfn(settings::Dict{Symbol, Any})
   println("settings:")
   println(settings)
 
-  # Results dir / aws bucket
+  # Results dir
   results_dir = settings[:results_dir]
-  aws_bucket = settings[:aws_bucket]
   mkpath(results_dir)
 
   function sim_z_generator(phi)::Function
@@ -117,12 +116,6 @@ function simfn(settings::Dict{Symbol, Any})
   # Dump output
   BSON.bson("$(results_dir)/output.bson", out)
   BSON.bson("$(results_dir)/simdat.bson", Dict(:simdat => config[:simdat]))
-
-  # TODO: send to S3
-  Util.s3sync(results_dir, aws_bucket, "--exclude '*.nfs'")
-
-  # Remove results to save space
-  rm(results_dir, recursive=true)
 
   println("Completed!")
 end  # simfn
