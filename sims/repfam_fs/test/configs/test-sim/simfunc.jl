@@ -7,7 +7,7 @@ using Distributions
 using BSON
 
 include("../../simulatedata.jl")
-include("../Util.jl")
+include("../../../Util/Util.jl")
 
 function simfunc(settings::Dict{Symbol, Any})
   println("pid: $(getpid())")
@@ -117,7 +117,8 @@ function simfunc(settings::Dict{Symbol, Any})
   BSON.bson("$(results_dir)/simdat.bson", Dict(:simdat => config[:simdat]))
 
   # TODO: send to s3?
-  run(`aws s3 sync $(results_dir) $(aws_bucket) --exclude '*.nfs'`)
+  Util.s3sync(results_dir, aws_bucket, "--exclude '*.nfs'")
+  run(`rm -rf $(results_dir)/*`)
   println("Completed!")
 end  # simfunc
 end  # module Sim

@@ -1,5 +1,7 @@
-simname = "test-test"
-results_dir_prefix = "results/$(simname)"
+module Settings
+# NOTE: Modify these things!
+simname = "test-sim"
+results_dir_prefix = "results/$(simname)" # relative to `parallel_sim.jl`
 aws_bucket_prefix = "s3://cytof-repfam/$(simname)"
 
 function results_dir(scale, kmcmc, seed_data)
@@ -17,3 +19,4 @@ settings = [Dict(:simname => simname,
             seed_data in [1:5]]
 
 settings = vec(settings)
+end
