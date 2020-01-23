@@ -117,11 +117,11 @@ SIM_RESULTS_DIR = results/$(SIM_EXP_NAME)
 # Sim AWS bukceT
 SIM_AWS_BUCKET = s3://cytof-repfam/$(SIM_EXP_NAME)
 
-
 ### Sim Make cmds ###
 sim:
-	# bash sim.sh $(SIM_RESULTS_DIR)/ $(SIM_AWS_BUCKET)
-	julia parsim.jl $(SIM_CONFIG_DIR)
+	@# bash sim.sh $(SIM_RESULTS_DIR)/ $(SIM_AWS_BUCKET)
+	@echo "Printing results to results/$(SIM_EXP_NAME)-master-log.txt"
+	julia parsim.jl $(SIM_CONFIG_DIR) &> results/$(SIM_EXP_NAME)-master-log.txt &
 
 cleansim:
 	rm -rf $(SIM_RESULTS_DIR)/*
