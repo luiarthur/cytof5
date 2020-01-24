@@ -1,6 +1,6 @@
-import Pkg; Pkg.activate("../../")  # sims
-
 using Cytof5
+
+import Pkg; Pkg.activate("../../")  # sims
 using Random
 using Distributions
 using DelimitedFiles

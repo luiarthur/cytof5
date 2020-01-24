@@ -7,8 +7,9 @@ using Distributed
 
 # NOTE: These libs have to be imported in
 #       main process and worker processes.
+using Cytof5  # This is in dev mode
 import Pkg; Pkg.activate("../../")  # sims
-using Cytof5, Random, Distributions, BSON
+using Random, Distributions, BSON
 
 
 # NOTE: Change this.
@@ -68,3 +69,4 @@ end
 println("Starting jobs ..."); flush(stdout)
 result = pmap(sim, settings, on_error=identity);
 println(result)
+println("DONE with all runs!")

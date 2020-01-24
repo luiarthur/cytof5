@@ -98,15 +98,15 @@ SHELL:=/bin/bash
 # Current experiment 
 # with Z4 (J=20)
 # N=[300, 300]
-SIM_EXP_NAME = test-sims-6-2
+# SIM_EXP_NAME = test-sims-6-2
 
 # Next experiment 
 # with Z4 (J=20)
 # N=[1000, 1000]
-# SIM_EXP_NAME = test-sims-6-3
+SIM_EXP_NAME = test-sims-6-3
 
 # TODO: REMOVE ME
-SIM_EXP_NAME = test-sim
+# SIM_EXP_NAME = test-sim
 
 ### End of Simulation data experiment name ###
 
@@ -127,7 +127,7 @@ sim:
 	@# bash sim.sh $(SIM_RESULTS_DIR)/ $(SIM_AWS_BUCKET)
 	@echo "Printing results to results/$(SIM_EXP_NAME)-master-log.txt"
 	julia parsim.jl $(SIM_CONFIG_DIR) $(SIM_RESULTS_DIR) $(SIM_AWS_BUCKET) \
-		&> results/$(SIM_EXP_NAME)-master-log.txt 
+		&> results/$(SIM_EXP_NAME)-master-log.txt &
 
 cleansim:
 	rm -rf $(SIM_RESULTS_DIR)/*
