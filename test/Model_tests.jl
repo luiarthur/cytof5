@@ -1,5 +1,6 @@
 #=
 using Revise, Test
+import Pkg; Pkg.activate("../"); Pkg.instantiate()
 =#
 using Cytof5
 using Random
@@ -202,7 +203,8 @@ end
   printstyled("Test Model Fitting...\n", color=:yellow)
   @time out, lastState, ll, metrics, dden=Cytof5.Model.cytof5_fit(
     init, c, y_dat,
-    nmcmc=200, nburn=200,
+    # nmcmc=200, nburn=200,
+    nmcmc=20, nburn=20,
     computeLPML=true,
     computeDIC=true,
     computedden=true,
