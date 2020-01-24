@@ -105,14 +105,19 @@ SIM_EXP_NAME = test-sims-6-2
 # N=[1000, 1000]
 # SIM_EXP_NAME = test-sims-6-3
 
+# TODO: REMOVE ME
+SIM_EXP_NAME = test-sim 
 
 ### End of Simulation data experiment name ###
 
 # Simulation settings dir
 SIM_CONFIG_DIR = configs/$(SIM_EXP_NAME)
 
+# Scratch directory
+SCRATCH_DIR = /scratchdata/$(USER)/cytof/results/repfam/test-sims/
+
 # Simulation results dir
-SIM_RESULTS_DIR = results/$(SIM_EXP_NAME)
+SIM_RESULTS_DIR = $(SCRATCH_DIR)/$(SIM_EXP_NAME)
 
 # Sim AWS bukceT
 SIM_AWS_BUCKET = s3://cytof-repfam/$(SIM_EXP_NAME)
