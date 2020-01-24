@@ -14,7 +14,9 @@ function simfn(settings::Dict{Symbol, Any})
   flush(stdout)
 
   println("settings:")
-  println(settings)
+  for (k, v) in settings
+    println("$k => $v")
+  end
 
   # Results dir
   results_dir = settings[:results_dir]
