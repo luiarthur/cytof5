@@ -7,6 +7,7 @@ using Distributed
 
 # NOTE: These libs have to be imported in
 #       main process and worker processes.
+println("Loading packages. This may take a few minutes ..."); flush(stdout)
 using Cytof5  # This is in dev mode
 import Pkg; Pkg.activate("../../")  # sims
 using Random, Distributions, BSON
