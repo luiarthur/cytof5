@@ -1,6 +1,5 @@
 module Sim
 
-using Revise
 using Cytof5
 using Random
 using Distributions
