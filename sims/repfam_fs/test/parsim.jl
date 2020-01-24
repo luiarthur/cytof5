@@ -4,7 +4,7 @@
 # - Put all config.jl in sim-config/
 
 #= Use Cytof5 environment for reproducibility
-import Pkg; Pkg.activate("../../../"); Pkg.instantiate()
+import Pkg; Pkg.activate("../../../")
 =#
 
 using Distributed

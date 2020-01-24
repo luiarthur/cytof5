@@ -2,7 +2,6 @@ println("pid: $(getpid())")
 println("Threads: $(Threads.nthreads())")
 flush(stdout)
 
-using Revise
 using Cytof5
 using Random
 using Distributions
