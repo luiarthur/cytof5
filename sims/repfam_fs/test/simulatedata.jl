@@ -33,10 +33,16 @@ Z3 = let
 end
 
 
+# NOTE: Is it ok that some markers are always expressed
+#       and some markers are never expressed? These would be 
+#       removed from the analysis.
+# TODO: Come up with something better.
 Z4 = let
   J, K = size(Z3)
-  new_row = Z3[end, :]'
-  [Z3; vcat([new_row for _ in 1:(20 - J)]...)]
+  num_new_rows = 20 - J
+  new_block = zeros(Int, num_new_rows, K)
+  new_block[1:div(num_new_rows, 2), :] .= 1
+  [Z3; new_block]
 end
 
 # All Zs.
