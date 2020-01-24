@@ -1,9 +1,7 @@
-module Sim
-
-using Cytof5
-using Random
-using Distributions
-using BSON
+# NOTE: These libs have to be imported in
+#       main process and worker processes.
+import Pkg; Pkg.activate("../../")  # sims
+using Cytof5, Random, Distributions, BSON
 
 include("../../simulatedata.jl")
 include("../../../Util/Util.jl")
@@ -118,4 +116,3 @@ function simfn(settings::Dict{Symbol, Any})
 
   println("Completed!")
 end  # simfn
-end  # module Sim

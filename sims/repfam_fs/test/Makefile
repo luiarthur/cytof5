@@ -106,7 +106,7 @@ SIM_EXP_NAME = test-sims-6-2
 # SIM_EXP_NAME = test-sims-6-3
 
 # TODO: REMOVE ME
-SIM_EXP_NAME = test-sim 
+SIM_EXP_NAME = test-sim
 
 ### End of Simulation data experiment name ###
 
@@ -114,7 +114,7 @@ SIM_EXP_NAME = test-sim
 SIM_CONFIG_DIR = configs/$(SIM_EXP_NAME)
 
 # Scratch directory
-SCRATCH_DIR = /scratchdata/$(USER)/cytof/results/repfam/test-sims/
+SCRATCH_DIR = /scratchdata/$(USER)/cytof/results/repfam
 
 # Simulation results dir
 SIM_RESULTS_DIR = $(SCRATCH_DIR)/$(SIM_EXP_NAME)
@@ -126,7 +126,8 @@ SIM_AWS_BUCKET = s3://cytof-repfam/$(SIM_EXP_NAME)
 sim:
 	@# bash sim.sh $(SIM_RESULTS_DIR)/ $(SIM_AWS_BUCKET)
 	@echo "Printing results to results/$(SIM_EXP_NAME)-master-log.txt"
-	julia parsim.jl $(SIM_CONFIG_DIR) &> results/$(SIM_EXP_NAME)-master-log.txt &
+	julia parsim.jl $(SIM_CONFIG_DIR) $(SIM_RESULTS_DIR) $(SIM_AWS_BUCKET) \
+		&> results/$(SIM_EXP_NAME)-master-log.txt 
 
 cleansim:
 	rm -rf $(SIM_RESULTS_DIR)/*

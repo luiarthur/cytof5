@@ -1,3 +1,5 @@
+import Pkg; Pkg.activate("../../")  # sims
+
 using Cytof5
 using Random
 using Distributions
