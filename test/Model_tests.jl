@@ -1,6 +1,5 @@
 #=
-using Revise, Test
-import Pkg; Pkg.activate("../"); Pkg.instantiate()
+using Test; import Pkg; Pkg.activate("../")
 =#
 using Cytof5
 using Random
