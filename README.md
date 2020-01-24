@@ -1,6 +1,18 @@
 # cytof5
 Cytof Model Implementation 5
 
+## Virtual environment
+The examples in this package should be run in the same environment as the
+package. The package environment can be emulated via a virtual environment 
+(like in python). This is done in julia as follows:
+
+```julia
+import Pkg
+Pkg.activate("path/to/Cytof5/")  # activate package
+Pkg.instantiate()  # start virtual env
+# Pkg.build()  # may be needed to build dependencies
+```
+
 ## System requirements
 - [julia v1.0.0][3]
 
