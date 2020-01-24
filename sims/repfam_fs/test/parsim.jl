@@ -1,7 +1,11 @@
 # TODO: Make a parallel simulation file.
 # - Call with 
-# julia  parallel_runner.jl  config.jl  aws_sim_bucket  sim_results_dir
+# julia  parsim.jl  <path-to-config>
 # - Put all config.jl in sim-config/
+
+#= Use Cytof5 environment for reproducibility
+import Pkg; Pkg.activate("../../../"); Pkg.instantiate()
+=#
 
 using Distributed
 
