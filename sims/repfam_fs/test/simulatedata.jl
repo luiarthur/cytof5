@@ -33,15 +33,18 @@ Z3 = let
 end
 
 
-# NOTE: Is it ok that some markers are always expressed
-#       and some markers are never expressed? These would be 
-#       removed from the analysis.
-# TODO: Come up with something better.
+"""
+Z4 is a binary matrix where the first two columns are similar
+(off by one bit), and the other three columns are very different
+from every other column in the matrix. The three columns 
+are more similar to one another.
+"""
 Z4 = let
   J, K = size(Z3)
   num_new_rows = 20 - J
-  new_block = zeros(Int, num_new_rows, K)
-  new_block[1:div(num_new_rows, 2), :] .= 1
+  new_block = zeros(Bool, num_new_rows, K)
+  new_block[1:div(num_new_rows, 2), 1:2] .= 1
+  new_block[(div(num_new_rows, 2) + 1):end, 3:end] .= 1
   [Z3; new_block]
 end
 
