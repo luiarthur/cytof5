@@ -2,6 +2,8 @@ println("Loading Libraries onto main node ...")
 include("post_process_imports.jl")
 println("Finished loading Libraries onto main node ...")
 
+using Distributed
+
 @everywhere include("post_process_defs.jl")
 include("../Util/Util.jl")
 
