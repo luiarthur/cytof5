@@ -1,5 +1,8 @@
-println("Loading Libraries...")
-include("post_process_defs.jl")
+println("Loading Libraries onto main node ...")
+include("post_process_imports.jl")
+println("Finished loading Libraries onto main node ...")
+
+@everywhere include("post_process_defs.jl")
 include("../Util/Util.jl")
 
 if length(ARGS) > 0
@@ -11,23 +14,28 @@ else
 end
 
 # Collecting paths to output
-paths_to_output = String[]
-for (root, dirs, files) in walkdir(RESULTS_DIR)
-  if "output.bson" in files
-    append!(paths_to_output, ["$(root)/output.bson"])
-  end
-end
+paths_to_output = ["$(root)/output.bson"
+                   for (root, dirs, files) in walkdir(RESULTS_DIR)
+                   if "output.bson" in files]
 
 # Post processing
 println("Doing post processing...")
-for path_to_output in paths_to_output
+@everywhere function makegraph(path_to_output)
   println("Processing: $(path_to_output)")
   pathdir = getpath(path_to_output)
   path_to_simdat = "$(pathdir)/simdat.bson"
   post_process(path_to_output, path_to_simdat=path_to_simdat)
 end
 
+println("Make graphs in parallel ...")
+success = pmap(paths_to_output, on_error=identity)
+
+println("Send results to S3 ...")
 Util.s3sync(RESULTS_DIR, AWS_SIM_BUCKET)
+
+println("Success / Failure status: ")
+println(success)
+
 println("DONE!")
 
 #= TEST
