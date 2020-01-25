@@ -140,8 +140,7 @@ retrieveallsim:
 	aws s3 sync $(SIM_AWS_BUCKET) $(SIM_RESULTS_DIR)
 
 postprocsim:
-	julia post_process.jl $(SIM_RESULTS_DIR) $(SIM_AWS_BUCKET) \
-		&> results/$(SIM_EXP_NAME)-plots-master-log.txt &
+	julia post_process.jl $(SIM_RESULTS_DIR) $(SIM_AWS_BUCKET)
 
 sendsim:
 	aws s3 sync $(SIM_RESULTS_DIR) $(SIM_AWS_BUCKET) --exclude '*.nfs*'
