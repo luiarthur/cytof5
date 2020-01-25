@@ -6,7 +6,9 @@
 # files simultaneously, causing strage errors.
 using Cytof5
 
-import Pkg; Pkg.activate("../../")  # sims
+import Pkg
+Pkg.activate("../../")  # sims
+
 using Random
 using Distributions
 using DelimitedFiles
