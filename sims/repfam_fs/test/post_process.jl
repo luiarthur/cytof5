@@ -23,7 +23,7 @@ paths_to_output = ["$(root)/output.bson"
 
 # Post processing
 println("Doing post processing...")
-@everywhere function makegraph(path_to_output)
+@everywhere function makeplots(path_to_output)
   println("Processing: $(path_to_output)")
   pathdir = getpath(path_to_output)
   path_to_simdat = "$(pathdir)/simdat.bson"
@@ -31,7 +31,7 @@ println("Doing post processing...")
 end
 
 println("Make graphs in parallel ...")
-success = pmap(paths_to_output, on_error=identity)
+success = pmap(makeplots, paths_to_output, on_error=identity)
 
 println("Send results to S3 ...")
 Util.s3sync(RESULTS_DIR, AWS_SIM_BUCKET)
