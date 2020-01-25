@@ -1,5 +1,5 @@
 # Simulation Name
-simname = basename(pwd())  # NOTE: modify
+simname = basename(pwd())
 
 # NOTE: write to scratchdir
 function outdir_suffix(scale, kmcmc, seed_data)
