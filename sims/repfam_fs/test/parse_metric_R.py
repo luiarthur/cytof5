@@ -86,6 +86,7 @@ if __name__ == '__main__':
             plt.xlim([Kmcmcs.min() - 1, Kmcmcs.max() + 1])
             plt.ylim([Rmin - .5, Rmax + .5])
             plt.ylabel('R_{}'.format(sample_id + 1))
+            plt.legend(loc='lower right', title='scale')
             if sample_id == 0:
                 plt.title('seed: {}'.format(seed))
             if sample_id == unique_sample_ids[-1]:

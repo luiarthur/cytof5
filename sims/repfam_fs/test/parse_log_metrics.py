@@ -109,6 +109,7 @@ if __name__ == '__main__':
             plt.xlabel('Kmcmc')
             plt.ylabel(metric)
             plt.title('seed: {}'.format(seed))
+            plt.legend(loc='lower right', title='scale')
 
             # NOTE: save images
             out_dir = '{}/seed_{}'.format(metrics_dir, int(seed))
