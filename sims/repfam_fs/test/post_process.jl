@@ -31,13 +31,20 @@ println("Doing post processing...")
 end
 
 println("Make graphs in parallel ...")
-success = pmap(makeplots, paths_to_output, on_error=identity)
+status = pmap(makeplots, paths_to_output, on_error=identity)
 
 println("Send results to S3 ...")
 Util.s3sync(RESULTS_DIR, AWS_SIM_BUCKET)
 
 println("Success / Failure status: ")
-println(success)
+simsucceeded(x) = (x == nothing)
+simfailed(x) = !simsucceeded(x)
+numsuccess = count(simsucceeded, status)
+println("Number of simulations successfully processed: $(numsuccess)")
+failures_indices = findall(simfailed, status)
+println("Simulations unsuccessfully processed:")
+foreach(i -> println(paths_to_output[i]), failures_indices)
+
 
 println("DONE!")
 
