@@ -69,22 +69,30 @@ if __name__ == '__main__':
 
     unique_sample_ids = sorted(Rs_df.sample_id.unique())
     num_samples = len(unique_sample_ids)
+    unique_scales = sorted(Rs_df.scale.unique())
 
     for seed in sorted(Rs_df.seed.unique()):
         plt.figure()
         for sample_id in unique_sample_ids:
             df = Rs_df[(Rs_df.seed == seed) & (Rs_df.sample_id == sample_id)]
             df = df.sort_values('Kmcmc')
-            df = df.pivot(index='Kmcmc',  columns='scale', values='Mean')
+
             ax = plt.subplot(num_samples, 1, sample_id + 1)
-            df.plot(marker='o', ax=ax)
-            # TODO: UQ?
-            Kmcmcs = df[0].keys().astype(int)
-            Rmax = df.to_numpy().max()
-            Rmin = df.to_numpy().min()
+            for scale in unique_scales:
+                df_scale = df[df.scale == scale]
+                plt.plot(df_scale.Kmcmc, df_scale.Mean, marker='o')
+                # UQ
+                plt.fill_between(df_scale.Kmcmc,
+                                 df_scale.p_02_5,
+                                 df_scale.p_97_5, alpha=.7,
+                                 label=scale)
+
+            Kmcmcs = df_scale.Kmcmc.astype(int)
+            Rmax = df.p_97_5.to_numpy().max()
+            Rmin = df.p_02_5.to_numpy().min()
             plt.xticks(Kmcmcs)
             plt.xlim([Kmcmcs.min() - 1, Kmcmcs.max() + 1])
-            plt.ylim([Rmin - .5, Rmax + .5])
+            plt.ylim([0, Rmax + .5])
             plt.ylabel('R_{}'.format(sample_id + 1))
             plt.legend(loc='lower right', title='scale')
             if sample_id == 0:
