@@ -32,7 +32,8 @@ def add_gridlines_Z(Z):
 
 
 def plot_y(yi, wi_mean, lami_est, fs_lab=10, fs_cbar=10, lw=3,
-           cm=blue2red.cm(6), vlim=(-3, 3), fs_xlab=10, fs_ylab=10):
+           cm=blue2red.cm(6), vlim=(-3, 3), fs_xlab=10, fs_ylab=10,
+           markernames=[]):
     J = yi.shape[1]
     vmin, vmax = vlim
 
@@ -44,7 +45,10 @@ def plot_y(yi, wi_mean, lami_est, fs_lab=10, fs_cbar=10, lw=3,
     for c in counts_cumsum[:-1]:
         plt.axhline(c, color='yellow', linewidth=lw)
     plt.xticks(rotation=90)
-    plt.xticks(np.arange(J), np.arange(J) + 1, fontsize=fs_xlab)
+    if len(markernames) == 0:
+        plt.xticks(np.arange(J), np.arange(J) + 1, fontsize=fs_xlab)
+    else:
+        plt.xticks(np.arange(J), markernames, fontsize=fs_xlab)
     plt.yticks(fontsize=fs_ylab)
     plt.xlabel("markers", fontsize=fs_lab)
     plt.ylabel("cells", fontsize=fs_lab)
@@ -74,10 +78,10 @@ def plot_Z_only(Z, fs=10, xlab=None, ylab=None, rotate_xticks=True,
   
 
 def plot_Z(Z_mean, wi_mean, lami_est, w_thresh=.01,
-           cm_greys = plt.cm.get_cmap('Greys', 5), fs_lab=10,
+           cm_greys=plt.cm.get_cmap('Greys', 5), fs_lab=10,
            add_colorbar=True, fs_cbar=10, fs_w=10, fs_celltypes=10,
-           xlab="markers", ylab="cell phenotypes (abundance)",
-           fs_markers=10, w_digits=1):
+           xlab="markers", ylab="cell subpopulations (abundance)",
+           markernames=[], fs_markers=10, w_digits=1):
 
     J = Z_mean.shape[0]
     k_ord = wi_mean.argsort()
@@ -104,7 +108,10 @@ def plot_Z(Z_mean, wi_mean, lami_est, w_thresh=.01,
     plt.yticks(np.arange(len(z_cols)), labels, fontsize=fs_celltypes)
     add_gridlines_Z(Z_hat)
     plt.xticks(rotation=90, fontsize=fs_markers)
-    plt.xticks(np.arange(J), np.arange(J) + 1)
+    if len(markernames) == 0:
+        plt.xticks(np.arange(J), np.arange(J) + 1)
+    else:
+        plt.xticks(np.arange(J), markernames)
 
     # add wi_mean on right side
     # K = z_cols.shape[0]
@@ -123,7 +130,7 @@ def plot_Z(Z_mean, wi_mean, lami_est, w_thresh=.01,
 
 
 def plot_yz(yi, Z_mean, wi_mean, lami_est, w_thresh=.01,
-            cm_greys = plt.cm.get_cmap('Greys', 5),
+            cm_greys = plt.cm.get_cmap('Greys', 5), markernames=[],
             cm_y=blue2red.cm(6), vlim_y=(-3, 3), fs_w=10, w_digits=1):
     J = yi.shape[1]
 
@@ -145,7 +152,10 @@ def plot_yz(yi, Z_mean, wi_mean, lami_est, w_thresh=.01,
     for c in counts_cumsum[:-1]:
         plt.axhline(c, color='yellow')
     plt.xticks(rotation=90)
-    plt.xticks(np.arange(J), np.arange(J) + 1)
+    if len(markernames) == 0:
+        plt.xticks(np.arange(J), np.arange(J) + 1)
+    else:
+        plt.xticks(np.arange(J), markernames)
 
     ax = plt.gca()
     ax_divider = make_axes_locatable(ax)
