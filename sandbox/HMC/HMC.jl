@@ -75,7 +75,7 @@ function hmc_update(curr_state::S, log_prob::Function,
   for i in 1:num_leapfrog_steps
     # Make a full step for the position
     for (q, p) in zip(qs, ps)
-      Flux.Tracker.update!(q, eps * Tracker.data(p))
+      Flux.Tracker.update!(q, eps * p)
     end
 
     # Make a full step for the momentum, except at end of trajectory

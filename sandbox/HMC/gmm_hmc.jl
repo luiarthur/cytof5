@@ -30,7 +30,7 @@ State(K::Int) = State(param(randn(K)),  # mu
                       param(randn(K)),  # sig
                       param(randn(K - 1)))  # stickbreak_w
 
-function sim_data(; N=100, mu=[-1, 1], sig=[.1, .3], w=[.3, .7], seed=missing)
+function sim_data(; N=100, mu=[-2, 3], sig=[.2, .4], w=[.2, .8], seed=missing)
   if !ismissing(seed)
     Random.seed!(seed)
   end
@@ -49,7 +49,7 @@ end
 ### MAIN ###
 
 # Simulate data
-simdat = sim_data(N=50)
+simdat = sim_data(N=300)
 N = length(simdat[:y])
 K = 2
 
@@ -66,8 +66,8 @@ function logpost(s::State)
         log.(w))
   ll = sum(ADVI.logsumexp(ll, dims=2))
 
-  lp = (sum(ADVI.compute_lpdf(Normal(0, 1), mu)) +
-        sum(ADVI.compute_lpdf(LogNormal(0, .1), sig)) +
+  lp = (sum(ADVI.compute_lpdf(Normal(0, 3), mu)) +
+        sum(ADVI.compute_lpdf(LogNormal(0, 1), sig)) +
         sum(ADVI.compute_lpdf(Dirichlet(K, K), w)))
 
   lpabsjacobian = (sum(s.log_sig) +
@@ -107,8 +107,8 @@ end
 _ = simulate(state, nburn=1, nsamps=1, num_leapfrog_steps=1, eps=.1, kappa=.7)
 
 # Simulate
-@time out = simulate(state, nburn=500, nsamps=100,
-                     num_leapfrog_steps=2^1, eps=.1)
+@time out = simulate(state, nburn=500, nsamps=300,
+                     num_leapfrog_steps=2^3, eps=1/N)
 
 # FIXME: runs. but can't get correct answer...
 println(simdat[:mu], simdat[:sig], simdat[:w])
