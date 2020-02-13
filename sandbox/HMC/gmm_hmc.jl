@@ -108,7 +108,7 @@ _ = simulate(state, nburn=1, nsamps=1, num_leapfrog_steps=1, eps=.1, kappa=.7)
 
 # Simulate
 @time out = simulate(state, nburn=500, nsamps=300,
-                     num_leapfrog_steps=2^3, eps=1/N)
+                     num_leapfrog_steps=2^5, eps=1/N)
 
 # FIXME: runs. but can't get correct answer...
 println(simdat[:mu], simdat[:sig], simdat[:w])
