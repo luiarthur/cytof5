@@ -1,8 +1,10 @@
+import scipy
 import pystan
 import numpy as np
 import os
 import pickle
 import matplotlib.pyplot as plt
+import torch.distributions as dist
 
 model_name = 'mix'
 
@@ -23,12 +25,14 @@ np.random.seed(0)
 
 # Simulate data
 N = 500
-y = np.random.randn(N) * .3 + 2
-K = 5
+mu_true = 2
+sig_true = .3
+y = np.random.randn(N) * sig_true + mu_true
 
 # Fit STAN model (NUTS)
-data = dict(N=N, K=K, y=y, alpha=np.ones(K) / K,
-            m_mu=0, s_mu=.1, m_sig=1, s_sig=.5)
+Kmcmc = 3
+data = dict(N=N, K=Kmcmc, y=y, alpha=np.ones(Kmcmc) / Kmcmc,
+            m_mu=0, s_mu=1, m_sig=1, s_sig=.5)
 fit = sm.sampling(data=data, iter=1000, chains=1, seed=0)
 
 # Extract samples 
@@ -36,14 +40,41 @@ samples = fit.extract()
 
 # Plot
 plt.figure()
-plt.subplot(3, 1, 1)
+plt.subplot(2, 2, 1)
 plt.boxplot(samples['w'])
 plt.title('w')
-plt.subplot(3, 1, 2)
+
+plt.subplot(2, 2, 2)
 plt.boxplot(samples['mu'])
 plt.title('mu')
-plt.subplot(3, 1, 3)
+
+plt.subplot(2, 2, 3)
 plt.boxplot(samples['sig'])
 plt.title('sigma')
+
+plt.subplot(2, 2, 4)
+plt.plot(samples['lp__'])
+plt.title('log posterior')
+
 plt.tight_layout()
+plt.show()
+
+# Function to compute log likelihood
+def loglike(mu, sig, w):
+    return (dist.Normal(torch.from_numpy(mu), torch.from_numpy(sig[:, None]))
+            .log_prob(torch.from_numpy(y[:, None])) +
+            torch.from_numpy(w).log()).logsumexp(1)
+
+# Compute log likelihood
+ll_post = loglike(samples['mu'], samples['sig'], samples['w']).numpy()
+ll_true = (dist.Normal(mu_true, sig_true)
+           .log_prob(torch.from_numpy(y)).mean().numpy())
+
+# Plot log likelihood
+plt.plot(ll_post,
+         label='log likelihood: {}'.format(ll_post.mean().round(4)))
+plt.axhline(ll_true,
+            label='truth: {}'.format(ll_true.round(4)),
+            color='orange', lw=3)
+plt.legend()
 plt.show()
