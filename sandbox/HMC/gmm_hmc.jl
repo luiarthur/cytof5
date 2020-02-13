@@ -90,3 +90,5 @@ _ = HMC.hmc_update(state, logpost, num_leapfrog_steps, eps)
 
 
 end # module GmmHmcTest
+
+# Maybe try this in python???
