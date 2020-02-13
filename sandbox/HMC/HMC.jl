@@ -67,22 +67,32 @@ function hmc_update(curr_state::S, log_prob::Function,
   # Make a half step for momentum at the beginning
   gs = grad_U(qs)
   for (q, p) in zip(qs, ps)
-    p .-= eps * Tracker.data(gs[q]) / 2.0
+    # p .-= eps * Tracker.data(gs[q]) / 2.0
+    Flux.Tracker.update!(p, -eps * gs[q] / 2)
   end
 
   # Alternate full steps for position and momentum
   for i in 1:num_leapfrog_steps
     # Make a full step for the position
     for (q, p) in zip(qs, ps)
-      Flux.Tracker.update!(q, eps .* p)
+      Flux.Tracker.update!(q, eps * Tracker.data(p))
     end
 
     # Make a full step for the momentum, except at end of trajectory
-    fac = (i == num_leapfrog_steps ? 1.5 : 1.0)
-    gs = grad_U(qs)
-    for (q, p) in zip(qs, ps)
-      p .-= eps * Tracker.data(gs[q]) * fac
+    if i < num_leapfrog_steps
+      gs = grad_U(qs)
+      for (q, p) in zip(qs, ps)
+        # p .-= eps * Tracker.data(gs[q])
+        Flux.Tracker.update!(p, -eps * gs[q])
+      end
     end
+  end
+
+  # Make a half step for momentum at the end
+  gs = grad_U(qs)
+  for (q, p) in zip(qs, ps)
+    # p .-= eps * Tracker.data(gs[q]) / 2.0 
+    Flux.Tracker.update!(p, -eps * gs[q] / 2)
   end
 
   # Proposed potential energy
