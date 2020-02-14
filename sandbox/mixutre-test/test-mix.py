@@ -4,6 +4,7 @@ import numpy as np
 import os
 import pickle
 import matplotlib.pyplot as plt
+import torch
 import torch.distributions as dist
 
 model_name = 'mix'
