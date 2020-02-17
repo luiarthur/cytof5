@@ -13,6 +13,7 @@ using RCall
 
 eye(T, n::Int) = Matrix{T}(LinearAlgebra.I, n, n)
 eye(n::Int) = Matrix{Float64}(LinearAlgebra.I, n, n)
+prettymat(X) = begin show(stdout, "text/plain", X); println(); end
 
 struct MX
   x
@@ -91,9 +92,11 @@ acceptance_rate = (length(unique(log_prob_hist)) - 1) / length(log_prob_hist)
 println("acceptance rate: $(acceptance_rate)")
 
 # Plot
+post_x = Matrix(hcat([Tracker.data(s.x) for s in samps]...)')
+prettymat(cor(mvn))
+prettymat(cor(post_x))
+
 rgraphics.plot(log_prob_hist, xlab="iteration", ylab="log pdf",
                main="trace", typ="l");
-post_x = Matrix(hcat([Tracker.data(s.x) for s in samps]...)')
 rcommon.plotPosts(post_x[:, 1:3]);
-cor(mvn)
-cor(post_x)
+
