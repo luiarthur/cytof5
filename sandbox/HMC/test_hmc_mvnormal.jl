@@ -1,6 +1,4 @@
-#=
-using Revise
-=#
+import Pkg; Pkg.activate("../../")  # Cytof5
 
 # See 4.1.1 of http://www.stat.columbia.edu/~gelman/research/published/nuts.pdf
 include("HMC.jl")
