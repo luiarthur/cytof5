@@ -21,17 +21,11 @@ end
 
 MX(K::Int) = MX(param(randn(K)))
 
-function gen_distribution(P)
-  S = rand(InverseWishart(P, eye(Float64, P)))
-  m = zeros(P)
-  return (m, S)
-end
-
 ### MAIN ###
 Random.seed!(0)
 
-easy = true  # bivariate normal
-# easy = false  # 250-variate normal
+# easy = true  # bivariate normal
+easy = false  # 250-variate normal
 
 if easy 
   K = 3
@@ -39,8 +33,10 @@ if easy
   S[1,2] = S[2,1] = -0.8
   S[1,3] = S[3,1] = 0.5
 else
+  # Sensitive to eps and num_leapfrog_steps
+  # Needs to be tuned. But works.
   K = 250
-  S = rand(InverseWishart(K, eye(K)))
+  S = rand(InverseWishart(K, 10 * eye(K)))
 end
 inv_S = inv(S)
 log_prob(s::MX) = -s.x' * inv_S * s.x / 2.0
@@ -83,8 +79,8 @@ _ = simulate(state, nburn=1, nsamps=1, num_leapfrog_steps=1, eps=.1, kappa=.7)
   # out = simulate(state, nburn=10000, nsamps=10000,
   #                num_leapfrog_steps=2^2, eps=.05)
 else
-  out = simulate(state, nburn=1000, nsamps=1000,
-                 num_leapfrog_steps=2^8, eps=.001)
+  out = simulate(state, nburn=50, nsamps=100,
+                 num_leapfrog_steps=2^11, eps=.1)
 end
 samps = out[:samps]
 log_prob_hist = out[:log_prob]
@@ -92,11 +88,23 @@ acceptance_rate = (length(unique(log_prob_hist)) - 1) / length(log_prob_hist)
 println("acceptance rate: $(acceptance_rate)")
 
 # Plot
-post_x = Matrix(hcat([Tracker.data(s.x) for s in samps]...)')
-prettymat(cor(mvn))
-prettymat(cor(post_x))
+begin
+  post_x = Matrix(hcat([Tracker.data(s.x) for s in samps]...)')
+  Ksub = clamp(K, 0, 5)
+  println("TRUE cov:")
+  prettymat(cov(mvn)[1:Ksub, 1:Ksub])
+  println("EST. cov:")
+  prettymat(cov(post_x)[1:Ksub, 1:Ksub])
+  println()
 
-rgraphics.plot(log_prob_hist, xlab="iteration", ylab="log pdf",
-               main="trace", typ="l");
-rcommon.plotPosts(post_x[:, 1:3]);
+  # println("TRUE cor:")
+  # prettymat(cor(mvn)[1:Ksub, 1:Ksub])
+  # println("EST. cor:")
+  # prettymat(cor(post_x)[1:Ksub, 1:Ksub])
 
+  # rgraphics.plot(log_prob_hist, xlab="iteration", ylab="log pdf",
+  #                main="trace", typ="l");
+  # rcommon.plotPosts(post_x[:, 1:Ksub]);
+
+  nothing
+end
