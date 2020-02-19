@@ -84,6 +84,11 @@ else
 end
 samps = out[:samps]
 log_prob_hist = out[:log_prob]
+# NOTE: From BDA3 (p.303-304), we want the acceptance rate
+# to be around 65%. If the acceptance rate is much greater than 65% (too
+# cautious), then increase eps and decrease L (so that product of eps and L 
+# is still 1.) Otherwise, if the acceptance rate is much less than 65%
+# (too aggressive), then decrease eps and increase L.
 acceptance_rate = (length(unique(log_prob_hist)) - 1) / length(log_prob_hist)
 println("acceptance rate: $(acceptance_rate)")
 

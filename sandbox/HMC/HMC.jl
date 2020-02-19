@@ -44,6 +44,8 @@ https://arxiv.org/pdf/1206.1901.pdf
 function hmc_update(curr_state::S, log_prob::Function,
                     num_leapfrog_steps::Int, eps::Float64;
                     momentum_sd::Real=1) where S
+  # TODO: Add an invM argument. See BDA3 p. 301 - 302.
+
   state = deepcopy(curr_state)
 
   # Get tracked parameters
