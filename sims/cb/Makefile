@@ -6,7 +6,8 @@
 # Current run name
 DIR_CB_RUN = cb-paper
 # Current run dir
-RESULTS_DIR_CB_RUN = results/$(DIR_CB_RUN)/
+# RESULTS_DIR_CB_RUN = results/$(DIR_CB_RUN)/
+RESULTS_DIR_CB_RUN = $(SCRATCH_DIR)/cytof/results/$(DIR_CB_RUN)/
 # Current AWS bucket
 AWS_BUCKET_CB_RUN = s3://cytof-cb-results/$(subst _,-,$(DIR_CB_RUN))
 
@@ -71,6 +72,10 @@ AWS_BUCKET_CB_PREPROCESSED = s3://cytof-cb-results/cb-preprocessed
 # RESULTS_DIR_CB_RUN5 = "results/$(DIR_CB_RUN5)/"
 # AWS_BUCKET_CB_RUN5 = "s3://cytof-cb-results/cb-preprocessed-fixed-quadmiss-lpml-rmbadrows-lamzero"
 # }}}1
+
+revisions-multiple-runs:
+	mkdir -p $(RESULTS_DIR_CB_RUN)
+	bash revisions-multiple-runs.sh  $(RESULTS_DIR_CB_RUN)/  $(AWS_BUCKET_CB_RUN)
 
 repFamTest:
 	./run $(RESULTS_DIR_CB_RUN) $(AWS_BUCKET_CB_RUN) --repFAM
