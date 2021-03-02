@@ -34,7 +34,7 @@ SMARTINIT="true"
 YQUANTILES="0.0 .25 .5"
 
 
-for seed in `seq ${SEED}`; do
+for seed in ${SEED}; do
   # Experiment name
   EXP_NAME="revision_K_MCMC${K_MCMC}_seed${seed}"
 
