@@ -1,3 +1,4 @@
+import Pkg; Pkg.activate("../../")
 println("pid: $(getpid())"); flush(stdout)
 
 println("Loading packages...") 
