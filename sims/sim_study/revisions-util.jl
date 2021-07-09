@@ -3,19 +3,23 @@ using BSON
 
 include("salso/salso.jl")
 
-function bytes2float64(byte::Vector{UInt8})
+function frombytes(byte::Vector{UInt8}, T)
     n = length(byte)
     @assert mod(n, 8) == 0
     counter = 1
-    out = Float64[]
+    out = T[]
     while counter < n
         idx = counter:counter+7
-        x = reinterpret(Float64, byte[idx])
+        x = reinterpret(T, byte[idx])
         append!(out, x)
         counter += 8
     end
     return out
 end
+
+bytes2int8(byte::Vector{UInt8}) = frombytes(byte, Int8)
+bytes2int64(byte::Vector{UInt8}) = frombytes(byte, Int64)
+bytes2float64(byte::Vector{UInt8}) = frombytes(byte, Float64)
 
 function get_Z_lam(path)
     results = BSON.parse(path)
@@ -63,4 +67,24 @@ function write_summary(outdir, summary)
             writedlm(io, summary.W[i])
         end
     end
+end
+
+function get_data(path; I=3)
+    data = BSON.parse(path)
+    y = [let
+             yvec = bytes2float64(data[:simdat][:y][i][:data])
+             size = data[:simdat][:y][i][:size]
+             reshape(yvec, size...)
+         end for i in 1:I]
+
+    y_complete = [let
+             yvec = bytes2float64(data[:simdat][:y_complete][i][:data])
+             size = data[:simdat][:y_complete][i][:size]
+             reshape(yvec, size...)
+         end for i in 1:I]
+
+    lam = [bytes2int64(data[:simdat][:lam][i][:data])
+           for i in 1:I]
+
+    return (y=y, y_complete=y_complete, lam=lam)
 end
